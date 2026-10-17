@@ -175,7 +175,7 @@ Qualquer leitura em que API, Redis, PostgreSQL ou um balanceador próprio pareç
 - Escolher a fonte do GeoJSON e o contrato mínimo que o normalizador vai emitir.
 - Decidir o destino operacional dos logs quando o coletor sair da máquina local.
 
-A tabela detalhada está em [dados/README.md](dados/README.md). A ordem de infraestrutura está em [infraestrutura/README.md](infraestrutura/README.md). A sequência de desenvolvimento, com dependências e critérios de saída, está em [planejamento/README.md](planejamento/README.md).
+A tabela detalhada está em [dados/README.md](dados/README.md). A ordem de infraestrutura está em [infraestrutura/README.md](infraestrutura/README.md). A sequência de desenvolvimento, com dependências e marcos, está em [planejamento/plano-mestre.md](planejamento/plano-mestre.md).
 
 ## Padrões de engenharia
 
@@ -183,11 +183,11 @@ O guia para o código novo está em [padroes/README.md](padroes/README.md). Ele 
 
 ## Planejamento
 
-A sequência executável está em [planejamento/README.md](planejamento/README.md). O catálogo das etapas e o estado de cada uma estão em [planejamento/etapas/README.md](planejamento/etapas/README.md). O prompt que deve gerar os documentos individuais está em [planejamento/prompts/gerar-documentacao-das-etapas.md](planejamento/prompts/gerar-documentacao-das-etapas.md). Esse prompt não foi executado. Os arquivos de etapa ainda não existem.
+A porta de entrada é [planejamento/README.md](planejamento/README.md). A sequência, as dependências e os marcos estão em [planejamento/plano-mestre.md](planejamento/plano-mestre.md). O catálogo das etapas e o estado de cada uma estão em [planejamento/etapas/README.md](planejamento/etapas/README.md), com links para os 16 planos individuais, escritos em 17 de outubro de 2026. Decisões e riscos estão em [planejamento/decisoes-e-riscos.md](planejamento/decisoes-e-riscos.md). A execução de uma etapa usa [planejamento/prompts/executar-etapa.md](planejamento/prompts/executar-etapa.md). O prompt anterior de geração dos planos ficou como histórico e não é mais pré-requisito.
 
 A ordem numerada de [infraestrutura/README.md](infraestrutura/README.md) e as seis etapas de [collector/README.md](collector/README.md) continuam válidas como visão daqueles documentos. O planejamento as decompõe em ET-00 a ET-15. A arquitetura não muda.
 
-Este apontamento foi escrito em 15 de outubro de 2026, a partir dos documentos e dos arquivos então presentes. A conferência de código citada no início deste contexto continua sendo a de 14 de outubro de 2026. A sessão de planejamento não reexecutou build, lint nem testes.
+Este apontamento foi atualizado em 17 de outubro de 2026, a partir dos documentos e dos arquivos então presentes. Planos detalhados não são implementação: nenhuma etapa foi iniciada. A conferência de código citada no início deste contexto continua sendo a de 14 de outubro de 2026. A sessão de planejamento não reexecutou build, lint nem testes.
 
 ## Índice
 

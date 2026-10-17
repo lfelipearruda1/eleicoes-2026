@@ -1,0 +1,93 @@
+# Rastreabilidade
+
+[Planejamento](README.md) · [Plano mestre](plano-mestre.md) · [Catálogo das etapas](etapas/README.md) · [Decisões e riscos](decisoes-e-riscos.md)
+
+Cada requisito aponta para as tarefas que o atendem e para as validações que provam o atendimento. Uma validação listada aqui ainda não foi executada: o estado de execução fica no [catálogo](etapas/README.md) e nas evidências de cada etapa.
+
+Os requisitos `PL-REQ-001` a `PL-REQ-012` já existiam na versão anterior do planejamento (seção I de [README.md](README.md), commit `cb42977`) e mantêm o número. `PL-REQ-013` em diante foram criados nesta revisão para cobrir lacunas.
+
+## Requisitos de produto e de sistema
+
+| Requisito | Fonte | Etapa | Tarefa | Validação | Evidência esperada |
+| --- | --- | --- | --- | --- | --- |
+| PL-REQ-001. Visão presidencial nacional pelo agregado oficial, nunca por contagem de UFs | [contexto.md](../contexto.md), [web/README.md](../web/README.md) | ET-02, ET-03, ET-06, ET-11 | ET-02-T06, ET-03-T05, ET-06-T05, ET-11-T05 | ET-03-V04, ET-06-V13, ET-11-V14 | Teste com fixtures em que o líder nacional difere da maioria das UFs; painel mostra os valores do arquivo Brasil |
+| PL-REQ-002. Resultado presidencial por UF, incluindo DF | [contexto.md](../contexto.md), [web/README.md](../web/README.md) | ET-01, ET-02, ET-03, ET-06, ET-11 | ET-01-T05, ET-02-T01, ET-03-T05, ET-06-T06, ET-11-T03 | ET-01-V04, ET-03-V04, ET-06-V05, ET-11-V01, ET-11-V03 | Amostra de UF identificada; normalização conferida à mão; seleção cobre as 27 unidades do contrato |
+| PL-REQ-003. Governador só onde a disputa foi oficialmente confirmada | [contexto.md](../contexto.md), [dados/README.md](../dados/README.md) | ET-01, ET-03, ET-06, ET-11, ET-14 | ET-01-T03, ET-03-T08, ET-06-T06, ET-11-T06, ET-14-T04 | ET-01-V06, ET-03-V15, ET-06-V09, ET-11-V06, ET-14-V05 | Lista de disputas lida do EA11 vigente; UF sem disputa mostra explicação; reconfirmação antes da abertura |
+| PL-REQ-004. Mapa com seleção de UF e caminho textual equivalente | [web/README.md](../web/README.md) | ET-11 | ET-11-T01, ET-11-T02, ET-11-T03 | ET-11-V01, ET-11-V02, ET-11-V03 | Geometria com licença; seleção por mapa e lista compartilhada |
+| PL-REQ-005. Atualização periódica sem novo build do frontend | [arquitetura/README.md](../arquitetura/README.md) | ET-05, ET-06, ET-08, ET-11 | ET-05-T10, ET-06-T07, ET-08-T09, ET-11-T07 | ET-05-V09, ET-06-V11, ET-08-V08, ET-11-V07 | Versão nova aparece na tela com o mesmo build, local e em homologação |
+| PL-REQ-006. Carregamento, ausência, falha e desatualização distintos; ausência não é zero | [web/README.md](../web/README.md), SEC-001 | ET-02, ET-03, ET-06, ET-11 | ET-02-T02, ET-03-T08, ET-06-T04, ET-06-T05, ET-11-T09 | ET-02-V03, ET-03-V10, ET-06-V07, ET-06-V08, ET-11-V09 | Testes separados por estado; fixture zerada e fixture ausente produzem estados diferentes |
+| PL-REQ-007. Liderança parcial não é eleição confirmada | [contexto.md](../contexto.md), [web/README.md](../web/README.md) | ET-02, ET-03, ET-06, ET-11 | ET-02-T05, ET-03-T07, ET-06-T05, ET-11-T05, ET-11-T02 | ET-03-V08, ET-11-V05, ET-11-V14 | Contrato sem campo de vencedor calculado; painel e legenda do mapa indicam parcialidade |
+| PL-REQ-008. O navegador não consulta o TSE | [seguranca/README.md](../seguranca/README.md), WEB-005 | ET-06, ET-08 | ET-06-T03, ET-06-T10, ET-08-T09 | ET-06-V12, ET-08-V12 | Busca no bundle sem host do TSE; aba de rede só com nossos domínios |
+| PL-REQ-009. O coletor não atende visitas | [arquitetura/README.md](../arquitetura/README.md) | ET-09, ET-10 | ET-09-T03, ET-10-T03, ET-10-T11 | ET-09-V12, ET-10-V11 | Imagem sem porta; nenhuma porta da instância responde de fora |
+| PL-REQ-010. Um publicador ativo e preservação do último snapshot válido | COL-003, COL-005, SEC-007 | ET-04, ET-05, ET-08, ET-10 | ET-04-T10, ET-05-T06, ET-05-T07, ET-08-T05, ET-10-T07 | ET-04-V14, ET-05-V01, ET-05-V03, ET-08-V05, ET-10-V08 | Falha no meio da escrita mantém o manifesto anterior em disco e no R2; credencial do computador recusada após a troca |
+| PL-REQ-011. Oficial e simulado separados | [dados/README.md](../dados/README.md), SEC-007 | ET-01, ET-04, ET-05, ET-06, ET-14 | ET-01-T04, ET-04-T01, ET-05-T09, ET-06-T05, ET-14-T05 | ET-01-V04, ET-04-V01, ET-05-V07, ET-06-V14, ET-14-V04 | Diretórios, prefixos e configuração recusam mistura; simulado marcado na tela; produção só com oficial |
+| PL-REQ-012. Cache distinto para manifesto e versões, eficiente | [infraestrutura/README.md](../infraestrutura/README.md), PERF-006 | ET-02, ET-07, ET-08, ET-13 | ET-02-T07, ET-07-T08, ET-08-T08, ET-13-T05 | ET-07-V05, ET-07-V06, ET-08-V06, ET-13-V05 | Status de cache lido por tipo; query arbitrária não cria variante; pico ao R2 medido na troca de versão |
+| PL-REQ-013. Correção de votos, percentuais e status | [dados/README.md](../dados/README.md) | ET-01, ET-02, ET-03, ET-14 | ET-01-T06, ET-01-T08, ET-02-T03, ET-02-T04, ET-02-T05, ET-03-T04, ET-03-T06, ET-03-T07, ET-14-T08 | ET-01-V03, ET-01-V08, ET-02-V09, ET-03-V05, ET-03-V06, ET-03-V07, ET-03-V08, ET-14-V09 | Matriz com evidência por campo; comparação com referência oficial; testes de número e status |
+| PL-REQ-014. Atualidade: três horários e aviso de desatualização | DA-12, [web/README.md](../web/README.md) | ET-02, ET-04, ET-06, ET-10, ET-11, ET-12 | ET-02-T01, ET-02-T12, ET-04-T07, ET-06-T04, ET-10-T08, ET-11-T09, ET-12-T06 | ET-02-V08, ET-04-V11, ET-06-V07, ET-10-V07, ET-11-V09, ET-12-V06 | Contrato com horários distintos; alerta de atraso disparado em ensaio; aviso visível acima do limiar |
+| PL-REQ-015. Separação de ambientes local, homologação e produção | [infraestrutura/README.md](../infraestrutura/README.md), SEC-006 | ET-07, ET-08, ET-10, ET-12, ET-14 | ET-07-T10, ET-08-T02, ET-10-T05, ET-12-T03, ET-14-T03 | ET-07-V07, ET-08-V01, ET-08-V09, ET-10-V04, ET-12-V04, ET-14-V03 | Credencial de cada ambiente recusada nos outros; configuração recusa combinação cruzada |
+| PL-REQ-016. Nenhum segredo no frontend, na imagem, no Git, em logs ou no CI | SEC-006, WEB-006 | ET-04, ET-06, ET-07, ET-08, ET-09, ET-12, ET-13 | ET-04-T12, ET-06-T10, ET-07-T13, ET-08-T03, ET-09-T04, ET-12-T02, ET-13-T07 | ET-04-V16, ET-06-V12, ET-07-V11, ET-08-V02, ET-09-V04, ET-12-V03, ET-12-V10, ET-13-V06 | Token de fixture ausente de toda saída; buscas no bundle, imagem e logs sem achado |
+| PL-REQ-017. Restrição das origens consultadas pelo coletor e disciplina com a origem | SEC-003, COL-004, [dados/README.md](../dados/README.md) | ET-01, ET-04, ET-13 | ET-01-T02, ET-04-T03, ET-04-T04, ET-04-T15, ET-13-T02 | ET-01-V02, ET-01-V05, ET-04-V02, ET-04-V03, ET-04-V08, ET-04-V09, ET-04-V21, ET-13-V02 | Allowlist com testes de recusa; requisições contadas; parada em bloqueio; carga nunca aponta ao TSE |
+| PL-REQ-018. Controle de concorrência no coletor e no navegador | COL-003, TS-013, WEB-003 | ET-04, ET-06, ET-11 | ET-04-T06, ET-04-T10, ET-06-T07, ET-11-T07, ET-11-T08 | ET-04-V12, ET-04-V14, ET-06-V15, ET-11-V07, ET-11-V08 | Testes com timers falsos e respostas invertidas |
+| PL-REQ-019. Recuperação do coletor sem publicar vazio | COL-003, [collector/README.md](../collector/README.md) | ET-05, ET-09, ET-10, ET-13 | ET-05-T07, ET-09-T07, ET-10-T09, ET-13-T06 | ET-05-V03, ET-09-V07, ET-10-V05, ET-13-V08 | Interrupção e reinício em disco, container, instância e ensaio de falha, com tempos registrados |
+| PL-REQ-020. Acessibilidade e responsividade | [web/README.md](../web/README.md), WEB-006 | ET-06, ET-11 | ET-06-T06, ET-11-T02, ET-11-T03, ET-11-T10 | ET-11-V02, ET-11-V03, ET-11-V10, ET-11-V11 | Seleção por teclado; seleção não só por cor; checklist com leitor de tela; tela estreita |
+| PL-REQ-021. Controle de custos | [infraestrutura/README.md](../infraestrutura/README.md) | ET-07, ET-10, ET-13, ET-15 | ET-07-T01, ET-07-T12, ET-10-T01, ET-10-T12, ET-13-T08, ET-15-T06 | ET-07-V01, ET-07-V09, ET-10-V02, ET-10-V10, ET-13-V09, ET-15-V07 | Teto escrito antes de cada recurso; alertas; leitura de custo durante o ensaio; custo residual com dono |
+| PL-REQ-022. Testes automatizados reais, sem `--passWithNoTests` como prova | [testes/README.md](../testes/README.md), TEST-005, REV-001 | ET-00, ET-03, ET-06, ET-12 | ET-00-T02, ET-03-T02, ET-06-T01, ET-12-T01 | ET-00-V07, ET-03-V01, ET-06-V16, ET-12-V01, ET-12-V12 | Comando falha sem testes; CI falha com erro e com `.only` |
+| PL-REQ-023. Operação observável, alertas com ação e procedimentos ensaiados | [seguranca/README.md](../seguranca/README.md), [performance.md](../padroes/performance.md) | ET-10, ET-12, ET-14 | ET-10-T08, ET-12-T05, ET-12-T06, ET-12-T07, ET-12-T08, ET-12-T09, ET-14-T09, ET-14-T10 | ET-10-V06, ET-12-V06, ET-12-V07, ET-12-V08, ET-12-V09, ET-12-V11, ET-14-V10, ET-14-V11 | Ensaios registrados de alerta, rotação, retorno e pausa |
+| PL-REQ-024. Publicação consistente: manifesto só para conjunto completo; leitura sem mistura | COL-005, DA-06 | ET-02, ET-03, ET-04, ET-05, ET-08, ET-13 | ET-02-T10, ET-03-T03, ET-04-T08, ET-05-T04, ET-05-T05, ET-05-T08, ET-08-T01, ET-13-T05 | ET-03-V02, ET-04-V18, ET-05-V06, ET-05-V08, ET-08-V03, ET-08-V04, ET-13-V05 | Suíte de contrato do publicador nos dois destinos; zero 404 em arquivo referenciado sob tráfego |
+| PL-REQ-025. Retenção e encerramento sem perda não autorizada | [collector/README.md](../collector/README.md), DP-15, DP-31 | ET-02, ET-05, ET-15 | ET-02-T11, ET-15-T01, ET-15-T02, ET-15-T07 | ET-02-V07, ET-05-V12, ET-15-V01, ET-15-V02, ET-15-V05 | Nenhuma versão removida sem aprovação; arquivo final verificado por resumo |
+| PL-REQ-026. Cumprir as regras da origem (JWS, se exigido; artigos 264 a 269) antes da exposição | [dados/README.md](../dados/README.md), DP-06, DP-07 | ET-01, ET-07, ET-14 | ET-01-T09, ET-07-T03, ET-14-T01 | ET-01-V07, ET-07-V12, ET-14-V01 | Classificação escrita; exposição só depois das obrigações atendidas |
+| PL-REQ-027. Proteção da exposição pública: caminho alternativo desligado, escrita recusada, CORS restrito, proteção de borda | [seguranca/README.md](../seguranca/README.md) | ET-07, ET-13 | ET-07-T07, ET-07-T09, ET-07-T11, ET-13-T07 | ET-07-V03, ET-07-V08, ET-07-V10, ET-13-V07 | Pedidos de fora confirmam cada controle; WAF ensaiado com IP compartilhado |
+| PL-REQ-028. Eficiência do payload e da interface | PERF-001, PERF-002 | ET-02, ET-11, ET-13 | ET-02-T06, ET-11-T12, ET-13-T04 | ET-02-V04, ET-11-V13, ET-13-V04 | Divisão de arquivos escolhida por tamanho medido; bundle e geometria medidos; latência medida sob carga |
+
+## Regras dos guias
+
+As regras dos guias não são repetidas por tarefa. A tabela diz onde cada família é exercida e provada.
+
+| Família | Guia | Etapas em que é implementada | Validações principais |
+| --- | --- | --- | --- |
+| SEC-001 a SEC-003 (entrada, protótipo, destino) | [codigo-seguro.md](../seguranca/codigo-seguro.md) | ET-03, ET-04, ET-05 | ET-03-V05, ET-03-V12, ET-04-V02, ET-04-V05, ET-05-V04 |
+| SEC-004 (XSS) | idem | ET-06, ET-11 | ET-06-V10, ET-11-V12 |
+| SEC-006 (segredo e log) | idem | ET-04, ET-07 a ET-10, ET-12 | Ver PL-REQ-016 |
+| SEC-007 (integridade da publicação) | idem | ET-05, ET-08 | Ver PL-REQ-010 e PL-REQ-024 |
+| SEC-008 (dependência e workflow) | idem | ET-00, ET-03, ET-06 a ET-09, ET-12 | ET-09-V01, ET-12-V02, ET-12-V03 |
+| SEC-005 (acesso em API) | idem | Nenhuma: condicional à API (DA-05) | — |
+| COL-001 a COL-005 | [collector/padroes-de-desenvolvimento.md](../collector/padroes-de-desenvolvimento.md) | ET-03, ET-04, ET-05, ET-08 | ET-04-V14, ET-04-V22, ET-05-V01, ET-08-V03 |
+| WEB-001 a WEB-007 | [web/padroes-de-desenvolvimento.md](../web/padroes-de-desenvolvimento.md) | ET-06, ET-11 | ET-06-V05, ET-06-V15, ET-06-V16, ET-11-V07 |
+| PKG-001 a PKG-003 | [padroes/README.md](../padroes/README.md) | ET-00, ET-02, ET-03 | ET-00-V09, ET-02-V10, ET-03-V16 |
+| PERF-001 a PERF-003, PERF-006 | [performance.md](../padroes/performance.md) | ET-04, ET-11, ET-13 | ET-04-V13, ET-11-V13, ET-13-V04 |
+| PERF-004, PERF-005 | idem | Nenhuma: condicionais a API e banco | — |
+| TEST-001 a TEST-005 | [unitarios-aaa.md](../testes/unitarios-aaa.md) | A partir de ET-03 | Revisão de cada suíte; ET-03-V01 |
+| STYLE-009, STYLE-010, REV-004, REV-007 | [code-style-e-nomenclatura.md](../padroes/code-style-e-nomenclatura.md), [revisao-de-codigo.md](../padroes/revisao-de-codigo.md) | ET-00 (lint), ET-12 (CI), todo código novo | ET-00-V11, ET-12-V12 |
+| DATA-001 a DATA-004 | [consultas-e-transacoes.md](../dados/consultas-e-transacoes.md) | Nenhuma: condicionais a PostgreSQL | — |
+| API-001 a API-006 | [api/padroes-de-desenvolvimento.md](../api/padroes-de-desenvolvimento.md) | Nenhuma: condicionais à API | — |
+
+## Tarefas habilitadoras e de registro
+
+Estas tarefas não atendem diretamente um `PL-REQ`, mas reduzem um risco nomeado ou entregam algo de que outra tarefa depende. Nenhuma tarefa ficou sem uma dessas justificativas.
+
+| Tarefa | Justificativa |
+| --- | --- |
+| ET-00-T01, ET-00-T03, ET-00-T05 | R-18, R-17, R-21 |
+| ET-00-T04, ET-00-T07 | Convenção de evidência e estado central; base de todo status |
+| ET-00-T06 | STYLE-009 automatizado |
+| ET-01-T01, ET-01-T07, ET-01-T10, ET-01-T11 | R-01, DP-08, DP-10; passagem para ET-02 |
+| ET-02-T08, ET-02-T09, ET-02-T13 | R-19 (regressão de versão), compatibilidade de clientes, fonte única (PKG-003) |
+| ET-03-T01, ET-03-T09, ET-03-T10, ET-03-T11 | DP-18; fixtures rastreáveis; SEC-002; determinismo usado por ET-04-T07 |
+| ET-04-T02, ET-04-T05, ET-04-T09, ET-04-T11, ET-04-T13, ET-04-T14 | Contrato coleta-publicação; R-03; execução única; encerramento; integração; composição |
+| ET-05-T01, ET-05-T02, ET-05-T03, ET-05-T11, ET-05-T12 | Publicador base; SEC-003; imutabilidade; simulador; DP-20 |
+| ET-06-T02, ET-06-T08, ET-06-T09 | Configuração pública; demonstração de M2; suíte |
+| ET-07-T02, ET-07-T04, ET-07-T05, ET-07-T06, ET-07-T13 | DP-21, DP-23; recursos-base; inventário |
+| ET-08-T04, ET-08-T06, ET-08-T07, ET-08-T10 | Suíte de contrato; site de homologação; ensaio; registro |
+| ET-09-T01, ET-09-T02, ET-09-T05, ET-09-T06, ET-09-T08, ET-09-T09 | Reprodutibilidade; runtime mínimo; sinais; logs; paridade; DP-25 |
+| ET-10-T01, ET-10-T02, ET-10-T04, ET-10-T06, ET-10-T10 | DP-25; R-15; execução; prova de M4 |
+| ET-11-T04, ET-11-T11, ET-11-T13 | Navegação; SEC-004; prova de M5 |
+| ET-12-T04, ET-12-T10 | Implantação com publicador único; registro dos ensaios |
+| ET-13-T01, ET-13-T03, ET-13-T09, ET-13-T10 | DP-28; validade da medição; ajuste; R-12 |
+| ET-14-T02, ET-14-T06, ET-14-T07 | Decisões classificadas; recuperação em produção; abertura controlada |
+| ET-15-T03, ET-15-T04, ET-15-T05, ET-15-T08 | Encerramento comunicado; coleta parada; R-07; aprendizados |
+
+## Como manter esta matriz
+
+- Requisito novo recebe o próximo número livre; requisito removido fica com a marca "Retirado" e o motivo.
+- Tarefa ou validação substituída num plano é atualizada aqui na mesma mudança.
+- A verificação de que todos os IDs citados existem nos planos pode ser feita por busca textual; a revisão desta versão fez essa conferência (ver [README.md](README.md#revisão-desta-versão)).

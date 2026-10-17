@@ -1,12 +1,14 @@
 # Prompt — gerar a documentação das etapas
 
+> **Histórico, não pendência.** Em 17/10/2026 os 16 planos de etapa foram escritos diretamente em [etapas/](../etapas/README.md), com o [modelo](../modelos/plano-de-etapa.md) e o [plano mestre](../plano-mestre.md). Este prompt não foi executado e não é mais pré-requisito de nada. Os caminhos de arquivo citados abaixo para ET-00, ET-05, ET-06, ET-09 e ET-11 foram renomeados (ver [histórico do catálogo](../etapas/README.md#histórico)), e a estrutura de seções A–Q foi substituída pelas 15 seções do modelo. Para executar uma etapa, use [executar-etapa.md](executar-etapa.md). O texto original segue sem alteração para referência.
+
 Este arquivo é um prompt para uma sessão nova do Cursor. Ele pede a documentação detalhada das etapas já catalogadas. A sessão que o executar deve cumprir o pedido abaixo e parar. Não deve gerar outro prompt, não deve implementar código e não deve provisionar infraestrutura.
 
 ---
 
 Você está trabalhando no projeto eleicoes-2026, na raiz deste repositório.
 
-Sua tarefa é escrever a documentação detalhada das etapas de desenvolvimento. O plano geral e o catálogo já existem. Você transforma cada etapa selecionada num documento que permita implementá-la depois, sem reconstruir o contexto a partir da conversa.
+Sua tarefa é escrever a documentação detalhada das etapas de desenvolvimento. O plano geral e     o catálogo já existem. Você transforma cada etapa selecionada num documento que permita implementá-la depois, sem reconstruir o contexto a partir da conversa.
 
 Execute o detalhamento agora. Não crie um prompt seguinte. Não implemente funcionalidade. Não provisione Cloudflare, AWS nem qualquer recurso externo. Não faça deploy. Não execute testes de carga. Não consulte o TSE em repetição. Não leia arquivos de segredo. Não faça commit nem push.
 
