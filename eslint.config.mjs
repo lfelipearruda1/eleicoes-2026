@@ -36,5 +36,18 @@ export default defineConfig(
       globals: globals.node,
     },
   },
+  {
+    files: ['apps/**/*.{ts,tsx}', 'packages/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'IfStatement[alternate]',
+          message:
+            'STYLE-009: use guard clause em vez de else / else if (docs/padroes/code-style-e-nomenclatura.md).',
+        },
+      ],
+    },
+  },
   prettier,
 )

@@ -33,7 +33,7 @@ TypeScript 6.0.3 é a versão estável mais recente aceita por typescript-eslint
 - `packages/validation`: pacote TypeScript com Zod instalado, ainda sem schemas.
 - `docs`: reservada para a documentação.
 - `tests/load`: reservada para testes de carga.
-- `infra/cloudflare`: reservada para Cloudflare Pages, CDN e R2.
+- `infra/cloudflare`: reservada para a configuração futura de Cloudflare Workers Static Assets (site), R2 e cache (resultados). Cloudflare Pages não é destino.
 - `.github/workflows`: reservada para CI.
 
 ## Comandos
@@ -62,7 +62,7 @@ A suíte funcional ainda não existe. `pnpm test` roda o Vitest uma vez, fora do
 - Integração com o TSE, snapshots e regras eleitorais
 - Mapa, resultados e navegação
 - API, Redis e PostgreSQL
-- Cloudflare Pages, CDN e R2
+- Cloudflare Workers Static Assets, R2 e cache
 - CI, Docker e testes de carga
 
 Capacidade e resiliência ficam para etapas posteriores.

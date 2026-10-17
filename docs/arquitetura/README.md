@@ -92,7 +92,7 @@ Há um publicador ativo. Duas escritas concorrentes quebram a ordem acima. Redun
 | Sem load balancer próprio | O tráfego público não chega ao coletor | Não haverá load balancer próprio na arquitetura inicial, pois o tráfego público de leitura não será atendido pelo servidor do coletor |
 | Um publicador | Evita manifesto apontando para versão pela metade | A instância única é um ponto de falha operacional, aceito na primeira versão |
 
-Cloudflare Workers Static Assets substitui Cloudflare Pages como destino planejado de hospedagem do frontend. O README ainda cita Pages em `infra/cloudflare`. Essa frase do README está superada. API, Redis e PostgreSQL, que o README lista como adiados, continuam fora da primeira versão. Não há dois desenhos vigentes ao mesmo tempo.
+Cloudflare Workers Static Assets substitui Cloudflare Pages como destino planejado de hospedagem do frontend. O README citava Pages em `infra/cloudflare`; a frase foi corrigida em ET-00. API, Redis e PostgreSQL, que o README lista como adiados, continuam fora da primeira versão. Não há dois desenhos vigentes ao mesmo tempo.
 
 ## Limitações e pontos de falha
 

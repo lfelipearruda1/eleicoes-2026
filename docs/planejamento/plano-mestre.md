@@ -58,7 +58,7 @@ Inspeção de arquivos em 17/10/2026, somente leitura.
 
 **Não verificado nesta revisão:** sucesso atual de qualquer comando; PDFs de especificação do TSE, manual JWS e artigos 264 a 269 (registrados como não lidos em [dados/README.md](../dados/README.md)); disponibilidade atual dos hosts do TSE; qualquer recurso de nuvem (não existem).
 
-**Divergências conhecidas:** o [README da raiz](../../README.md) cita Cloudflare Pages; a decisão vigente é Workers Static Assets (DA-01), e a correção é ET-00-T05. `index.ts` × `main.ts` (COL-002) é tratado em ET-04-T14.
+**Divergências conhecidas:** o [README da raiz](../../README.md) citava Cloudflare Pages; a decisão vigente é Workers Static Assets (DA-01), e a correção foi feita em ET-00-T05. `index.ts` × `main.ts` (COL-002) é tratado em ET-04-T14.
 
 **Fato de calendário:** [dados/README.md](../dados/README.md) registra o segundo turno em 25/10/2026, oito dias depois desta revisão. Isso não é prazo do plano; é a decisão pendente DP-01 e o risco R-02.
 

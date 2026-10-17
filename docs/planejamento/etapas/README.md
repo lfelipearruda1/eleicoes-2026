@@ -31,14 +31,14 @@ Os três eixos são independentes. Detalhar um plano não inicia a implementaç�
 
 ## Estado atual
 
-Classificação de 17/10/2026, por inspeção de arquivos. Nenhum comando foi executado, nenhum recurso foi criado, nenhuma consulta ao TSE foi feita.
+Classificação de 17/10/2026, por inspeção de arquivos. Nenhum recurso foi criado e nenhuma consulta ao TSE foi feita. Na mesma data, a ET-00 foi executada localmente; as linhas ET-00, ET-01 e ET-03 foram revistas com base em [evidencias/ET-00.md](../evidencias/ET-00.md).
 
 | ID | Etapa | Plano | Marco | Dependências formais | Estado documental | Implementação | Prontidão |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-00 | Base e prontidão | [00-base-e-prontidao.md](00-base-e-prontidao.md) | M0 | — | Detalhada e pronta para execução | Não verificada: scaffold e `dist` de 14/10 existem; comandos não reexecutados; shell padrão com Node 18 | Pode iniciar |
-| ET-01 | Validação dos dados do TSE | [01-validacao-dados-tse.md](01-validacao-dados-tse.md) | M1 | ET-00 | Detalhada para investigação | Não iniciada: não há amostra nem matriz | Pode iniciar tarefas independentes: T01, T09 (leitura). Amostras esperam DP-02 e ET-00-T04 |
+| ET-00 | Base e prontidão | [00-base-e-prontidao.md](00-base-e-prontidao.md) | M0 | — | Detalhada e pronta para execução | Concluída com evidências ([ET-00.md](../evidencias/ET-00.md)): Node 24.22.0 após `nvm use`, pnpm 12.11.2, install, build, typecheck, lint, web e coletor aprovados; DP-18 → DA-17. Ressalva: `format:check` reprovado em 42 Markdown de `docs/`, decisão pendente | Concluída |
+| ET-01 | Validação dos dados do TSE | [01-validacao-dados-tse.md](01-validacao-dados-tse.md) | M1 | ET-00 | Detalhada para investigação | Não iniciada: não há amostra nem matriz | Pode iniciar tarefas independentes: T01, T09 (leitura). ET-00-T04 concluída ([ET-00.md](../evidencias/ET-00.md)); amostras esperam DP-02 |
 | ET-02 | Contrato e snapshots | [02-contrato-e-snapshots.md](02-contrato-e-snapshots.md) | M1 | ET-01 | Detalhada com bloqueios | Não iniciada: não há contrato além do conceitual | Pode iniciar tarefas independentes: T01, T02, T07 a T12 |
-| ET-03 | Validação e normalização | [03-validacao-e-normalizacao.md](03-validacao-e-normalizacao.md) | M2 | ET-02 | Detalhada com bloqueios | Não iniciada: `packages/validation/src/index.ts` exporta vazio | Não pode iniciar até resolver bloqueios: DP-18 (ET-00) e contrato de ET-02 |
+| ET-03 | Validação e normalização | [03-validacao-e-normalizacao.md](03-validacao-e-normalizacao.md) | M2 | ET-02 | Detalhada com bloqueios | Não iniciada: `packages/validation/src/index.ts` exporta vazio | Pode iniciar tarefas independentes: T01 (DP-18 resolvida por DA-17, [ET-00.md](../evidencias/ET-00.md#dp-18)). As demais esperam o contrato de ET-02 |
 | ET-04 | Collector | [04-coletor.md](04-coletor.md) | M2 | ET-03 | Detalhada com bloqueios | Não iniciada: `index.ts` só registra mensagem | Não pode iniciar até resolver bloqueios: ET-03 em andamento |
 | ET-05 | Publicação local | [05-publicacao-local.md](05-publicacao-local.md) | M2 | ET-04 | Detalhada com bloqueios | Não iniciada | Não pode iniciar até resolver bloqueios: contrato de ET-02 e schemas de ET-03 |
 | ET-06 | Web mínimo local | [06-web-minimo-local.md](06-web-minimo-local.md) | M2 | ET-05 | Detalhada com bloqueios | Não iniciada: `App.tsx` mostra só o título | Não pode iniciar até resolver bloqueios: contrato e schemas |
@@ -52,7 +52,7 @@ Classificação de 17/10/2026, por inspeção de arquivos. Nenhum comando foi ex
 | ET-14 | Entrada em produção | [14-entrada-em-producao.md](14-entrada-em-producao.md) | M7 | ET-13 | Detalhada com bloqueios | Não iniciada | Pode iniciar tarefas independentes: T01 (redação dos critérios) |
 | ET-15 | Continuidade e encerramento | [15-continuidade-e-encerramento.md](15-continuidade-e-encerramento.md) | M8 | ET-14 para executar | Detalhada com bloqueios | Não iniciada | Pode iniciar tarefas independentes: T01 (política) |
 
-**Primeira etapa elegível:** ET-00. Primeiras tarefas: ET-00-T01 (versões efetivas), ET-00-T02 (comandos), ET-00-T03 (DP-18). Em paralelo, sem conflito: ET-01-T01 e ET-01-T09 (leitura de documentos oficiais).
+**Primeira etapa elegível:** ET-01, tarefas ET-01-T01 e ET-01-T09 (leitura de documentos oficiais). ET-00 concluída em 17/10/2026. ET-03-T01 também pode começar, mas só tem efeito útil junto com a primeira importação de pacote.
 
 API, PostgreSQL, Redis, balanceador, SSE, WebSocket e filas não têm etapa neste catálogo (DA-05).
 
@@ -77,3 +77,4 @@ API, PostgreSQL, Redis, balanceador, SSE, WebSocket e filas não têm etapa nest
 | ET-11 | `11-frontend-completo.md` | `11-web-completo.md` |
 
 Os nomes das etapas também foram ajustados aos títulos dos planos (por exemplo, "Construir a primeira interface funcional" → "Web mínimo local"). O escopo de cada ID foi mantido.
+- **17/10/2026 (ET-00):** ET-00 executada e marcada como concluída com evidências; prontidão de ET-01 e ET-03 revista. Evidência: [evidencias/ET-00.md](../evidencias/ET-00.md).

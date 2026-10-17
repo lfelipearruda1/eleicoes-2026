@@ -19,18 +19,21 @@ docs/planejamento/
 ├── etapas/
 │   ├── README.md              # catálogo e ÚNICA referência de estado
 │   └── 00 … 15-*.md           # planos individuais ET-00 a ET-15
+├── evidencias/
+│   ├── README.md              # convenção de registro
+│   └── ET-XX.md               # um por etapa executada
 └── prompts/
     ├── executar-etapa.md      # prompt para executar UMA etapa
     └── gerar-documentacao-das-etapas.md  # histórico; não é mais pré-requisito
 ```
 
-`docs/planejamento/evidencias/` é proposto (ET-00-T04) e ainda não existe. Cada etapa registrará ali comandos, resultados e limitações quando for executada.
+[`evidencias/`](evidencias/README.md) foi criada em ET-00-T04. Cada etapa registra ali comandos, resultados e limitações quando é executada; a primeira é [ET-00.md](evidencias/ET-00.md).
 
 ## Como usar
 
 **Para entender o projeto:** [contexto.md](../contexto.md) → [plano-mestre.md](plano-mestre.md) → [catálogo](etapas/README.md).
 
-**Para saber o que pode começar agora:** a coluna "Prontidão" do [catálogo](etapas/README.md). Hoje a primeira etapa elegível é ET-00.
+**Para saber o que pode começar agora:** a coluna "Prontidão" do [catálogo](etapas/README.md). ET-00 foi concluída em 17/10/2026; a próxima elegível é ET-01.
 
 **Para executar uma etapa:** use [prompts/executar-etapa.md](prompts/executar-etapa.md) com o ID da etapa. O executor lê o plano, confere critérios de entrada, executa só tarefas elegíveis, registra evidências e atualiza o catálogo com base nelas.
 

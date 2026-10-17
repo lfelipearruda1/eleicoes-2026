@@ -13,7 +13,8 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    "erasableSyntaxOnly": true
+    "erasableSyntaxOnly": true,
+    "customConditions": ["source"]
   },
   "include": ["src"]
 }

@@ -24,7 +24,7 @@ Autorização explícita é exigida somente onde há impacto real de segurança,
 
 | ID | Decisão | Justificativa | Consequência | Fonte |
 | --- | --- | --- | --- | --- |
-| DA-01 | Cloudflare Workers Static Assets hospeda o frontend. Cloudflare Pages não é destino | A Cloudflare orienta projetos novos a começar com Workers | O build do Vite é publicado como assets, sem Pages Functions. O [README da raiz](../../README.md) ainda cita Pages; a menção está superada | [arquitetura/README.md](../arquitetura/README.md) |
+| DA-01 | Cloudflare Workers Static Assets hospeda o frontend. Cloudflare Pages não é destino | A Cloudflare orienta projetos novos a começar com Workers | O build do Vite é publicado como assets, sem Pages Functions. A menção a Pages no [README da raiz](../../README.md) foi corrigida em ET-00 | [arquitetura/README.md](../arquitetura/README.md) |
 | DA-02 | Leitura pública dos resultados por snapshots JSON no R2, atrás de domínio próprio com cache. `r2.dev` não é caminho público | O pico é leitura repetida do mesmo conteúdo. `r2.dev` não oferece cache nem WAF | Regras de cache para JSON precisam ser criadas. Caminho alternativo precisa ser desligado ou restrito | [infraestrutura/README.md](../infraestrutura/README.md) |
 | DA-03 | O coletor roda em EC2 com Docker, fora do caminho do visitante. Não vira Worker | Processo contínuo com saída para o TSE e para o R2 | Há uma máquina para operar; sem balanceador | [arquitetura/README.md](../arquitetura/README.md) |
 | DA-04 | Um único publicador ativo por ambiente na primeira versão | Duas escritas concorrentes quebram a ordem versão → manifesto | Instância única é ponto de falha da atualização, não da leitura | [collector/README.md](../collector/README.md) |
@@ -40,6 +40,7 @@ Autorização explícita é exigida somente onde há impacto real de segurança,
 | DA-14 | Sentry, OpenTelemetry e Grafana são previstos, sem obrigação no primeiro dia | Não montar pilha antes de haver o que observar | Log mínimo e sinal de atraso existem desde o coletor (ET-04, ET-10) | [arquitetura/README.md](../arquitetura/README.md) |
 | DA-15 | Planejamento em 16 etapas, ET-00 a ET-15, com estado centralizado no [catálogo](etapas/README.md) e o grafo de dependências do [plano mestre](plano-mestre.md#4-dependências) | Mesma ordem dos passos de infraestrutura, decomposta em entregas verificáveis | Substitui o grafo da versão anterior do planejamento; diferenças justificadas no plano mestre | Esta revisão |
 | DA-16 | Padrões de código já definidos valem para todo código novo: módulos com responsabilidade clara, SOLID sem camada artificial, guard clauses, `if` permitido, sem `else` / `else if`, testes AAA com um comportamento por teste | Definidos nos guias de `docs/padroes/` | Os planos referenciam os guias e não copiam as regras | [padroes/README.md](../padroes/README.md) |
+| DA-17 | Pacotes do workspace mantêm `dist` como saída publicada e ganham a condição de exportação `source` → `./src/index.ts`, listada antes de `types` e `import`. Os consumidores declaram `workspace:*` e pedem `source` em desenvolvimento, tipos e testes: `customConditions: ["source"]` em `apps/web/tsconfig.app.json` e `apps/collector/tsconfig.json`; `resolve.conditions: ['source', ...defaultClientConditions]` no `vite.config.ts`; `tsx --conditions=source` no `dev` do coletor; `vitest.config.ts` na raiz com `source` antes das condições padrão. O coletor compilado (`node dist/index.js`, e o container de ET-09) usa `import` → `dist`, gerado por `pnpm build`, que roda em ordem topológica. `--passWithNoTests` sai na mesma mudança do primeiro arquivo de teste (ET-03-T02) | Experimento num clone limpo (sem `dist`): com `exports` só para `dist`, `pnpm typecheck` falha (TS2307), `pnpm dev:collector` falha (ERR_MODULE_NOT_FOUND), o Vitest falha ao resolver o pacote e, depois de um build, mudança na fonte não chega ao consumidor (`dist` antigo, R-17). Com `source`: typecheck, dev, Vitest e build passam sem `dist` prévio; o Vite em dev serve a fonte do pacote e reflete a mudança; o coletor compilado roda com `dist`. Sem Turborepo, Nx nem referências de projeto | Aplicada em ET-03-T01, junto com a primeira importação; nada muda antes disso, para não alterar o lockfile sem consumidor. O pacote nunca importa app (PKG-001). Se `pnpm build` for pulado, só `start` do coletor compilado fica sujeito a `dist` antigo. Evidência: [ET-00.md](evidencias/ET-00.md#dp-18) | ET-00-T03 |
 
 ## Decisões pendentes
 
@@ -54,6 +55,7 @@ Cada pendência bloqueia apenas as tarefas listadas. Trabalho independente conti
 - **Recomendação:** nenhuma sustentada pelo repositório. Este plano não estima duração. Qualquer opção mantém os critérios dos marcos; nenhuma autoriza pular validação de integridade ou proteção básica.
 - **Tarefas bloqueadas:** prioridade e janela de ET-01-T05 e ET-01-T07; aceite de ET-14-T01.
 - **Condição para decidir:** decisão escrita do responsável pelo produto (a designar).
+- **Registro de 17/10/2026 (ET-00):** o objetivo do produto está definido pelo usuário: acompanhar o segundo turno de 2026. Isso não é bloqueio para a ET-00 nem para preparar o ambiente local. Três coisas ficam separadas: (1) **objetivo do produto** — definido; (2) **intenção de operar ao vivo** na data do segundo turno — declarada como objetivo, sem plano de escopo reduzido escolhido entre (a), (b) e (c); (3) **prontidão efetiva para produção** — não existe: nenhuma etapa de dados, publicação, nuvem ou capacidade foi executada, e nada aqui garante lançamento, capacidade ou operação. Continuam pendentes: a escolha entre as opções acima, a reconfirmação da data oficial, orçamento e o aceite escrito de ET-14-T01.
 
 ### DP-02 — Disponibilidade de amostras para ET-01
 
@@ -184,6 +186,7 @@ Cada pendência bloqueia apenas as tarefas listadas. Trabalho independente conti
 - **Opções conhecidas:** dependência `workspace:*` com build dos pacotes antes do consumidor; referências de projeto do TypeScript; condição de exportação apontando para a fonte em desenvolvimento.
 - **Tarefas bloqueadas:** ET-03-T01.
 - **Condição para decidir:** ET-00-T03.
+- **Resolvida por DA-17** em 17/10/2026 (ET-00-T03), com experimento registrado em [ET-00.md](evidencias/ET-00.md#dp-18).
 
 ### DP-19 — Ferramentas de teste de interface e ponta a ponta
 

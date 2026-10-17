@@ -54,7 +54,7 @@ Cuidado ao ligar `no-unneeded-ternary`: a sugestão de trocar um padrão de atri
 
 ### REV-004. `else` não cai sozinho em `no-else-return`
 
-**Nível:** Pendente como lint. Obrigatório como convenção em STYLE-009.
+**Nível:** Ligada como lint em ET-00 (17/10/2026): `no-restricted-syntax` com `IfStatement[alternate]` em `apps/**` e `packages/**` ([eslint.config.mjs](../../eslint.config.mjs)); validação em [ET-00.md](../planejamento/evidencias/ET-00.md). Obrigatório como convenção em STYLE-009.
 
 **Regra:** `no-else-return` acusa `else` depois de um `if` que retorna. Com o padrão `allowElseIf: true`, `else if` depois de `return` continua aceito. A página da regra mostra código com `else` considerado correto quando o `if` não retorna. Portanto a regra não implementa a proibição completa deste projeto.
 

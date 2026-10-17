@@ -163,7 +163,7 @@ Também ficam adotados:
 - Ausência inicial de Redis, PostgreSQL e de função Worker obrigatória na leitura dos JSON.
 - Sentry, OpenTelemetry e Grafana como ferramentas previstas, sem obrigação de subir essa estrutura no primeiro dia.
 
-O README ainda descreve `infra/cloudflare` como pasta reservada para Cloudflare Pages, CDN e R2, e lista Pages entre os itens adiados. CDN e R2 continuam no planejamento. A menção a Pages fica superada pela decisão acima. O README não foi alterado nesta etapa, porque a tarefa era só documentar `docs/`.
+O README associava `infra/cloudflare` a Cloudflare Pages e listava Pages entre os itens adiados. A divergência foi corrigida em ET-00 (17/10/2026): o README agora cita Workers Static Assets, R2 e cache.
 
 Qualquer leitura em que API, Redis, PostgreSQL ou um balanceador próprio pareçam obrigatórios também fica superada. O próprio README já os colocava como adiados. Eles permanecem fora da primeira versão.
 
@@ -187,7 +187,7 @@ A porta de entrada é [planejamento/README.md](planejamento/README.md). A sequê
 
 A ordem numerada de [infraestrutura/README.md](infraestrutura/README.md) e as seis etapas de [collector/README.md](collector/README.md) continuam válidas como visão daqueles documentos. O planejamento as decompõe em ET-00 a ET-15. A arquitetura não muda.
 
-Este apontamento foi atualizado em 17 de outubro de 2026, a partir dos documentos e dos arquivos então presentes. Planos detalhados não são implementação: nenhuma etapa foi iniciada. A conferência de código citada no início deste contexto continua sendo a de 14 de outubro de 2026. A sessão de planejamento não reexecutou build, lint nem testes.
+Este apontamento foi atualizado em 17 de outubro de 2026, a partir dos documentos e dos arquivos então presentes. Planos detalhados não são implementação: nenhuma etapa além da ET-00 foi iniciada. A conferência de código citada no início deste contexto continua sendo a de 14 de outubro de 2026. A sessão de planejamento não reexecutou build, lint nem testes. A ET-00 reexecutou esses comandos em 17 de outubro de 2026, com Node 24.22.0 e pnpm 12.11.2; o resultado está em [planejamento/evidencias/ET-00.md](planejamento/evidencias/ET-00.md).
 
 ## Índice
 

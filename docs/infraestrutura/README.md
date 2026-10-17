@@ -6,7 +6,7 @@ Esta página diz qual serviço faz o quê e em que ordem ele entra. Nenhum recur
 
 Os rótulos de estado estão em [contexto.md](../contexto.md). As decisões que justificam esta topologia estão em [arquitetura/README.md](../arquitetura/README.md).
 
-Cloudflare Workers Static Assets substitui Cloudflare Pages como destino planejado de hospedagem do frontend. O README ainda associa `infra/cloudflare` a Pages. Essa associação está superada. A pasta continua reservada, agora para a configuração futura de assets, R2 e cache.
+Cloudflare Workers Static Assets substitui Cloudflare Pages como destino planejado de hospedagem do frontend. O README associava `infra/cloudflare` a Pages; a associação foi corrigida em ET-00. A pasta continua reservada, agora para a configuração futura de assets, R2 e cache.
 
 Não entram por convenção S3, CloudFront, API Gateway, Kubernetes nem balanceador. A documentação da AWS cita Elastic Load Balancing, ECS e EKS como serviços que podem acompanhar o EC2. Eles não fazem parte da decisão inicial. O balanceador próprio está fora porque o público não lê resultados no coletor.
 
