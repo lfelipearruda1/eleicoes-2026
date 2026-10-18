@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-07 |
-| Componente | Cloudflare: Workers Static Assets, R2, DNS e domínios, regras de cache, regras de segurança; `infra/cloudflare/` |
-| Tipo predominante | Infraestrutura, precedida de decisões |
-| Marco | Preparação de M3 — Caminho Cloudflare validado |
+| Campo              | Conteúdo                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-07                                                                                                                                                                                                                                                                                                                                                    |
+| Componente         | Cloudflare: Workers Static Assets, R2, DNS e domínios, regras de cache, regras de segurança; `infra/cloudflare/`                                                                                                                                                                                                                                         |
+| Tipo predominante  | Infraestrutura, precedida de decisões                                                                                                                                                                                                                                                                                                                    |
+| Marco              | Preparação de M3 — Caminho Cloudflare validado                                                                                                                                                                                                                                                                                                           |
 | Resultado concreto | Existe um site de homologação servido por Workers Static Assets e um domínio de resultados ligado a um bucket R2 privado de homologação, com cache distinto para manifesto e versões, CORS restrito, acesso alternativo desligado, credencial de publicação mínima, proteção básica e alerta de custo. Tudo verificado com objetos de teste, sem coletor |
 
 ## 2. Escopo e exclusões
@@ -36,17 +36,17 @@ Base documental: [infraestrutura/README.md](../../infraestrutura/README.md) (tr�
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-06: build estático e tela de ensaio | T05 |
-| Contrato | ET-02: layout de manifesto e de versões (para as regras de cache) | T08 |
-| Decisão | DP-21 (conta, plano, domínios) | T02, T05–T13 |
-| Decisão | DP-22 (orçamento) | T05–T13 |
-| Decisão | DP-23 (ferramenta de deploy) | T05, T13 |
-| Decisão | DP-17 (TTLs) | Valores de T08; a separação das regras não espera |
-| Decisão | DP-06, DP-07 | Tornar o site e os resultados acessíveis ao público (T11) |
-| Recurso externo | Conta Cloudflare com acesso administrativo; domínio controlado pelo projeto | T05 em diante |
-| Autorização | Criação de recurso pago ou exposto publicamente | T05–T12 |
+| Tipo            | Item                                                                        | Bloqueia                                                  |
+| --------------- | --------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Implementação   | ET-06: build estático e tela de ensaio                                      | T05                                                       |
+| Contrato        | ET-02: layout de manifesto e de versões (para as regras de cache)           | T08                                                       |
+| Decisão         | DP-21 (conta, plano, domínios)                                              | T02, T05–T13                                              |
+| Decisão         | DP-22 (orçamento)                                                           | T05–T13                                                   |
+| Decisão         | DP-23 (ferramenta de deploy)                                                | T05, T13                                                  |
+| Decisão         | DP-17 (TTLs)                                                                | Valores de T08; a separação das regras não espera         |
+| Decisão         | DP-06, DP-07                                                                | Tornar o site e os resultados acessíveis ao público (T11) |
+| Recurso externo | Conta Cloudflare com acesso administrativo; domínio controlado pelo projeto | T05 em diante                                             |
+| Autorização     | Criação de recurso pago ou exposto publicamente                             | T05–T12                                                   |
 
 **Pode começar antes de ET-06:** T01, T02, T03 e T04 são decisões e leituras, sem recurso criado.
 
@@ -56,23 +56,23 @@ Base documental: [infraestrutura/README.md](../../infraestrutura/README.md) (tr�
 
 **Saídas:**
 
-| Artefato | Consumidor |
-| --- | --- |
-| Site de homologação no domínio decidido | ET-08, ET-11, ET-13 |
-| Bucket R2 de homologação privado e domínio de resultados com cache | ET-08 |
-| Credencial de publicação de homologação (fora do repositório) | ET-08 (computador), depois uma credencial distinta para ET-10 |
-| Configuração não sensível em `infra/cloudflare/` (proposto: arquivo de configuração do Worker e README de inventário) | ET-08, ET-12, ET-14 |
-| Registro de regras de cache, CORS e proteção | ET-08, ET-13, ET-14 |
+| Artefato                                                                                                              | Consumidor                                                    |
+| --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Site de homologação no domínio decidido                                                                               | ET-08, ET-11, ET-13                                           |
+| Bucket R2 de homologação privado e domínio de resultados com cache                                                    | ET-08                                                         |
+| Credencial de publicação de homologação (fora do repositório)                                                         | ET-08 (computador), depois uma credencial distinta para ET-10 |
+| Configuração não sensível em `infra/cloudflare/` (proposto: arquivo de configuração do Worker e README de inventário) | ET-08, ET-12, ET-14                                           |
+| Registro de regras de cache, CORS e proteção                                                                          | ET-08, ET-13, ET-14                                           |
 
 ## 6. Responsabilidades e fronteiras
 
-| Recurso | Responsabilidade | Não faz |
-| --- | --- | --- |
-| Workers Static Assets | Entregar os arquivos do build do web | Não executa código para servir arquivo existente; não serve os JSON de resultado |
-| R2 | Guardar manifesto e versões | Não guarda segredo, arquivo de trabalho nem log |
-| Domínio de resultados | Leitura pública com cache e proteção | Não aceita escrita pública |
-| Regras de cache | Política por tipo de objeto | Não é a mesma para manifesto e versões |
-| Credencial de publicação | Escrever no bucket do ambiente | Não lê outros buckets, não administra a conta |
+| Recurso                  | Responsabilidade                     | Não faz                                                                          |
+| ------------------------ | ------------------------------------ | -------------------------------------------------------------------------------- |
+| Workers Static Assets    | Entregar os arquivos do build do web | Não executa código para servir arquivo existente; não serve os JSON de resultado |
+| R2                       | Guardar manifesto e versões          | Não guarda segredo, arquivo de trabalho nem log                                  |
+| Domínio de resultados    | Leitura pública com cache e proteção | Não aceita escrita pública                                                       |
+| Regras de cache          | Política por tipo de objeto          | Não é a mesma para manifesto e versões                                           |
+| Credencial de publicação | Escrever no bucket do ambiente       | Não lê outros buckets, não administra a conta                                    |
 
 ## 7. Sequência de tarefas
 
@@ -325,33 +325,33 @@ Base documental: [infraestrutura/README.md](../../infraestrutura/README.md) (tr�
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-07-V01 | Decisões prévias | T01, T02 | Ler as `DA-NN` | Conta, plano, teto, destinatário e domínios escritos com data | Recurso criado sem teto ou domínio | Revisão | Documento | T01, T02 |
-| ET-07-V02 | Site no ar | T05 | Pedir o domínio do site | `index.html` do build; configuração sem script | Erro, ou script principal presente | Homologação | Homologação | T05 |
-| ET-07-V03 | Caminho alternativo | T06, T07 | Pedir o objeto de teste por `r2.dev` e por endereço direto do bucket | Recusa | Objeto entregue | Homologação | Homologação | T06, T07 |
-| ET-07-V04 | Bucket privado | Objeto de teste | Listar o bucket sem credencial | Recusa | Listagem pública | Homologação | Homologação | T06, T07 |
-| ET-07-V05 | Cache por tipo | Manifesto e arquivo de versão sintéticos | Pedir cada um duas vezes; ler o status de cache e a idade | Versão em cache após o primeiro pedido; manifesto respeitando o TTL curto | Os dois com a mesma política, ou JSON sem cache | Homologação | Homologação | T08 |
-| ET-07-V06 | Query string | Arquivo de versão em cache | Pedir com query arbitrária | Mesmo objeto, acerto de cache | Nova variante e ida ao bucket | Homologação | Homologação | T08 |
-| ET-07-V07 | Escopo da credencial | Credencial de T10; um segundo bucket de teste | Gravar no bucket certo e no outro | Primeiro aceito; segundo recusado | Escrita fora do escopo | Homologação | Homologação | T10 |
-| ET-07-V08 | CORS | Política de T09 | Pedidos com `Origin` do site, com outra origem, sem `Origin` | Cabeçalho só no primeiro | Cabeçalho para outra origem | Homologação | Homologação | T09 |
-| ET-07-V09 | Custo | T12 | Conferir a notificação ou o procedimento | Destinatário e limiar configurados | Nenhum aviso possível | Verificação operacional | Homologação | T12 |
-| ET-07-V10 | Proteção básica | T11 | PUT, POST e DELETE no domínio de resultados; ler cabeçalhos do site; conferir regras ativas | Escrita recusada; cabeçalhos presentes; regras ativas | Escrita aceita ou cabeçalho ausente | Homologação | Homologação | T11 |
-| ET-07-V11 | Repositório limpo | T04, T13 | Busca por padrões de token e ID de conta no diff | Nenhum achado | Achado | Revisão | Local | T04, T13 |
-| ET-07-V12 | Exposição autorizada | T03 | Conferir a decisão antes de divulgar o endereço | Pré-condições cumpridas ou acesso restrito ativo | Endereço público sem pré-condição | Revisão | Homologação | T03, T11 |
+| ID        | Cenário              | Preparação                                    | Ação                                                                                        | Sucesso                                                                   | Falha se                                        | Nível                   | Ambiente    | Tarefa   |
+| --------- | -------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------- | ----------------------- | ----------- | -------- |
+| ET-07-V01 | Decisões prévias     | T01, T02                                      | Ler as `DA-NN`                                                                              | Conta, plano, teto, destinatário e domínios escritos com data             | Recurso criado sem teto ou domínio              | Revisão                 | Documento   | T01, T02 |
+| ET-07-V02 | Site no ar           | T05                                           | Pedir o domínio do site                                                                     | `index.html` do build; configuração sem script                            | Erro, ou script principal presente              | Homologação             | Homologação | T05      |
+| ET-07-V03 | Caminho alternativo  | T06, T07                                      | Pedir o objeto de teste por `r2.dev` e por endereço direto do bucket                        | Recusa                                                                    | Objeto entregue                                 | Homologação             | Homologação | T06, T07 |
+| ET-07-V04 | Bucket privado       | Objeto de teste                               | Listar o bucket sem credencial                                                              | Recusa                                                                    | Listagem pública                                | Homologação             | Homologação | T06, T07 |
+| ET-07-V05 | Cache por tipo       | Manifesto e arquivo de versão sintéticos      | Pedir cada um duas vezes; ler o status de cache e a idade                                   | Versão em cache após o primeiro pedido; manifesto respeitando o TTL curto | Os dois com a mesma política, ou JSON sem cache | Homologação             | Homologação | T08      |
+| ET-07-V06 | Query string         | Arquivo de versão em cache                    | Pedir com query arbitrária                                                                  | Mesmo objeto, acerto de cache                                             | Nova variante e ida ao bucket                   | Homologação             | Homologação | T08      |
+| ET-07-V07 | Escopo da credencial | Credencial de T10; um segundo bucket de teste | Gravar no bucket certo e no outro                                                           | Primeiro aceito; segundo recusado                                         | Escrita fora do escopo                          | Homologação             | Homologação | T10      |
+| ET-07-V08 | CORS                 | Política de T09                               | Pedidos com `Origin` do site, com outra origem, sem `Origin`                                | Cabeçalho só no primeiro                                                  | Cabeçalho para outra origem                     | Homologação             | Homologação | T09      |
+| ET-07-V09 | Custo                | T12                                           | Conferir a notificação ou o procedimento                                                    | Destinatário e limiar configurados                                        | Nenhum aviso possível                           | Verificação operacional | Homologação | T12      |
+| ET-07-V10 | Proteção básica      | T11                                           | PUT, POST e DELETE no domínio de resultados; ler cabeçalhos do site; conferir regras ativas | Escrita recusada; cabeçalhos presentes; regras ativas                     | Escrita aceita ou cabeçalho ausente             | Homologação             | Homologação | T11      |
+| ET-07-V11 | Repositório limpo    | T04, T13                                      | Busca por padrões de token e ID de conta no diff                                            | Nenhum achado                                                             | Achado                                          | Revisão                 | Local       | T04, T13 |
+| ET-07-V12 | Exposição autorizada | T03                                           | Conferir a decisão antes de divulgar o endereço                                             | Pré-condições cumpridas ou acesso restrito ativo                          | Endereço público sem pré-condição               | Revisão                 | Homologação | T03, T11 |
 
 Estas validações provam a configuração com objetos de teste. Não provam a publicação do coletor nem a troca de versões sob tráfego (ET-08, ET-13).
 
 ## 11. Infraestrutura e ações externas
 
-| Recurso | Acesso necessário | Manual | Automatizável depois | Aprovação |
-| --- | --- | --- | --- | --- |
-| Projeto Workers de homologação | Deploy | Criação inicial | Deploy por workflow (ET-12-T03) | Sim |
-| Bucket R2 de homologação | Administração do R2 | Criação | — | Sim |
-| Domínio de resultados e DNS | Administração da zona | Associação | — | Sim |
-| Regras de cache e de segurança | Administração da zona | Criação | Registro como configuração versionada, se a ferramenta permitir | Sim |
-| Credencial de publicação | Criação de token | Criação e guarda | Rotação (ET-12-T07) | Sim |
-| Alerta de custo | Cobrança | Configuração | — | Sim |
+| Recurso                        | Acesso necessário     | Manual           | Automatizável depois                                            | Aprovação |
+| ------------------------------ | --------------------- | ---------------- | --------------------------------------------------------------- | --------- |
+| Projeto Workers de homologação | Deploy                | Criação inicial  | Deploy por workflow (ET-12-T03)                                 | Sim       |
+| Bucket R2 de homologação       | Administração do R2   | Criação          | —                                                               | Sim       |
+| Domínio de resultados e DNS    | Administração da zona | Associação       | —                                                               | Sim       |
+| Regras de cache e de segurança | Administração da zona | Criação          | Registro como configuração versionada, se a ferramenta permitir | Sim       |
+| Credencial de publicação       | Criação de token      | Criação e guarda | Rotação (ET-12-T07)                                             | Sim       |
+| Alerta de custo                | Cobrança              | Configuração     | —                                                               | Sim       |
 
 ## 12. Falha, reversão e recuperação
 

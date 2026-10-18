@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-09 |
-| Componente | Imagem Docker do coletor; `apps/collector` |
-| Tipo predominante | Configuração com verificação local |
-| Marco | Preparação de M4 — Coletor independente do computador |
+| Campo              | Conteúdo                                                                                                                                                                                                                                                        |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-09                                                                                                                                                                                                                                                           |
+| Componente         | Imagem Docker do coletor; `apps/collector`                                                                                                                                                                                                                      |
+| Tipo predominante  | Configuração com verificação local                                                                                                                                                                                                                              |
+| Marco              | Preparação de M4 — Coletor independente do computador                                                                                                                                                                                                           |
 | Resultado concreto | Uma imagem construída a partir do lockfile roda o JavaScript compilado do coletor, sem segredo embutido, como usuário sem privilégio, sem porta exposta; encerra limpo, reinicia e retoma sem publicar vazio. Verificado na máquina contra destinos controlados |
 
 ## 2. Escopo e exclusões
@@ -33,12 +33,12 @@ Referências: [infraestrutura/README.md](../../infraestrutura/README.md) (Docker
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-05: processo completo com publicador local e simulador | T01–T09 |
-| Implementação | ET-08: publicador R2 | Só V10 |
-| Decisão | DP-18 (resolução de pacotes) | T01, T02 |
-| Recurso externo | Docker na máquina de quem executa | Todas |
+| Tipo            | Item                                                      | Bloqueia |
+| --------------- | --------------------------------------------------------- | -------- |
+| Implementação   | ET-05: processo completo com publicador local e simulador | T01–T09  |
+| Implementação   | ET-08: publicador R2                                      | Só V10   |
+| Decisão         | DP-18 (resolução de pacotes)                              | T01, T02 |
+| Recurso externo | Docker na máquina de quem executa                         | Todas    |
 
 **Por que depende de ET-05 e não de ET-08:** o empacotamento, o encerramento e a recuperação se provam com o publicador local. A imagem é reconstruída a partir do código; quando ET-08 entregar o publicador R2, a mesma receita a inclui e V10 é executada. Isso permite trabalhar em paralelo com ET-06 a ET-08.
 
@@ -48,11 +48,11 @@ Referências: [infraestrutura/README.md](../../infraestrutura/README.md) (Docker
 
 **Saídas:**
 
-| Artefato | Consumidor |
-| --- | --- |
-| `apps/collector/Dockerfile` (proposto) e `.dockerignore` (proposto, na raiz do contexto de build) | ET-10, ET-12-T04 |
-| Procedimento de build e execução local em `apps/collector/README.md` (proposto) ou na documentação do coletor | ET-10, operação |
-| Medição de CPU, memória e tamanho | DP-25 (tipo de instância) |
+| Artefato                                                                                                      | Consumidor                |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| `apps/collector/Dockerfile` (proposto) e `.dockerignore` (proposto, na raiz do contexto de build)             | ET-10, ET-12-T04          |
+| Procedimento de build e execução local em `apps/collector/README.md` (proposto) ou na documentação do coletor | ET-10, operação           |
+| Medição de CPU, memória e tamanho                                                                             | DP-25 (tipo de instância) |
 
 ## 6. Responsabilidades e fronteiras
 
@@ -217,20 +217,20 @@ A imagem empacota; não decide regra. O processo dentro dela é o mesmo de `pnpm
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-09-V01 | Build reproduzível | Mesmo commit | Construir duas vezes; construir com lockfile alterado | Mesmas versões; build com lockfile divergente falha | Versões diferentes ou build aceita divergência | Integração | Local | T01 |
-| ET-09-V02 | Runtime mínimo | Imagem final | Listar arquivos | Só compilado, `package.json` e dependências de produção | Fonte, fixture, `.env` ou `.git` presentes | Integração | Local | T02 |
-| ET-09-V03 | Sem privilégio | Container em execução | Consultar usuário | Usuário sem privilégio | Root | Integração | Local | T03 |
-| ET-09-V04 | Sem segredo na imagem | Ensaio com token de fixture passado em execução | Inspecionar histórico, metadados e sistema de arquivos | Token ausente | Token presente | Integração | Local | T04 |
-| ET-09-V05 | Configuração ausente | Sem variáveis | Iniciar | Saída com código de configuração e mensagem sem segredo | Processo segue | Integração | Local | T04 |
-| ET-09-V06 | Parada limpa | Container em busca; em publicação (casos separados) | `docker stop` | Encerra no prazo; manifesto válido | Morto por prazo com manifesto alterado para incompleto | Integração | Local | T05 |
-| ET-09-V07 | Reinício e retomada | Política de reinício; volume com versão A | Matar o processo durante publicação de B | Volta; manifesto em A ou B completa; próxima versão publicada; nenhum vazio | Manifesto vazio ou inválido | Resiliência | Local | T07 |
-| ET-09-V08 | Logs e saída | Falha simulada | `docker logs`; código de saída | Evento visível; código documentado | Falha silenciosa | Integração | Local | T06 |
-| ET-09-V09 | Paridade local | Simulador e volume | Rodar o container | Versões iguais às do processo local | Divergência | Integração | Local | T08 |
-| ET-09-V10 | Container no R2 | ET-08 concluída | Rodar com destino de homologação | Versão nova visível no site de homologação | Não publica | Homologação | Homologação | T08 |
-| ET-09-V11 | Consumo | Janela definida | Medir | Tamanho, CPU e memória registrados | Sem registro | Verificação operacional | Local | T09 |
-| ET-09-V12 | Sem porta | Imagem | Inspecionar portas expostas e em escuta | Nenhuma | Alguma | Integração | Local | T03 |
+| ID        | Cenário               | Preparação                                          | Ação                                                   | Sucesso                                                                     | Falha se                                               | Nível                   | Ambiente    | Tarefa |
+| --------- | --------------------- | --------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------ | ----------------------- | ----------- | ------ |
+| ET-09-V01 | Build reproduzível    | Mesmo commit                                        | Construir duas vezes; construir com lockfile alterado  | Mesmas versões; build com lockfile divergente falha                         | Versões diferentes ou build aceita divergência         | Integração              | Local       | T01    |
+| ET-09-V02 | Runtime mínimo        | Imagem final                                        | Listar arquivos                                        | Só compilado, `package.json` e dependências de produção                     | Fonte, fixture, `.env` ou `.git` presentes             | Integração              | Local       | T02    |
+| ET-09-V03 | Sem privilégio        | Container em execução                               | Consultar usuário                                      | Usuário sem privilégio                                                      | Root                                                   | Integração              | Local       | T03    |
+| ET-09-V04 | Sem segredo na imagem | Ensaio com token de fixture passado em execução     | Inspecionar histórico, metadados e sistema de arquivos | Token ausente                                                               | Token presente                                         | Integração              | Local       | T04    |
+| ET-09-V05 | Configuração ausente  | Sem variáveis                                       | Iniciar                                                | Saída com código de configuração e mensagem sem segredo                     | Processo segue                                         | Integração              | Local       | T04    |
+| ET-09-V06 | Parada limpa          | Container em busca; em publicação (casos separados) | `docker stop`                                          | Encerra no prazo; manifesto válido                                          | Morto por prazo com manifesto alterado para incompleto | Integração              | Local       | T05    |
+| ET-09-V07 | Reinício e retomada   | Política de reinício; volume com versão A           | Matar o processo durante publicação de B               | Volta; manifesto em A ou B completa; próxima versão publicada; nenhum vazio | Manifesto vazio ou inválido                            | Resiliência             | Local       | T07    |
+| ET-09-V08 | Logs e saída          | Falha simulada                                      | `docker logs`; código de saída                         | Evento visível; código documentado                                          | Falha silenciosa                                       | Integração              | Local       | T06    |
+| ET-09-V09 | Paridade local        | Simulador e volume                                  | Rodar o container                                      | Versões iguais às do processo local                                         | Divergência                                            | Integração              | Local       | T08    |
+| ET-09-V10 | Container no R2       | ET-08 concluída                                     | Rodar com destino de homologação                       | Versão nova visível no site de homologação                                  | Não publica                                            | Homologação             | Homologação | T08    |
+| ET-09-V11 | Consumo               | Janela definida                                     | Medir                                                  | Tamanho, CPU e memória registrados                                          | Sem registro                                           | Verificação operacional | Local       | T09    |
+| ET-09-V12 | Sem porta             | Imagem                                              | Inspecionar portas expostas e em escuta                | Nenhuma                                                                     | Alguma                                                 | Integração              | Local       | T03    |
 
 Verificação local não prova rede, identidade nem reinício da instância na AWS (ET-10).
 

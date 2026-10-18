@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-04 |
-| Componente | `apps/collector` |
-| Tipo predominante | Código com testes unitários e de integração local |
-| Marco | M2 — Fluxo local completo (parte da coleta) |
+| Campo              | Conteúdo                                                                                                                                                                                                                                                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-04                                                                                                                                                                                                                                                                                                                                 |
+| Componente         | `apps/collector`                                                                                                                                                                                                                                                                                                                      |
+| Tipo predominante  | Código com testes unitários e de integração local                                                                                                                                                                                                                                                                                     |
+| Marco              | M2 — Fluxo local completo (parte da coleta)                                                                                                                                                                                                                                                                                           |
 | Resultado concreto | Um processo Node.js executa um ciclo de coleta, uma vez ou de forma agendada sem sobreposição, contra uma origem controlada; produz um conjunto normalizado e o entrega a uma função de publicação. Timeout, corpo excessivo, redirect, bloqueio, erro permanente, encerramento e retificação têm comportamento demonstrado por teste |
 
 ## 2. Escopo e exclusões
@@ -43,16 +43,16 @@ Guias: COL-001 a COL-005 em [collector/padroes-de-desenvolvimento.md](../../coll
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-03: schemas brutos, normalização, serialização estável | T07, T08 |
-| Contrato | ET-02: publicabilidade e falha parcial (DP-13) | T08 |
-| Decisão | DP-04 (códigos e caminhos), via ET-01-T03 | Valores reais de T01; T15 |
-| Decisão | DP-08 (sinal de atualização) | T05; uso de IDG em T07 |
-| Decisão | DP-14 (verificação sem mudança) | Parte de T07 |
-| Decisão | DP-06 (JWS), se exigido | Tarefa adicional de verificação antes de T08 |
-| Recurso externo | Allowlist candidata (ET-01-T02) | T03 com valores reais |
-| Autorização | Execução única contra o host oficial | T15 |
+| Tipo            | Item                                                      | Bloqueia                                     |
+| --------------- | --------------------------------------------------------- | -------------------------------------------- |
+| Implementação   | ET-03: schemas brutos, normalização, serialização estável | T07, T08                                     |
+| Contrato        | ET-02: publicabilidade e falha parcial (DP-13)            | T08                                          |
+| Decisão         | DP-04 (códigos e caminhos), via ET-01-T03                 | Valores reais de T01; T15                    |
+| Decisão         | DP-08 (sinal de atualização)                              | T05; uso de IDG em T07                       |
+| Decisão         | DP-14 (verificação sem mudança)                           | Parte de T07                                 |
+| Decisão         | DP-06 (JWS), se exigido                                   | Tarefa adicional de verificação antes de T08 |
+| Recurso externo | Allowlist candidata (ET-01-T02)                           | T03 com valores reais                        |
+| Autorização     | Execução única contra o host oficial                      | T15                                          |
 
 **Podem começar com ET-03 em andamento:** T01, T02, T03, T04, T06, T09, T10, T11, T12. Elas não dependem de campo da origem; os testes usam servidor local com respostas sintéticas.
 
@@ -62,27 +62,27 @@ Guias: COL-001 a COL-005 em [collector/padroes-de-desenvolvimento.md](../../coll
 
 **Saídas:**
 
-| Artefato | Garantia | Consumidor |
-| --- | --- | --- |
+| Artefato                                                                                                                      | Garantia                               | Consumidor                                            |
+| ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------------------- |
 | Tipo do conjunto normalizado de um ciclo e assinatura da função de publicação em `apps/collector/src/publication/` (proposto) | Estável; documentado junto ao contrato | ET-05 (implementação local), ET-08 (implementação R2) |
-| Processo com `--once` e modo agendado | Um ciclo por vez; encerramento limpo | ET-05-T10, ET-09 |
-| Logs estruturados em saída padrão | Sem segredo, sem corpo completo | ET-09, ET-10, ET-12 |
-| `.env.example` com nomes de variáveis, sem valores sensíveis | — | ET-08, ET-09, ET-10 |
+| Processo com `--once` e modo agendado                                                                                         | Um ciclo por vez; encerramento limpo   | ET-05-T10, ET-09                                      |
+| Logs estruturados em saída padrão                                                                                             | Sem segredo, sem corpo completo        | ET-09, ET-10, ET-12                                   |
+| `.env.example` com nomes de variáveis, sem valores sensíveis                                                                  | —                                      | ET-08, ET-09, ET-10                                   |
 
 ## 6. Responsabilidades e fronteiras
 
 Estrutura de COL-001; só nasce a pasta usada.
 
-| Módulo (proposto) | Decide | Adapta transporte | Produz efeito |
-| --- | --- | --- | --- |
-| `config/` | Se a configuração é válida | Lê `process.env` | Encerra o processo se inválida |
-| `source-client/` | Se o destino é permitido e se a resposta é aceitável | `fetch` com limites | Requisição de rede |
-| `orchestration/` | Sequência de um ciclo e o que fazer em falha | — | Chama cliente e publicação |
-| `normalization/` (ET-03) | Transformação | — | Nenhum |
-| `publication/` | Assinatura da publicação; publicador em memória para teste | — | — (efeito real em ET-05 e ET-08) |
-| `schedule/` | Quando disparar o próximo ciclo | Temporizadores | Disparo |
-| `observability/` | Formato e redação do log | Saída padrão | Escrita de log |
-| `main.ts` | Nada de regra | — | Compõe e inicia (COL-002) |
+| Módulo (proposto)        | Decide                                                     | Adapta transporte   | Produz efeito                    |
+| ------------------------ | ---------------------------------------------------------- | ------------------- | -------------------------------- |
+| `config/`                | Se a configuração é válida                                 | Lê `process.env`    | Encerra o processo se inválida   |
+| `source-client/`         | Se o destino é permitido e se a resposta é aceitável       | `fetch` com limites | Requisição de rede               |
+| `orchestration/`         | Sequência de um ciclo e o que fazer em falha               | —                   | Chama cliente e publicação       |
+| `normalization/` (ET-03) | Transformação                                              | —                   | Nenhum                           |
+| `publication/`           | Assinatura da publicação; publicador em memória para teste | —                   | — (efeito real em ET-05 e ET-08) |
+| `schedule/`              | Quando disparar o próximo ciclo                            | Temporizadores      | Disparo                          |
+| `observability/`         | Formato e redação do log                                   | Saída padrão        | Escrita de log                   |
+| `main.ts`                | Nada de regra                                              | —                   | Compõe e inicia (COL-002)        |
 
 O web não importa nada disso. A normalização não é repetida no web.
 
@@ -359,30 +359,30 @@ O web não importa nada disso. A normalização não é repetida no web.
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-04-V01 | Configuração inválida | Variável ausente ou incoerente | Iniciar | Saída com código ≠ 0 e mensagem sem segredo | Processo sobe ou expõe valor | Unitário | Local | T01 |
-| ET-04-V02 | Host fora da allowlist | URL com outro host, porta ou esquema | Pedir | Nenhuma conexão aberta; erro tipado | Conexão tentada | Unitário + integração | Local | T03 |
-| ET-04-V03 | Redirect | Servidor local responde 302 para outro host | Pedir | Falha; destino não consultado | Destino consultado | Integração | Local | T03 |
-| ET-04-V04 | Timeout | Servidor local que não responde | Pedir com timeout curto | Falha por tempo; nenhum conteúdo | Espera indefinida | Integração | Local | T03 |
-| ET-04-V05 | Corpo excessivo | Servidor local envia acima do limite | Pedir | Leitura abortada; falha | Corpo lido inteiro | Integração | Local | T03 |
-| ET-04-V06 | Status ou tipo inesperado | 500, 200 com HTML | Pedir | Falha tipada | Conteúdo aceito | Integração | Local | T03 |
-| ET-04-V07 | Erro transitório | Duas falhas e um sucesso | Ciclo com timers falsos e aleatório fixo | Três chamadas, esperas crescentes | Mais tentativas que o limite ou espera fixa | Unitário | Local | T04 |
-| ET-04-V08 | Bloqueio | Resposta de bloqueio com `Retry-After` | Ciclo e avanço de tempo | Nenhuma chamada antes do prazo | Chamada durante o bloqueio | Unitário | Local | T04 |
-| ET-04-V09 | Erro permanente | 404 em caminho confirmado | Ciclo | Uma chamada; falha registrada | Repetição | Unitário | Local | T04 |
-| ET-04-V10 | Retificação | Fake com versão anterior de total maior | Ciclo com total menor | Publicação chamada | Descarte | Unitário | Local | T07 |
-| ET-04-V11 | Sem mudança | Mesmo conteúdo, ou 304 | Ciclo | Nenhuma versão nova; comportamento de DP-14 aplicado | Versão nova só por horário | Unitário | Local | T05, T07 |
-| ET-04-V12 | Ordem das respostas | Respostas resolvidas em ordem inversa | Ciclo | Conjunto idêntico ao da ordem direta | Resultado depende da ordem | Unitário + integração | Local | T06, T13 |
-| ET-04-V13 | Duração do ciclo | Origem local com tamanhos de ET-01 | Medir ciclos | Duração registrada em evidência | Sem registro | Integração | Local | T13 |
-| ET-04-V14 | Sem sobreposição | Ciclo mais longo que o intervalo | Avançar timers | Um ciclo ativo por vez | Dois ciclos simultâneos | Unitário | Local | T10 |
-| ET-04-V15 | Encerramento | Sinal durante busca; sinal durante publicação (casos separados) | Enviar sinal | Busca abortada; publicação concluída ou abandonada sem trocar manifesto; saída limpa | Processo pendurado ou publicação parcial | Unitário + integração | Local | T11 |
-| ET-04-V16 | Log sem segredo | Contexto com `token-de-teste` | Gerar log de erro | Token ausente | Token presente | Unitário | Local | T12 |
-| ET-04-V17 | Falha de publicação | Fake que rejeita | Ciclo | Ciclo em falha; processo segue; versão conhecida inalterada | Falha tratada como sucesso | Unitário | Local | T02, T08 |
-| ET-04-V18 | Falha parcial | Um arquivo falha, outros não | Ciclo | Comportamento de DP-13 | Arquivo ausente publicado como vazio ou zero | Unitário | Local | T08 |
-| ET-04-V19 | Execução única | Origem local | `--once` | Um ciclo; código de saída documentado | Processo continua ou código errado | Integração | Local | T09, T14 |
-| ET-04-V20 | Recuperação | Falha, depois sucesso | Dois ciclos | Segundo ciclo publica | Estado de falha persiste | Integração | Local | T08, T13 |
-| ET-04-V21 | Coleta controlada real | Autorização e DP-04 | `--once` contra host autorizado | Requisições registradas dentro do autorizado; schema aceita ou falha explicada | Requisição não registrada, varredura ou repetição em bloqueio | Verificação operacional | Rede real, controlada | T15 |
-| ET-04-V22 | Importação sem efeito | Teste que importa os módulos | Importar | Nenhuma requisição, nenhum temporizador | Efeito na importação | Unitário | Local | T01, T14 |
+| ID        | Cenário                   | Preparação                                                      | Ação                                     | Sucesso                                                                              | Falha se                                                      | Nível                   | Ambiente              | Tarefa   |
+| --------- | ------------------------- | --------------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------- | ----------------------- | --------------------- | -------- |
+| ET-04-V01 | Configuração inválida     | Variável ausente ou incoerente                                  | Iniciar                                  | Saída com código ≠ 0 e mensagem sem segredo                                          | Processo sobe ou expõe valor                                  | Unitário                | Local                 | T01      |
+| ET-04-V02 | Host fora da allowlist    | URL com outro host, porta ou esquema                            | Pedir                                    | Nenhuma conexão aberta; erro tipado                                                  | Conexão tentada                                               | Unitário + integração   | Local                 | T03      |
+| ET-04-V03 | Redirect                  | Servidor local responde 302 para outro host                     | Pedir                                    | Falha; destino não consultado                                                        | Destino consultado                                            | Integração              | Local                 | T03      |
+| ET-04-V04 | Timeout                   | Servidor local que não responde                                 | Pedir com timeout curto                  | Falha por tempo; nenhum conteúdo                                                     | Espera indefinida                                             | Integração              | Local                 | T03      |
+| ET-04-V05 | Corpo excessivo           | Servidor local envia acima do limite                            | Pedir                                    | Leitura abortada; falha                                                              | Corpo lido inteiro                                            | Integração              | Local                 | T03      |
+| ET-04-V06 | Status ou tipo inesperado | 500, 200 com HTML                                               | Pedir                                    | Falha tipada                                                                         | Conteúdo aceito                                               | Integração              | Local                 | T03      |
+| ET-04-V07 | Erro transitório          | Duas falhas e um sucesso                                        | Ciclo com timers falsos e aleatório fixo | Três chamadas, esperas crescentes                                                    | Mais tentativas que o limite ou espera fixa                   | Unitário                | Local                 | T04      |
+| ET-04-V08 | Bloqueio                  | Resposta de bloqueio com `Retry-After`                          | Ciclo e avanço de tempo                  | Nenhuma chamada antes do prazo                                                       | Chamada durante o bloqueio                                    | Unitário                | Local                 | T04      |
+| ET-04-V09 | Erro permanente           | 404 em caminho confirmado                                       | Ciclo                                    | Uma chamada; falha registrada                                                        | Repetição                                                     | Unitário                | Local                 | T04      |
+| ET-04-V10 | Retificação               | Fake com versão anterior de total maior                         | Ciclo com total menor                    | Publicação chamada                                                                   | Descarte                                                      | Unitário                | Local                 | T07      |
+| ET-04-V11 | Sem mudança               | Mesmo conteúdo, ou 304                                          | Ciclo                                    | Nenhuma versão nova; comportamento de DP-14 aplicado                                 | Versão nova só por horário                                    | Unitário                | Local                 | T05, T07 |
+| ET-04-V12 | Ordem das respostas       | Respostas resolvidas em ordem inversa                           | Ciclo                                    | Conjunto idêntico ao da ordem direta                                                 | Resultado depende da ordem                                    | Unitário + integração   | Local                 | T06, T13 |
+| ET-04-V13 | Duração do ciclo          | Origem local com tamanhos de ET-01                              | Medir ciclos                             | Duração registrada em evidência                                                      | Sem registro                                                  | Integração              | Local                 | T13      |
+| ET-04-V14 | Sem sobreposição          | Ciclo mais longo que o intervalo                                | Avançar timers                           | Um ciclo ativo por vez                                                               | Dois ciclos simultâneos                                       | Unitário                | Local                 | T10      |
+| ET-04-V15 | Encerramento              | Sinal durante busca; sinal durante publicação (casos separados) | Enviar sinal                             | Busca abortada; publicação concluída ou abandonada sem trocar manifesto; saída limpa | Processo pendurado ou publicação parcial                      | Unitário + integração   | Local                 | T11      |
+| ET-04-V16 | Log sem segredo           | Contexto com `token-de-teste`                                   | Gerar log de erro                        | Token ausente                                                                        | Token presente                                                | Unitário                | Local                 | T12      |
+| ET-04-V17 | Falha de publicação       | Fake que rejeita                                                | Ciclo                                    | Ciclo em falha; processo segue; versão conhecida inalterada                          | Falha tratada como sucesso                                    | Unitário                | Local                 | T02, T08 |
+| ET-04-V18 | Falha parcial             | Um arquivo falha, outros não                                    | Ciclo                                    | Comportamento de DP-13                                                               | Arquivo ausente publicado como vazio ou zero                  | Unitário                | Local                 | T08      |
+| ET-04-V19 | Execução única            | Origem local                                                    | `--once`                                 | Um ciclo; código de saída documentado                                                | Processo continua ou código errado                            | Integração              | Local                 | T09, T14 |
+| ET-04-V20 | Recuperação               | Falha, depois sucesso                                           | Dois ciclos                              | Segundo ciclo publica                                                                | Estado de falha persiste                                      | Integração              | Local                 | T08, T13 |
+| ET-04-V21 | Coleta controlada real    | Autorização e DP-04                                             | `--once` contra host autorizado          | Requisições registradas dentro do autorizado; schema aceita ou falha explicada       | Requisição não registrada, varredura ou repetição em bloqueio | Verificação operacional | Rede real, controlada | T15      |
+| ET-04-V22 | Importação sem efeito     | Teste que importa os módulos                                    | Importar                                 | Nenhuma requisição, nenhum temporizador                                              | Efeito na importação                                          | Unitário                | Local                 | T01, T14 |
 
 Testes locais não provam o comportamento real da origem sob carga, nem a publicação. V21 prova uma execução, não um regime contínuo.
 

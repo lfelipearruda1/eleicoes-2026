@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-10 |
-| Componente | AWS: EC2, rede, identidade, segredo, registro de imagem, logs e alarmes; container do coletor |
-| Tipo predominante | Infraestrutura e operação |
-| Marco | M4 — Coletor independente do computador |
+| Campo              | Conteúdo                                                                                                                                                                                                                                                                                                 |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-10                                                                                                                                                                                                                                                                                                    |
+| Componente         | AWS: EC2, rede, identidade, segredo, registro de imagem, logs e alarmes; container do coletor                                                                                                                                                                                                            |
+| Tipo predominante  | Infraestrutura e operação                                                                                                                                                                                                                                                                                |
+| Marco              | M4 — Coletor independente do computador                                                                                                                                                                                                                                                                  |
 | Resultado concreto | O coletor roda em uma instância EC2 de homologação, publica no R2 de homologação com credencial própria, sem porta pública, administrado sem SSH aberto; falha e atraso geram aviso; parada e reinício foram ensaiados; versões continuam sendo publicadas com o computador de desenvolvimento desligado |
 
 ## 2. Escopo e exclusões
@@ -33,17 +33,17 @@ Base documental: [infraestrutura/README.md](../../infraestrutura/README.md) (EC2
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-08: publicador R2 e homologação funcionando a partir do computador | T06, T07, T09, T10 |
-| Implementação | ET-09: imagem, procedimento, códigos de saída, medição de consumo | T01 (capacidade), T06 |
-| Decisão | DP-25 (região, tipo, sistema, rede, registro, segredo, acesso, logs) | T02–T08 |
-| Decisão | DP-22 (orçamento) | T02 em diante |
-| Decisão | DP-26 (canal de alerta, mínimo) | T08 |
-| Decisão | DP-16 (valores do coletor em operação contínua) | T06 (valores de homologação contínua) |
-| Decisão | DP-27 (metas de recuperação) | Critério numérico de V07 |
-| Recurso externo | Conta AWS com titular definido | T02 em diante |
-| Autorização | Criação de recurso pago | T02–T12 |
+| Tipo            | Item                                                                  | Bloqueia                              |
+| --------------- | --------------------------------------------------------------------- | ------------------------------------- |
+| Implementação   | ET-08: publicador R2 e homologação funcionando a partir do computador | T06, T07, T09, T10                    |
+| Implementação   | ET-09: imagem, procedimento, códigos de saída, medição de consumo     | T01 (capacidade), T06                 |
+| Decisão         | DP-25 (região, tipo, sistema, rede, registro, segredo, acesso, logs)  | T02–T08                               |
+| Decisão         | DP-22 (orçamento)                                                     | T02 em diante                         |
+| Decisão         | DP-26 (canal de alerta, mínimo)                                       | T08                                   |
+| Decisão         | DP-16 (valores do coletor em operação contínua)                       | T06 (valores de homologação contínua) |
+| Decisão         | DP-27 (metas de recuperação)                                          | Critério numérico de V07              |
+| Recurso externo | Conta AWS com titular definido                                        | T02 em diante                         |
+| Autorização     | Criação de recurso pago                                               | T02–T12                               |
 
 **Pode começar antes de ET-08 e ET-09 terminarem:** T01 (decisões, usando a medição de ET-09-T09 quando existir).
 
@@ -53,22 +53,22 @@ Base documental: [infraestrutura/README.md](../../infraestrutura/README.md) (EC2
 
 **Saídas:**
 
-| Artefato | Consumidor |
-| --- | --- |
-| Instância de homologação com o coletor | ET-11 (dados contínuos), ET-12, ET-13 |
-| Registro do desenho e inventário em `infra/aws/README.md` (proposto) | ET-12, ET-14, ET-15 |
-| Alarmes de processo parado e de atraso | ET-12 (consolidação) |
-| Procedimentos de parada, reinício e retomada | ET-12-T09 (manual de operação) |
+| Artefato                                                             | Consumidor                            |
+| -------------------------------------------------------------------- | ------------------------------------- |
+| Instância de homologação com o coletor                               | ET-11 (dados contínuos), ET-12, ET-13 |
+| Registro do desenho e inventário em `infra/aws/README.md` (proposto) | ET-12, ET-14, ET-15                   |
+| Alarmes de processo parado e de atraso                               | ET-12 (consolidação)                  |
+| Procedimentos de parada, reinício e retomada                         | ET-12-T09 (manual de operação)        |
 
 ## 6. Responsabilidades e fronteiras
 
-| Peça | Responsabilidade | Não faz |
-| --- | --- | --- |
-| Instância | Executar o container | Não aceita conexão de aplicação |
-| Grupo de segurança | Permitir saída necessária | Não abre entrada; não substitui a allowlist do coletor (regra por IP não sabe de host) |
-| Papel da instância | Ler o segredo de publicação e enviar logs | Não administra a conta, não lê outros segredos |
-| Credencial de publicação | Escrever no bucket de homologação | Não é a credencial administrativa da AWS |
-| Coletor | Coletar e publicar | Não serve leitura |
+| Peça                     | Responsabilidade                          | Não faz                                                                                |
+| ------------------------ | ----------------------------------------- | -------------------------------------------------------------------------------------- |
+| Instância                | Executar o container                      | Não aceita conexão de aplicação                                                        |
+| Grupo de segurança       | Permitir saída necessária                 | Não abre entrada; não substitui a allowlist do coletor (regra por IP não sabe de host) |
+| Papel da instância       | Ler o segredo de publicação e enviar logs | Não administra a conta, não lê outros segredos                                         |
+| Credencial de publicação | Escrever no bucket de homologação         | Não é a credencial administrativa da AWS                                               |
+| Coletor                  | Coletar e publicar                        | Não serve leitura                                                                      |
 
 ## 7. Sequência de tarefas
 
@@ -298,33 +298,33 @@ Base documental: [infraestrutura/README.md](../../infraestrutura/README.md) (EC2
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-10-V01 | Decisões | T01 | Ler `DA-NN` | Região, tipo, sistema, rede, registro, segredo, acesso, logs e teto com justificativa | Recurso criado sem decisão | Revisão | Documento | T01 |
-| ET-10-V02 | Conta protegida | T02 | Conferir segundo fator e alerta de orçamento | Ativos | Ausentes | Verificação operacional | AWS | T02 |
-| ET-10-V03 | Acesso administrativo | T03, T04 | Abrir sessão pelo mecanismo; tentar porta 22 de fora | Sessão abre; porta não responde | Porta responde ou sessão sem registro | Homologação | AWS | T03, T04 |
-| ET-10-V04 | Identidade mínima | T05 | Ler o segredo pela instância; tentar ação fora do escopo | Leitura aceita; ação negada | Ação permitida | Homologação | AWS | T05 |
-| ET-10-V05 | Reinício | T06 | Reiniciar container e instância (casos separados) | Coletor volta e publica | Não volta, ou manifesto inválido | Resiliência | AWS | T06, T09 |
-| ET-10-V06 | Alarme de processo parado | T08 | Parar o container | Aviso no canal dentro do limiar provisório | Sem aviso | Verificação operacional | AWS | T08, T09 |
-| ET-10-V07 | Alarme de atraso e retomada | T08 | Manter parado além do limiar; religar | Aviso de atraso; tempo de retomada registrado e comparado com DP-27 quando houver número | Sem aviso ou sem registro | Verificação operacional | AWS | T08, T09 |
-| ET-10-V08 | Publicador único | T07 | Tentar publicar do computador | Recusa do R2 | Escrita aceita | Homologação | Homologação | T07 |
-| ET-10-V09 | Computador desligado | T10 | Janela definida | Versões publicadas pela instância na janela | Nenhuma | Verificação operacional | AWS + Cloudflare | T10 |
-| ET-10-V10 | Custo | T12 | Ler custo acumulado | Dentro do teto, registrado | Acima do teto sem aviso | Verificação operacional | AWS | T12 |
-| ET-10-V11 | Sem leitura pública | T03 | Conectar às portas do endereço da instância | Nenhuma responde | Alguma responde | Homologação | AWS | T03, T11 |
-| ET-10-V12 | Segredo fora dos lugares errados | T05, T06 | Conferir dados de inicialização, imagem, logs | Segredo ausente | Presente | Revisão | AWS | T05 |
+| ID        | Cenário                          | Preparação | Ação                                                     | Sucesso                                                                                  | Falha se                              | Nível                   | Ambiente         | Tarefa   |
+| --------- | -------------------------------- | ---------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------- | ----------------------- | ---------------- | -------- |
+| ET-10-V01 | Decisões                         | T01        | Ler `DA-NN`                                              | Região, tipo, sistema, rede, registro, segredo, acesso, logs e teto com justificativa    | Recurso criado sem decisão            | Revisão                 | Documento        | T01      |
+| ET-10-V02 | Conta protegida                  | T02        | Conferir segundo fator e alerta de orçamento             | Ativos                                                                                   | Ausentes                              | Verificação operacional | AWS              | T02      |
+| ET-10-V03 | Acesso administrativo            | T03, T04   | Abrir sessão pelo mecanismo; tentar porta 22 de fora     | Sessão abre; porta não responde                                                          | Porta responde ou sessão sem registro | Homologação             | AWS              | T03, T04 |
+| ET-10-V04 | Identidade mínima                | T05        | Ler o segredo pela instância; tentar ação fora do escopo | Leitura aceita; ação negada                                                              | Ação permitida                        | Homologação             | AWS              | T05      |
+| ET-10-V05 | Reinício                         | T06        | Reiniciar container e instância (casos separados)        | Coletor volta e publica                                                                  | Não volta, ou manifesto inválido      | Resiliência             | AWS              | T06, T09 |
+| ET-10-V06 | Alarme de processo parado        | T08        | Parar o container                                        | Aviso no canal dentro do limiar provisório                                               | Sem aviso                             | Verificação operacional | AWS              | T08, T09 |
+| ET-10-V07 | Alarme de atraso e retomada      | T08        | Manter parado além do limiar; religar                    | Aviso de atraso; tempo de retomada registrado e comparado com DP-27 quando houver número | Sem aviso ou sem registro             | Verificação operacional | AWS              | T08, T09 |
+| ET-10-V08 | Publicador único                 | T07        | Tentar publicar do computador                            | Recusa do R2                                                                             | Escrita aceita                        | Homologação             | Homologação      | T07      |
+| ET-10-V09 | Computador desligado             | T10        | Janela definida                                          | Versões publicadas pela instância na janela                                              | Nenhuma                               | Verificação operacional | AWS + Cloudflare | T10      |
+| ET-10-V10 | Custo                            | T12        | Ler custo acumulado                                      | Dentro do teto, registrado                                                               | Acima do teto sem aviso               | Verificação operacional | AWS              | T12      |
+| ET-10-V11 | Sem leitura pública              | T03        | Conectar às portas do endereço da instância              | Nenhuma responde                                                                         | Alguma responde                       | Homologação             | AWS              | T03, T11 |
+| ET-10-V12 | Segredo fora dos lugares errados | T05, T06   | Conferir dados de inicialização, imagem, logs            | Segredo ausente                                                                          | Presente                              | Revisão                 | AWS              | T05      |
 
 Nada aqui mede capacidade de leitura do site (ET-13) nem consolida automação (ET-12).
 
 ## 11. Infraestrutura e ações externas
 
-| Recurso | Manual | Automatizável depois | Aprovação |
-| --- | --- | --- | --- |
-| Conta, identidade, alerta de orçamento | Sim | — | Sim |
-| Rede e grupo de segurança | Sim, ou infraestrutura como código se decidido | Sim | Sim |
-| Instância e Docker | Sim | Sim | Sim |
-| Registro de imagem | Sim | Envio por workflow (ET-12-T04) | Sim |
-| Segredo e credencial R2 da instância | Sim | Rotação (ET-12-T07) | Sim |
-| Logs e alarmes | Sim | Sim | Sim |
+| Recurso                                | Manual                                         | Automatizável depois           | Aprovação |
+| -------------------------------------- | ---------------------------------------------- | ------------------------------ | --------- |
+| Conta, identidade, alerta de orçamento | Sim                                            | —                              | Sim       |
+| Rede e grupo de segurança              | Sim, ou infraestrutura como código se decidido | Sim                            | Sim       |
+| Instância e Docker                     | Sim                                            | Sim                            | Sim       |
+| Registro de imagem                     | Sim                                            | Envio por workflow (ET-12-T04) | Sim       |
+| Segredo e credencial R2 da instância   | Sim                                            | Rotação (ET-12-T07)            | Sim       |
+| Logs e alarmes                         | Sim                                            | Sim                            | Sim       |
 
 ## 12. Falha, reversão e recuperação
 

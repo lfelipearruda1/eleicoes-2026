@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-08 |
-| Componente | `apps/collector` (publicador R2), `apps/web` (build de homologação), Cloudflare de homologação |
-| Tipo predominante | Integração (código e verificação em infraestrutura real) |
-| Marco | M3 — Caminho Cloudflare validado |
+| Campo              | Conteúdo                                                                                                                                                                                                                           |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-08                                                                                                                                                                                                                              |
+| Componente         | `apps/collector` (publicador R2), `apps/web` (build de homologação), Cloudflare de homologação                                                                                                                                     |
+| Tipo predominante  | Integração (código e verificação em infraestrutura real)                                                                                                                                                                           |
+| Marco              | M3 — Caminho Cloudflare validado                                                                                                                                                                                                   |
 | Resultado concreto | O coletor, rodando no computador, publica versões no R2 de homologação; o site de homologação, com o mesmo build, passa a exibir a versão nova; cache, CORS e preservação do último válido foram observados na infraestrutura real |
 
 ## 2. Escopo e exclusões
@@ -32,15 +32,15 @@ Estado observado em 17/10/2026: não há cliente de armazenamento, SDK ou creden
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-07: bucket, domínio, regras de cache, CORS, credencial, site, ferramenta de deploy | T05 (parte real), T06–T09 |
-| Implementação | ET-05: publicador local e suíte de contrato | T01, T04 |
-| Implementação | ET-06: leitura parametrizada pela URL base | T06 |
-| Decisão | DP-24 (cliente e autenticação do R2) | T01 |
-| Decisão | DP-06 (JWS), se exigido, e DP-07 | T07 com dado oficial |
-| Recurso externo | Credencial de homologação de ET-07-T10 | T03, T05 real, T07 |
-| Autorização | Publicação em homologação; uso do orçamento de homologação | T07, T08 |
+| Tipo            | Item                                                                                  | Bloqueia                  |
+| --------------- | ------------------------------------------------------------------------------------- | ------------------------- |
+| Implementação   | ET-07: bucket, domínio, regras de cache, CORS, credencial, site, ferramenta de deploy | T05 (parte real), T06–T09 |
+| Implementação   | ET-05: publicador local e suíte de contrato                                           | T01, T04                  |
+| Implementação   | ET-06: leitura parametrizada pela URL base                                            | T06                       |
+| Decisão         | DP-24 (cliente e autenticação do R2)                                                  | T01                       |
+| Decisão         | DP-06 (JWS), se exigido, e DP-07                                                      | T07 com dado oficial      |
+| Recurso externo | Credencial de homologação de ET-07-T10                                                | T03, T05 real, T07        |
+| Autorização     | Publicação em homologação; uso do orçamento de homologação                            | T07, T08                  |
 
 **Pode começar antes de ET-07 terminar:** T01 a T04 e a parte com transporte falso de T05.
 
@@ -50,20 +50,20 @@ Estado observado em 17/10/2026: não há cliente de armazenamento, SDK ou creden
 
 **Saídas:**
 
-| Artefato | Consumidor |
-| --- | --- |
+| Artefato                                                      | Consumidor          |
+| ------------------------------------------------------------- | ------------------- |
 | Publicador R2 em `apps/collector/src/publication/` (proposto) | ET-09, ET-10, ET-14 |
-| Configuração por ambiente documentada em `.env.example` | ET-09, ET-10 |
-| Site de homologação lendo o domínio de resultados | ET-11, ET-13 |
-| Evidência de cache, CORS e atualização | M3; ET-13 |
+| Configuração por ambiente documentada em `.env.example`       | ET-09, ET-10        |
+| Site de homologação lendo o domínio de resultados             | ET-11, ET-13        |
+| Evidência de cache, CORS e atualização                        | M3; ET-13           |
 
 ## 6. Responsabilidades e fronteiras
 
-| Peça | Decide | Adapta transporte | Efeito |
-| --- | --- | --- | --- |
-| Publicador R2 | Ordem: versões → verificação → manifesto (a mesma de ET-05) | Cliente compatível com S3 | Upload |
-| Configuração | Qual publicador e qual destino | `process.env` | Recusa partida incoerente |
-| Web | — | `fetch` para a URL base | Leitura |
+| Peça          | Decide                                                      | Adapta transporte         | Efeito                    |
+| ------------- | ----------------------------------------------------------- | ------------------------- | ------------------------- |
+| Publicador R2 | Ordem: versões → verificação → manifesto (a mesma de ET-05) | Cliente compatível com S3 | Upload                    |
+| Configuração  | Qual publicador e qual destino                              | `process.env`             | Recusa partida incoerente |
+| Web           | —                                                           | `fetch` para a URL base   | Leitura                   |
 
 A regra de completude não é reescrita: o publicador R2 implementa a mesma assinatura e passa pela mesma suíte de contrato que o local.
 
@@ -249,20 +249,20 @@ A regra de completude não é reescrita: o publicador R2 implementa a mesma assi
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-08-V01 | Configuração perigosa | R2 com ambiente local; bucket de nome de outro ambiente (casos separados) | Iniciar | Partida recusada | Processo sobe | Unitário | Local | T02 |
-| ET-08-V02 | Credencial não vaza | Credencial de fixture; erro do transporte | Gerar erro e log | Valor ausente de toda saída | Valor presente | Unitário | Local | T03, T10 |
-| ET-08-V03 | Contrato do publicador | Suíte de ET-05 parametrizada | Rodar com transporte falso | Todos os cenários passam | Algum diverge do local | Unitário | Local | T01, T04 |
-| ET-08-V04 | Falha lógica preserva A | Transporte falso falha no meio de B | Publicar | Manifesto em A; erro devolvido | Manifesto em B | Unitário | Local | T04, T05 |
-| ET-08-V05 | Falha real preserva A | A publicada em homologação; script de ensaio que falha após N envios | Publicar B | Manifesto em A pelo acesso direto e pelo domínio | Manifesto em B | Homologação | Homologação | T05 |
-| ET-08-V06 | Cache real | Duas publicações | Ler status de cache e idade do manifesto e da versão | Versão com acerto de cache estável; manifesto renovado dentro do TTL curto | Mesma política nos dois, ou versão sempre indo ao bucket | Homologação | Homologação | T08 |
-| ET-08-V07 | CORS real | Site e resultados em origens distintas | Pedidos com e sem a origem certa | Cabeçalho só para a origem do site | Cabeçalho para outra origem, ou ausente para o site | Homologação | Homologação | T08 |
-| ET-08-V08 | Atualização sem rebuild | Site aberto | Publicar versão nova | Tela mostra a nova sem deploy; tempo registrado | Exige deploy, ou nunca troca | Homologação | Homologação | T09 |
-| ET-08-V09 | Escopo da credencial em uso | Credencial do computador | Publicar; tentar gravar em outro bucket | Primeiro aceito; segundo recusado | Escrita fora do escopo | Homologação | Homologação | T07 |
-| ET-08-V10 | Artefato publicado | Build de homologação | Busca por segredo e host do TSE | Nenhum achado; URL base de homologação presente | Achado | Integração | Local | T06 |
-| ET-08-V11 | Cabeçalhos dos objetos | Objetos publicados | Ler `Content-Type` e `Cache-Control` pelo acesso direto | JSON e política do tipo correto | Tipo ou política trocados | Homologação | Homologação | T01 |
-| ET-08-V12 | Só nossos domínios | Site aberto | Inspecionar a aba de rede | Pedidos só ao domínio do site e ao de resultados | Pedido a host do TSE ou a terceiro não previsto | Homologação | Homologação | T06, T09 |
+| ID        | Cenário                     | Preparação                                                                | Ação                                                    | Sucesso                                                                    | Falha se                                                 | Nível       | Ambiente    | Tarefa   |
+| --------- | --------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------- | ----------- | ----------- | -------- |
+| ET-08-V01 | Configuração perigosa       | R2 com ambiente local; bucket de nome de outro ambiente (casos separados) | Iniciar                                                 | Partida recusada                                                           | Processo sobe                                            | Unitário    | Local       | T02      |
+| ET-08-V02 | Credencial não vaza         | Credencial de fixture; erro do transporte                                 | Gerar erro e log                                        | Valor ausente de toda saída                                                | Valor presente                                           | Unitário    | Local       | T03, T10 |
+| ET-08-V03 | Contrato do publicador      | Suíte de ET-05 parametrizada                                              | Rodar com transporte falso                              | Todos os cenários passam                                                   | Algum diverge do local                                   | Unitário    | Local       | T01, T04 |
+| ET-08-V04 | Falha lógica preserva A     | Transporte falso falha no meio de B                                       | Publicar                                                | Manifesto em A; erro devolvido                                             | Manifesto em B                                           | Unitário    | Local       | T04, T05 |
+| ET-08-V05 | Falha real preserva A       | A publicada em homologação; script de ensaio que falha após N envios      | Publicar B                                              | Manifesto em A pelo acesso direto e pelo domínio                           | Manifesto em B                                           | Homologação | Homologação | T05      |
+| ET-08-V06 | Cache real                  | Duas publicações                                                          | Ler status de cache e idade do manifesto e da versão    | Versão com acerto de cache estável; manifesto renovado dentro do TTL curto | Mesma política nos dois, ou versão sempre indo ao bucket | Homologação | Homologação | T08      |
+| ET-08-V07 | CORS real                   | Site e resultados em origens distintas                                    | Pedidos com e sem a origem certa                        | Cabeçalho só para a origem do site                                         | Cabeçalho para outra origem, ou ausente para o site      | Homologação | Homologação | T08      |
+| ET-08-V08 | Atualização sem rebuild     | Site aberto                                                               | Publicar versão nova                                    | Tela mostra a nova sem deploy; tempo registrado                            | Exige deploy, ou nunca troca                             | Homologação | Homologação | T09      |
+| ET-08-V09 | Escopo da credencial em uso | Credencial do computador                                                  | Publicar; tentar gravar em outro bucket                 | Primeiro aceito; segundo recusado                                          | Escrita fora do escopo                                   | Homologação | Homologação | T07      |
+| ET-08-V10 | Artefato publicado          | Build de homologação                                                      | Busca por segredo e host do TSE                         | Nenhum achado; URL base de homologação presente                            | Achado                                                   | Integração  | Local       | T06      |
+| ET-08-V11 | Cabeçalhos dos objetos      | Objetos publicados                                                        | Ler `Content-Type` e `Cache-Control` pelo acesso direto | JSON e política do tipo correto                                            | Tipo ou política trocados                                | Homologação | Homologação | T01      |
+| ET-08-V12 | Só nossos domínios          | Site aberto                                                               | Inspecionar a aba de rede                               | Pedidos só ao domínio do site e ao de resultados                           | Pedido a host do TSE ou a terceiro não previsto          | Homologação | Homologação | T06, T09 |
 
 Transporte falso não prova cache, CORS nem permissão (V05–V09 cobrem isso). Nada aqui mede capacidade (ET-13).
 

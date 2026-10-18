@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-03 |
-| Componente | `packages/validation` (schemas do contrato), `apps/collector` (schemas da entrada bruta e normalização) |
-| Tipo predominante | Código com testes unitários |
-| Marco | Início de M2 — Fluxo local completo |
+| Campo              | Conteúdo                                                                                                                                                          |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-03                                                                                                                                                             |
+| Componente         | `packages/validation` (schemas do contrato), `apps/collector` (schemas da entrada bruta e normalização)                                                           |
+| Tipo predominante  | Código com testes unitários                                                                                                                                       |
+| Marco              | Início de M2 — Fluxo local completo                                                                                                                               |
 | Resultado concreto | Funções puras transformam respostas brutas confirmadas em snapshots do contrato, ou recusam com erro explícito. Uma suíte Vitest real, sem rede, prova cada regra |
 
 ## 2. Escopo e exclusões
@@ -42,13 +42,13 @@ Guias aplicáveis, por referência: PKG-001 a PKG-003 em [padroes/README.md](../
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-00: DP-18 decidida (ET-00-T03) | T01, T02 |
-| Contrato | ET-02: envelope, disponibilidade, manifesto (ET-02-T01, T02, T07) | T03 |
-| Contrato | ET-02: números, candidatura, andamento (ET-02-T03 a T05) | T05 a T08 |
-| Decisão | DP-03, DP-09 | T04, T06 |
-| Recurso externo | Amostras oficiais de ET-01 | T09 (parte oficial); V04 |
+| Tipo            | Item                                                              | Bloqueia                 |
+| --------------- | ----------------------------------------------------------------- | ------------------------ |
+| Implementação   | ET-00: DP-18 decidida (ET-00-T03)                                 | T01, T02                 |
+| Contrato        | ET-02: envelope, disponibilidade, manifesto (ET-02-T01, T02, T07) | T03                      |
+| Contrato        | ET-02: números, candidatura, andamento (ET-02-T03 a T05)          | T05 a T08                |
+| Decisão         | DP-03, DP-09                                                      | T04, T06                 |
+| Recurso externo | Amostras oficiais de ET-01                                        | T09 (parte oficial); V04 |
 
 **Podem começar com ET-02 parcial:** T01, T02, T03 (envelope, disponibilidade e manifesto não dependem de campo da origem), T10, T11. T04 a T08 só para os grupos que ET-02 marcou como confirmados.
 
@@ -58,22 +58,22 @@ Guias aplicáveis, por referência: PKG-001 a PKG-003 em [padroes/README.md](../
 
 **Saídas:**
 
-| Artefato | Garantia | Consumidor |
-| --- | --- | --- |
-| Schemas e tipos inferidos em `packages/validation/src/` (proposto: `contract/`) | Aceitam só o contrato; tipos vêm do schema | ET-04, ET-05, ET-06, ET-08, ET-11 |
-| Schemas da entrada bruta em `apps/collector/src/normalization/` (proposto) | Só campos confirmados | ET-04 |
-| Funções puras de normalização em `apps/collector/src/normalization/` (proposto) | Determinísticas, sem rede, sem disco, sem relógio implícito | ET-04-T08 |
-| Fixtures oficiais recortadas e sintéticas, com metadados | Rastreáveis à amostra de origem | ET-04, ET-05, ET-06 |
-| Suíte Vitest executável | `pnpm test` falha sem testes | Todas as etapas |
+| Artefato                                                                        | Garantia                                                    | Consumidor                        |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------- |
+| Schemas e tipos inferidos em `packages/validation/src/` (proposto: `contract/`) | Aceitam só o contrato; tipos vêm do schema                  | ET-04, ET-05, ET-06, ET-08, ET-11 |
+| Schemas da entrada bruta em `apps/collector/src/normalization/` (proposto)      | Só campos confirmados                                       | ET-04                             |
+| Funções puras de normalização em `apps/collector/src/normalization/` (proposto) | Determinísticas, sem rede, sem disco, sem relógio implícito | ET-04-T08                         |
+| Fixtures oficiais recortadas e sintéticas, com metadados                        | Rastreáveis à amostra de origem                             | ET-04, ET-05, ET-06               |
+| Suíte Vitest executável                                                         | `pnpm test` falha sem testes                                | Todas as etapas                   |
 
 ## 6. Responsabilidades e fronteiras
 
-| Módulo | Decide | Não faz |
-| --- | --- | --- |
-| `@eleicoes/validation` | Se um objeto obedece ao contrato público | Não conhece campo bruto do TSE; não importa React nem código do coletor (PKG-001) |
-| Schema bruto no coletor | Se a resposta da origem tem os campos confirmados | Não é exportado ao web |
-| Normalização no coletor | Como transformar bruto validado em contrato | Não faz I/O; recebe horário de coleta como parâmetro (relógio injetado) |
-| Web | — | Não normaliza; só valida a resposta recebida com o schema público (WEB-005) |
+| Módulo                  | Decide                                            | Não faz                                                                           |
+| ----------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `@eleicoes/validation`  | Se um objeto obedece ao contrato público          | Não conhece campo bruto do TSE; não importa React nem código do coletor (PKG-001) |
+| Schema bruto no coletor | Se a resposta da origem tem os campos confirmados | Não é exportado ao web                                                            |
+| Normalização no coletor | Como transformar bruto validado em contrato       | Não faz I/O; recebe horário de coleta como parâmetro (relógio injetado)           |
+| Web                     | —                                                 | Não normaliza; só valida a resposta recebida com o schema público (WEB-005)       |
 
 A mesma regra não pode existir em dois lugares: percentual, ordem e disponibilidade são decididos aqui e só exibidos no web.
 
@@ -279,24 +279,24 @@ A mesma regra não pode existir em dois lugares: percentual, ordem e disponibili
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-03-V01 | Suíte real | Flag retirado | `pnpm test` com e sem arquivos de teste | Sem testes: falha; com testes: lista os executados | Passa sem testes | Integração | Local | T02 |
-| ET-03-V02 | Contrato válido aceito | Exemplos sintéticos de ET-02 | `parse` | Aceito e tipado | Rejeitado | Unitário | Local | T03 |
-| ET-03-V03 | Obrigatório ausente | Exemplo sem cada campo obrigatório | `safeParse` (`it.each`, um caso por campo) | Rejeição com caminho do campo | Aceito, ou campo preenchido com padrão | Unitário | Local | T03 |
-| ET-03-V04 | Amostra oficial | Fixture oficial recortada e valores digitados à mão da amostra | Normalizar | Saída igual aos valores digitados | Divergência, ou valor esperado calculado pela própria função | Unitário | Local | T05, T09 |
-| ET-03-V05 | Tipo inválido | Voto como texto não numérico, negativo, fracionário | Normalizar | Erro explícito; nenhuma saída | Saída com zero ou número convertido | Unitário | Local | T04, T06 |
-| ET-03-V06 | Zero e `false` válidos | Fixture com voto 0 e indicador `false` | Normalizar | 0 e `false` na saída | Ausência, `null` ou `true` | Unitário | Local | T06, T07 |
-| ET-03-V07 | Precisão | Valores de borda de arredondamento | Normalizar | Valores conforme a regra de ET-02-T03 | Arredondamento diferente | Unitário | Local | T06 |
-| ET-03-V08 | Status desconhecido | Fixture com status não mapeado | Normalizar | Comportamento definido em ET-02-T05 | Status inventado ou silêncio | Unitário | Local | T07 |
-| ET-03-V09 | Retificação | Duas fixtures, a segunda com total menor | Normalizar a segunda | Saída normal, sem rejeição | Rejeição por "queda" | Unitário | Local | T05 |
-| ET-03-V10 | Origem sem resultado | Fixture zerada e ausência de arquivo | Normalizar cada caso | Estados distintos conforme ET-02-T02 | Os dois iguais | Unitário | Local | T08 |
-| ET-03-V11 | Campo extra | Bruto com campo não usado | Normalizar | Campo ausente da saída | Campo copiado | Unitário | Local | T03, T04, T10 |
-| ET-03-V12 | Chave de protótipo | Bruto com `__proto__` | Normalizar | Protótipo intacto; chave ausente da saída | Objeto poluído | Unitário | Local | T10 |
-| ET-03-V13 | Determinismo | Mesma entrada e horário | Serializar duas vezes | Strings idênticas | Diferença de ordem | Unitário | Local | T05, T11 |
-| ET-03-V14 | Sem I/O nas funções puras | Código das funções | Revisão de imports (`node:fs`, `fetch`, `Date.now`) | Nenhum | Algum presente | Revisão | Local | T11 |
-| ET-03-V15 | UF sem governador | Configuração sem disputa na UF | Normalizar | Estado "sem disputa" | Painel vazio ou erro | Unitário | Local | T08 |
-| ET-03-V16 | Pacote consumido | T01 | `pnpm build` limpo e `pnpm typecheck` | Os dois passam; apps importam o schema | Falha por `dist` ausente ou tipo antigo | Integração | Local | T01 |
+| ID        | Cenário                   | Preparação                                                     | Ação                                                | Sucesso                                            | Falha se                                                     | Nível      | Ambiente | Tarefa        |
+| --------- | ------------------------- | -------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------ | ---------- | -------- | ------------- |
+| ET-03-V01 | Suíte real                | Flag retirado                                                  | `pnpm test` com e sem arquivos de teste             | Sem testes: falha; com testes: lista os executados | Passa sem testes                                             | Integração | Local    | T02           |
+| ET-03-V02 | Contrato válido aceito    | Exemplos sintéticos de ET-02                                   | `parse`                                             | Aceito e tipado                                    | Rejeitado                                                    | Unitário   | Local    | T03           |
+| ET-03-V03 | Obrigatório ausente       | Exemplo sem cada campo obrigatório                             | `safeParse` (`it.each`, um caso por campo)          | Rejeição com caminho do campo                      | Aceito, ou campo preenchido com padrão                       | Unitário   | Local    | T03           |
+| ET-03-V04 | Amostra oficial           | Fixture oficial recortada e valores digitados à mão da amostra | Normalizar                                          | Saída igual aos valores digitados                  | Divergência, ou valor esperado calculado pela própria função | Unitário   | Local    | T05, T09      |
+| ET-03-V05 | Tipo inválido             | Voto como texto não numérico, negativo, fracionário            | Normalizar                                          | Erro explícito; nenhuma saída                      | Saída com zero ou número convertido                          | Unitário   | Local    | T04, T06      |
+| ET-03-V06 | Zero e `false` válidos    | Fixture com voto 0 e indicador `false`                         | Normalizar                                          | 0 e `false` na saída                               | Ausência, `null` ou `true`                                   | Unitário   | Local    | T06, T07      |
+| ET-03-V07 | Precisão                  | Valores de borda de arredondamento                             | Normalizar                                          | Valores conforme a regra de ET-02-T03              | Arredondamento diferente                                     | Unitário   | Local    | T06           |
+| ET-03-V08 | Status desconhecido       | Fixture com status não mapeado                                 | Normalizar                                          | Comportamento definido em ET-02-T05                | Status inventado ou silêncio                                 | Unitário   | Local    | T07           |
+| ET-03-V09 | Retificação               | Duas fixtures, a segunda com total menor                       | Normalizar a segunda                                | Saída normal, sem rejeição                         | Rejeição por "queda"                                         | Unitário   | Local    | T05           |
+| ET-03-V10 | Origem sem resultado      | Fixture zerada e ausência de arquivo                           | Normalizar cada caso                                | Estados distintos conforme ET-02-T02               | Os dois iguais                                               | Unitário   | Local    | T08           |
+| ET-03-V11 | Campo extra               | Bruto com campo não usado                                      | Normalizar                                          | Campo ausente da saída                             | Campo copiado                                                | Unitário   | Local    | T03, T04, T10 |
+| ET-03-V12 | Chave de protótipo        | Bruto com `__proto__`                                          | Normalizar                                          | Protótipo intacto; chave ausente da saída          | Objeto poluído                                               | Unitário   | Local    | T10           |
+| ET-03-V13 | Determinismo              | Mesma entrada e horário                                        | Serializar duas vezes                               | Strings idênticas                                  | Diferença de ordem                                           | Unitário   | Local    | T05, T11      |
+| ET-03-V14 | Sem I/O nas funções puras | Código das funções                                             | Revisão de imports (`node:fs`, `fetch`, `Date.now`) | Nenhum                                             | Algum presente                                               | Revisão    | Local    | T11           |
+| ET-03-V15 | UF sem governador         | Configuração sem disputa na UF                                 | Normalizar                                          | Estado "sem disputa"                               | Painel vazio ou erro                                         | Unitário   | Local    | T08           |
+| ET-03-V16 | Pacote consumido          | T01                                                            | `pnpm build` limpo e `pnpm typecheck`               | Os dois passam; apps importam o schema             | Falha por `dist` ausente ou tipo antigo                      | Integração | Local    | T01           |
 
 Testes unitários com fixture não provam que a origem continuará no mesmo formato. Mudança de formato é detectada em tempo de execução pelo schema (ET-04).
 

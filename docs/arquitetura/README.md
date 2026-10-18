@@ -8,14 +8,14 @@ Os rótulos de estado estão em [contexto.md](../contexto.md). Nada nesta págin
 
 ## Fronteiras
 
-| Parte | Responsabilidade | O que não faz |
-| --- | --- | --- |
-| `apps/web` | Apresenta mapa e painéis. Lê o contrato publicado | Não chama o TSE nem o EC2 |
-| `apps/collector` | Consulta a origem, valida, normaliza e publica | Não serve a leitura pública |
-| `apps/api` | Pasta reservada | Não existe serviço e não é caminho crítico |
-| `packages/types` | Tipos compartilhados, quando o contrato existir | Hoje exporta vazio |
-| `packages/election-data` | Material eleitoral compartilhado, quando houver | Hoje exporta vazio |
-| `packages/validation` | Schemas, quando forem escritos sobre o contrato | Hoje só declara Zod |
+| Parte                    | Responsabilidade                                  | O que não faz                              |
+| ------------------------ | ------------------------------------------------- | ------------------------------------------ |
+| `apps/web`               | Apresenta mapa e painéis. Lê o contrato publicado | Não chama o TSE nem o EC2                  |
+| `apps/collector`         | Consulta a origem, valida, normaliza e publica    | Não serve a leitura pública                |
+| `apps/api`               | Pasta reservada                                   | Não existe serviço e não é caminho crítico |
+| `packages/types`         | Tipos compartilhados, quando o contrato existir   | Hoje exporta vazio                         |
+| `packages/election-data` | Material eleitoral compartilhado, quando houver   | Hoje exporta vazio                         |
+| `packages/validation`    | Schemas, quando forem escritos sobre o contrato   | Hoje só declara Zod                        |
 
 O pacote de validação é a casa prevista dos schemas. Web e coletor devem depender do contrato, não um do formato interno do outro. Essa dependência de pacote ainda não foi ligada: nenhum `package.json` aponta para outro pacote do workspace.
 
@@ -81,16 +81,16 @@ Há um publicador ativo. Duas escritas concorrentes quebram a ordem acima. Redun
 
 ## Decisões
 
-| Decisão | Motivo | Consequência |
-| --- | --- | --- |
-| Workers Static Assets no lugar de Pages | A Cloudflare orienta projetos novos a começar com Workers. Pages continua documentado, mas deixa de ser o destino deste frontend | O build do Vite será publicado como assets. Não herdamos Pages Functions |
-| Leitura pública por snapshots e CDN | O pico é de leitura repetida do mesmo quadro | O atraso visível depende do cache do manifesto, não de um servidor de API |
-| Coletor fora do caminho do visitante | A origem tem limite por IP e não deve ser multiplicada pelos navegadores | O site pode continuar no ar com números antigos se o coletor parar |
-| EC2 e Docker para o coletor | O processo é contínuo, com saída para o TSE e para o R2, e não precisa do runtime de Workers | Há uma máquina para operar. Não há balanceador na frente dela |
-| API dinâmica opcional | Os painéis cabem em arquivos | `apps/api` permanece vazia até um requisito que o snapshot não cubra |
-| Sem Redis e sem PostgreSQL na primeira versão | Não há sessão de visitante nem consulta que peça banco | Não operar banco sem um dado que precise viver nele |
-| Sem load balancer próprio | O tráfego público não chega ao coletor | Não haverá load balancer próprio na arquitetura inicial, pois o tráfego público de leitura não será atendido pelo servidor do coletor |
-| Um publicador | Evita manifesto apontando para versão pela metade | A instância única é um ponto de falha operacional, aceito na primeira versão |
+| Decisão                                       | Motivo                                                                                                                           | Consequência                                                                                                                          |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Workers Static Assets no lugar de Pages       | A Cloudflare orienta projetos novos a começar com Workers. Pages continua documentado, mas deixa de ser o destino deste frontend | O build do Vite será publicado como assets. Não herdamos Pages Functions                                                              |
+| Leitura pública por snapshots e CDN           | O pico é de leitura repetida do mesmo quadro                                                                                     | O atraso visível depende do cache do manifesto, não de um servidor de API                                                             |
+| Coletor fora do caminho do visitante          | A origem tem limite por IP e não deve ser multiplicada pelos navegadores                                                         | O site pode continuar no ar com números antigos se o coletor parar                                                                    |
+| EC2 e Docker para o coletor                   | O processo é contínuo, com saída para o TSE e para o R2, e não precisa do runtime de Workers                                     | Há uma máquina para operar. Não há balanceador na frente dela                                                                         |
+| API dinâmica opcional                         | Os painéis cabem em arquivos                                                                                                     | `apps/api` permanece vazia até um requisito que o snapshot não cubra                                                                  |
+| Sem Redis e sem PostgreSQL na primeira versão | Não há sessão de visitante nem consulta que peça banco                                                                           | Não operar banco sem um dado que precise viver nele                                                                                   |
+| Sem load balancer próprio                     | O tráfego público não chega ao coletor                                                                                           | Não haverá load balancer próprio na arquitetura inicial, pois o tráfego público de leitura não será atendido pelo servidor do coletor |
+| Um publicador                                 | Evita manifesto apontando para versão pela metade                                                                                | A instância única é um ponto de falha operacional, aceito na primeira versão                                                          |
 
 Cloudflare Workers Static Assets substitui Cloudflare Pages como destino planejado de hospedagem do frontend. O README citava Pages em `infra/cloudflare`; a frase foi corrigida em ET-00. API, Redis e PostgreSQL, que o README lista como adiados, continuam fora da primeira versão. Não há dois desenhos vigentes ao mesmo tempo.
 

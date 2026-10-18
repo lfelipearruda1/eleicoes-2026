@@ -86,28 +86,28 @@ O ensaio desse roteiro está em [testes/README.md](../testes/README.md). Enquant
 
 ## Tabela de riscos
 
-| Risco | Controle planejado | Componente responsável | Como verificar |
-| --- | --- | --- | --- |
-| Visitante consulta o TSE a partir do navegador | A interface só chama o domínio público de resultados | Web | Hoje, revisão de `apps/web`. Na homologação, inspeção do tráfego |
-| O EC2 vira servidor público dos JSON | Sem porta HTTP de leitura para a internet. O público usa a CDN | Coletor e AWS | Grupo de segurança e tentativa de acesso ao endereço da instância |
-| Segredo no JavaScript do site | Proibir credencial em `VITE_*` e no bundle | Web | Busca no resultado de `vite build` e nas variáveis de exemplo |
-| Credencial de publicação ampla demais | Permissão mínima de escrita no prefixo do ambiente | Coletor e R2 | Revisão da política e tentativa de ler outro bucket ou outro ambiente |
-| A mesma chave em local, homologação e produção | Credenciais distintas | Infraestrutura | Inventário por ambiente, quando existirem |
-| JSON inválido publicado como apuração | Validar antes de gravar. Manifesto só muda com o conjunto completo | Coletor | Teste de resposta inválida. O ponteiro anterior permanece |
-| Cache mistura oficial e simulado, ou manifesto e arquivo antigo | Chave de cache com ambiente e conjunto. Políticas separadas | CDN e R2 | Pedidos dos dois ambientes e leitura do status de cache |
-| Query string arbitrária multiplica o cache | Não variar o cache por parâmetro imprevisto. O cliente não inventa parâmetro | Web e CDN | Duas URLs com queries diferentes, medindo acerto de cache |
-| `r2.dev` ou outro caminho entrega o bucket sem WAF e sem cache | Domínio próprio em produção. Caminho alternativo desligado ou restrito | R2 | Pedido direto ao caminho alternativo |
-| Arquivo privado no bucket público | Bucket público só com manifesto e snapshots | R2 | Inventário dos objetos publicados |
-| CORS tratado como se fosse autenticação | CORS apenas para o navegador da origem do site | R2 | Cliente sem navegador lê o objeto público. Outra origem é barrada só no navegador |
-| HTML vindo da origem é interpretado | Inserir os textos como texto | Web | Amostra com marcação não vira elemento |
-| Resposta enorme ou lenta prende o coletor | Limites de tamanho e de tempo | Coletor | Testes de timeout e de corpo excedente |
-| Coleta acima do limite ou com 404 em série | Allowlist, um ciclo, backoff, parada em bloqueio | Coletor | Ensaio controlado e revisão das URLs. Sem teste de carga contra o TSE |
-| URL externa montada com dado do visitante | O coletor não recebe URL do visitante | Coletor | Revisão de código quando a coleta existir |
-| WAF bloqueia visitantes que compartilham IP | Regras do plano escolhido, ensaiadas com esse caso | Cloudflare | Homologação antes da produção |
-| SSH aberto para administrar o EC2 | Proposta de Session Manager, sem porta administrativa pública | AWS | Grupo de segurança e abertura de sessão |
-| Log ou CI revela credencial | Não registrar segredo. Cofre do workflow no futuro | Coletor e GitHub Actions | Amostra de log e revisão do workflow, quando existir |
-| Dependência com falha conhecida | Atualização deliberada e auditoria na automação | Repositório | Comando de auditoria quando o workflow existir. Hoje o controle não roda |
-| Publicação errada permanece no ar | Parar o publicador, conservar ou restaurar versão válida, avisar na tela | Operação | Exercício de retorno em homologação |
+| Risco                                                           | Controle planejado                                                           | Componente responsável   | Como verificar                                                                    |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------------- |
+| Visitante consulta o TSE a partir do navegador                  | A interface só chama o domínio público de resultados                         | Web                      | Hoje, revisão de `apps/web`. Na homologação, inspeção do tráfego                  |
+| O EC2 vira servidor público dos JSON                            | Sem porta HTTP de leitura para a internet. O público usa a CDN               | Coletor e AWS            | Grupo de segurança e tentativa de acesso ao endereço da instância                 |
+| Segredo no JavaScript do site                                   | Proibir credencial em `VITE_*` e no bundle                                   | Web                      | Busca no resultado de `vite build` e nas variáveis de exemplo                     |
+| Credencial de publicação ampla demais                           | Permissão mínima de escrita no prefixo do ambiente                           | Coletor e R2             | Revisão da política e tentativa de ler outro bucket ou outro ambiente             |
+| A mesma chave em local, homologação e produção                  | Credenciais distintas                                                        | Infraestrutura           | Inventário por ambiente, quando existirem                                         |
+| JSON inválido publicado como apuração                           | Validar antes de gravar. Manifesto só muda com o conjunto completo           | Coletor                  | Teste de resposta inválida. O ponteiro anterior permanece                         |
+| Cache mistura oficial e simulado, ou manifesto e arquivo antigo | Chave de cache com ambiente e conjunto. Políticas separadas                  | CDN e R2                 | Pedidos dos dois ambientes e leitura do status de cache                           |
+| Query string arbitrária multiplica o cache                      | Não variar o cache por parâmetro imprevisto. O cliente não inventa parâmetro | Web e CDN                | Duas URLs com queries diferentes, medindo acerto de cache                         |
+| `r2.dev` ou outro caminho entrega o bucket sem WAF e sem cache  | Domínio próprio em produção. Caminho alternativo desligado ou restrito       | R2                       | Pedido direto ao caminho alternativo                                              |
+| Arquivo privado no bucket público                               | Bucket público só com manifesto e snapshots                                  | R2                       | Inventário dos objetos publicados                                                 |
+| CORS tratado como se fosse autenticação                         | CORS apenas para o navegador da origem do site                               | R2                       | Cliente sem navegador lê o objeto público. Outra origem é barrada só no navegador |
+| HTML vindo da origem é interpretado                             | Inserir os textos como texto                                                 | Web                      | Amostra com marcação não vira elemento                                            |
+| Resposta enorme ou lenta prende o coletor                       | Limites de tamanho e de tempo                                                | Coletor                  | Testes de timeout e de corpo excedente                                            |
+| Coleta acima do limite ou com 404 em série                      | Allowlist, um ciclo, backoff, parada em bloqueio                             | Coletor                  | Ensaio controlado e revisão das URLs. Sem teste de carga contra o TSE             |
+| URL externa montada com dado do visitante                       | O coletor não recebe URL do visitante                                        | Coletor                  | Revisão de código quando a coleta existir                                         |
+| WAF bloqueia visitantes que compartilham IP                     | Regras do plano escolhido, ensaiadas com esse caso                           | Cloudflare               | Homologação antes da produção                                                     |
+| SSH aberto para administrar o EC2                               | Proposta de Session Manager, sem porta administrativa pública                | AWS                      | Grupo de segurança e abertura de sessão                                           |
+| Log ou CI revela credencial                                     | Não registrar segredo. Cofre do workflow no futuro                           | Coletor e GitHub Actions | Amostra de log e revisão do workflow, quando existir                              |
+| Dependência com falha conhecida                                 | Atualização deliberada e auditoria na automação                              | Repositório              | Comando de auditoria quando o workflow existir. Hoje o controle não roda          |
+| Publicação errada permanece no ar                               | Parar o publicador, conservar ou restaurar versão válida, avisar na tela     | Operação                 | Exercício de retorno em homologação                                               |
 
 ## Referências
 

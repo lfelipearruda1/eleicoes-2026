@@ -56,11 +56,11 @@ Uma coleta bem-sucedida prova que obtivemos uma resposta aceitável. Não prova 
 
 ## Três horários
 
-| Horário | O que representa |
-| --- | --- |
+| Horário                       | O que representa                                                                                                       |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | Horário informado pela origem | Instante que o arquivo oficial atribui à totalização ou à geração, quando esse campo existir e tiver sido compreendido |
-| Horário de coleta | Instante em que o coletor recebeu a resposta |
-| Horário de publicação | Instante em que a versão ficou endereçada pelo manifesto |
+| Horário de coleta             | Instante em que o coletor recebeu a resposta                                                                           |
+| Horário de publicação         | Instante em que a versão ficou endereçada pelo manifesto                                                               |
 
 O frontend deve mostrar a atualidade dos dados, não o instante em que o navegador fez o download. Por isso os três horários permanecem distintos no contrato. A semântica exata dos campos de data do TSE está pendente da especificação.
 

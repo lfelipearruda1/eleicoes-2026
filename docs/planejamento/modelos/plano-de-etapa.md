@@ -17,12 +17,12 @@ Este modelo define o formato dos planos em [etapas/](../etapas/README.md). Ele s
 
 ### Classificação de comandos
 
-| Classe | Uso |
-| --- | --- |
-| Existente e verificado por inspeção | O script existe no `package.json`; o conteúdo foi lido |
-| Existente, não executado nesta tarefa | Existe, mas o resultado não foi observado |
-| Proposto para criação futura | Ainda não existe; a etapa o cria |
-| Dependente de ferramenta ou configuração ausente | Exige instalação ou recurso que ainda não existe |
+| Classe                                           | Uso                                                    |
+| ------------------------------------------------ | ------------------------------------------------------ |
+| Existente e verificado por inspeção              | O script existe no `package.json`; o conteúdo foi lido |
+| Existente, não executado nesta tarefa            | Existe, mas o resultado não foi observado              |
+| Proposto para criação futura                     | Ainda não existe; a etapa o cria                       |
+| Dependente de ferramenta ou configuração ausente | Exige instalação ou recurso que ainda não existe       |
 
 ### Níveis de validação
 
@@ -43,12 +43,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-XX |
-| Componente | <aplicação, pacote, recurso de nuvem ou operação> |
-| Tipo predominante | <investigação, código, infraestrutura, integração, operação, documentação> |
-| Marco | <M0 a M8, ou contribuição para um marco> |
+| Campo              | Conteúdo                                                                      |
+| ------------------ | ----------------------------------------------------------------------------- |
+| ID                 | ET-XX                                                                         |
+| Componente         | <aplicação, pacote, recurso de nuvem ou operação>                             |
+| Tipo predominante  | <investigação, código, infraestrutura, integração, operação, documentação>    |
+| Marco              | <M0 a M8, ou contribuição para um marco>                                      |
 | Resultado concreto | <o que passa a ser possível, observável por alguém que não escreveu o código> |
 
 ## 2. Escopo e exclusões
@@ -61,12 +61,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | <ET-YY: entrega> | <tarefas> |
-| Contrato | <...> | <...> |
-| Decisão | <DP-NN> | <...> |
-| Recurso externo | <...> | <...> |
+| Tipo            | Item             | Bloqueia  |
+| --------------- | ---------------- | --------- |
+| Implementação   | <ET-YY: entrega> | <tarefas> |
+| Contrato        | <...>            | <...>     |
+| Decisão         | <DP-NN>          | <...>     |
+| Recurso externo | <...>            | <...>     |
 
 <Quais tarefas podem começar apesar dos bloqueios.>
 
@@ -104,8 +104,8 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ID  | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
+| --- | ------- | ---------- | ---- | ------- | -------- | ----- | -------- | ------ |
 
 <O que esses níveis não provam.>
 

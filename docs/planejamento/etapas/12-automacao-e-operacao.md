@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-12 |
-| Componente | GitHub Actions (`.github/workflows/`), observabilidade, alertas, procedimentos de operação; Cloudflare e AWS de homologação |
-| Tipo predominante | Configuração e operação |
-| Marco | Preparação de M6 — Prontidão operacional |
+| Campo              | Conteúdo                                                                                                                                                                                                                                                    |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-12                                                                                                                                                                                                                                                       |
+| Componente         | GitHub Actions (`.github/workflows/`), observabilidade, alertas, procedimentos de operação; Cloudflare e AWS de homologação                                                                                                                                 |
+| Tipo predominante  | Configuração e operação                                                                                                                                                                                                                                     |
+| Marco              | Preparação de M6 — Prontidão operacional                                                                                                                                                                                                                    |
 | Resultado concreto | Verificações e publicações saem de workflows reproduzíveis com privilégio mínimo; coleta, publicação, leitura e atualidade são observáveis; cada alerta tem ação escrita; rotação de credencial, retorno de versão e alertas foram ensaiados em homologação |
 
 ## 2. Escopo e exclusões
@@ -32,16 +32,16 @@ Estado observado em 17/10/2026: `.github/workflows/` só tem `.gitkeep`; não h�
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-10: coletor contínuo em homologação, alarmes mínimos | T04, T05, T06, T07, T08 |
-| Implementação | ET-11: build final do web | T03 |
-| Implementação | ET-03 em diante: suíte de testes | T01 |
-| Decisão | DP-26 (canal, ferramentas, verificação externa) | T05, T06 |
-| Decisão | DP-23 (ferramenta de deploy) | T03 |
-| Decisão | DP-14 (limiar de atraso) | Valor do alerta de atraso em T06 |
-| Recurso externo | Repositório no GitHub com permissão para configurar ambientes e segredos | T01–T04 |
-| Autorização | Criação de tokens de CI com escopo mínimo | T03, T04 |
+| Tipo            | Item                                                                     | Bloqueia                         |
+| --------------- | ------------------------------------------------------------------------ | -------------------------------- |
+| Implementação   | ET-10: coletor contínuo em homologação, alarmes mínimos                  | T04, T05, T06, T07, T08          |
+| Implementação   | ET-11: build final do web                                                | T03                              |
+| Implementação   | ET-03 em diante: suíte de testes                                         | T01                              |
+| Decisão         | DP-26 (canal, ferramentas, verificação externa)                          | T05, T06                         |
+| Decisão         | DP-23 (ferramenta de deploy)                                             | T03                              |
+| Decisão         | DP-14 (limiar de atraso)                                                 | Valor do alerta de atraso em T06 |
+| Recurso externo | Repositório no GitHub com permissão para configurar ambientes e segredos | T01–T04                          |
+| Autorização     | Criação de tokens de CI com escopo mínimo                                | T03, T04                         |
 
 **Pode começar antes:** um workflow mínimo de verificação (T01 sem deploy) pode nascer assim que ET-03 tiver a primeira suíte; ver [plano mestre](../plano-mestre.md#5-paralelismo-e-início-parcial).
 
@@ -51,23 +51,23 @@ Estado observado em 17/10/2026: `.github/workflows/` só tem `.gitkeep`; não h�
 
 **Saídas:**
 
-| Artefato | Consumidor |
-| --- | --- |
-| Workflows em `.github/workflows/` (propostos: verificação, deploy do site, imagem do coletor) | ET-13, ET-14 |
-| Tabela de alertas com ação em `docs/operacao/alertas.md` (proposto) | Operação, ET-13, ET-14 |
-| Manual de operação em `docs/operacao/README.md` (proposto) | ET-13, ET-14, ET-15 |
-| Ferramenta de retorno do manifesto em `apps/collector/scripts/` (proposto) | Operação, ET-14 |
-| Evidências dos ensaios | M6 |
+| Artefato                                                                                      | Consumidor             |
+| --------------------------------------------------------------------------------------------- | ---------------------- |
+| Workflows em `.github/workflows/` (propostos: verificação, deploy do site, imagem do coletor) | ET-13, ET-14           |
+| Tabela de alertas com ação em `docs/operacao/alertas.md` (proposto)                           | Operação, ET-13, ET-14 |
+| Manual de operação em `docs/operacao/README.md` (proposto)                                    | ET-13, ET-14, ET-15    |
+| Ferramenta de retorno do manifesto em `apps/collector/scripts/` (proposto)                    | Operação, ET-14        |
+| Evidências dos ensaios                                                                        | M6                     |
 
 ## 6. Responsabilidades e fronteiras
 
-| Peça | Responsabilidade | Privilégio |
-| --- | --- | --- |
-| Workflow de verificação | Rodar tipos, lint, formatação, testes e build | Leitura do repositório; nenhum segredo |
-| Workflow de deploy do site | Publicar build no ambiente escolhido | Token de deploy do ambiente; aprovação em produção |
-| Workflow de imagem | Construir e enviar a imagem com marca imutável | Escrita no registro; identidade de curta duração, se disponível |
-| Ferramenta de retorno | Apontar o manifesto para versão anterior válida | Credencial de publicação do ambiente, usada manualmente |
-| Alertas | Avisar com ação | Leitura de métricas e logs |
+| Peça                       | Responsabilidade                                | Privilégio                                                      |
+| -------------------------- | ----------------------------------------------- | --------------------------------------------------------------- |
+| Workflow de verificação    | Rodar tipos, lint, formatação, testes e build   | Leitura do repositório; nenhum segredo                          |
+| Workflow de deploy do site | Publicar build no ambiente escolhido            | Token de deploy do ambiente; aprovação em produção              |
+| Workflow de imagem         | Construir e enviar a imagem com marca imutável  | Escrita no registro; identidade de curta duração, se disponível |
+| Ferramenta de retorno      | Apontar o manifesto para versão anterior válida | Credencial de publicação do ambiente, usada manualmente         |
+| Alertas                    | Avisar com ação                                 | Leitura de métricas e logs                                      |
 
 ## 7. Sequência de tarefas
 
@@ -256,31 +256,31 @@ Estado observado em 17/10/2026: `.github/workflows/` só tem `.gitkeep`; não h�
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-12-V01 | Verificação falha quando deve | PR com erro de lint; PR com teste falhando; PR limpo (casos separados) | Abrir PR | Os dois primeiros falham; o terceiro passa | Erro passa | Verificação operacional | GitHub | T01 |
-| ET-12-V02 | Privilégio e fork | Workflow | Ler `permissions` e referências; PR de fork | Somente leitura; actions por commit; fork sem segredo | Permissão ampla, tag móvel ou segredo acessível | Revisão + verificação operacional | GitHub | T01 |
-| ET-12-V03 | Auditoria e segredo | Segredo de teste óbvio em branch descartável | Rodar verificações | Segredo apontado; auditoria executada | Nenhum apontamento | Verificação operacional | GitHub | T02 |
-| ET-12-V04 | Deploy por ambiente | Commit identificado | Deploy de homologação; tentativa em produção | Homologação publicada; produção espera aprovação | Produção sem aprovação | Verificação operacional | GitHub + Cloudflare | T03 |
-| ET-12-V05 | Imagem e implantação | Mudança no coletor | Workflow e implantação | Marca do commit em execução; um publicador | Dois publicadores ou marca móvel | Verificação operacional | GitHub + AWS | T04 |
-| ET-12-V06 | Alertas | Cada condição provocada em homologação | Observar | Aviso no canal; ação seguida | Sem aviso ou ação ambígua | Verificação operacional | Homologação | T06, T10 |
-| ET-12-V07 | Rotação | Credencial da instância | Executar o procedimento | Nova funciona; antiga recusada; interrupção registrada | Antiga ainda aceita ou publicação parada sem registro | Verificação operacional | Homologação | T07 |
-| ET-12-V08 | Retorno do manifesto | Versões A e B; B no ar | Pausar coletor; retornar para A | Domínio serve A dentro do TTL; tela mostra A; coletor pausado não republica | Coletor sobrescreve ou ferramenta aceita versão inválida | Verificação operacional | Homologação | T08 |
-| ET-12-V09 | Retorno do site e da imagem | Deploys e marcas anteriores | Executar retornos | Versão anterior no ar | Sem caminho de retorno | Verificação operacional | Homologação | T08 |
-| ET-12-V10 | Log de CI limpo | Execuções de deploy | Ler logs | Nenhum valor de segredo | Valor aparece | Revisão | GitHub | T03 |
-| ET-12-V11 | Manual utilizável | Manual | Outra pessoa executa um procedimento | Executado sem ajuda | Passo faltando | Verificação operacional | Homologação | T05, T09 |
-| ET-12-V12 | Teste focado bloqueado | PR com `.only` | Rodar verificação | Falha | Passa | Verificação operacional | GitHub | T01 |
+| ID        | Cenário                       | Preparação                                                             | Ação                                         | Sucesso                                                                     | Falha se                                                 | Nível                             | Ambiente            | Tarefa   |
+| --------- | ----------------------------- | ---------------------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------- | --------------------------------- | ------------------- | -------- |
+| ET-12-V01 | Verificação falha quando deve | PR com erro de lint; PR com teste falhando; PR limpo (casos separados) | Abrir PR                                     | Os dois primeiros falham; o terceiro passa                                  | Erro passa                                               | Verificação operacional           | GitHub              | T01      |
+| ET-12-V02 | Privilégio e fork             | Workflow                                                               | Ler `permissions` e referências; PR de fork  | Somente leitura; actions por commit; fork sem segredo                       | Permissão ampla, tag móvel ou segredo acessível          | Revisão + verificação operacional | GitHub              | T01      |
+| ET-12-V03 | Auditoria e segredo           | Segredo de teste óbvio em branch descartável                           | Rodar verificações                           | Segredo apontado; auditoria executada                                       | Nenhum apontamento                                       | Verificação operacional           | GitHub              | T02      |
+| ET-12-V04 | Deploy por ambiente           | Commit identificado                                                    | Deploy de homologação; tentativa em produção | Homologação publicada; produção espera aprovação                            | Produção sem aprovação                                   | Verificação operacional           | GitHub + Cloudflare | T03      |
+| ET-12-V05 | Imagem e implantação          | Mudança no coletor                                                     | Workflow e implantação                       | Marca do commit em execução; um publicador                                  | Dois publicadores ou marca móvel                         | Verificação operacional           | GitHub + AWS        | T04      |
+| ET-12-V06 | Alertas                       | Cada condição provocada em homologação                                 | Observar                                     | Aviso no canal; ação seguida                                                | Sem aviso ou ação ambígua                                | Verificação operacional           | Homologação         | T06, T10 |
+| ET-12-V07 | Rotação                       | Credencial da instância                                                | Executar o procedimento                      | Nova funciona; antiga recusada; interrupção registrada                      | Antiga ainda aceita ou publicação parada sem registro    | Verificação operacional           | Homologação         | T07      |
+| ET-12-V08 | Retorno do manifesto          | Versões A e B; B no ar                                                 | Pausar coletor; retornar para A              | Domínio serve A dentro do TTL; tela mostra A; coletor pausado não republica | Coletor sobrescreve ou ferramenta aceita versão inválida | Verificação operacional           | Homologação         | T08      |
+| ET-12-V09 | Retorno do site e da imagem   | Deploys e marcas anteriores                                            | Executar retornos                            | Versão anterior no ar                                                       | Sem caminho de retorno                                   | Verificação operacional           | Homologação         | T08      |
+| ET-12-V10 | Log de CI limpo               | Execuções de deploy                                                    | Ler logs                                     | Nenhum valor de segredo                                                     | Valor aparece                                            | Revisão                           | GitHub              | T03      |
+| ET-12-V11 | Manual utilizável             | Manual                                                                 | Outra pessoa executa um procedimento         | Executado sem ajuda                                                         | Passo faltando                                           | Verificação operacional           | Homologação         | T05, T09 |
+| ET-12-V12 | Teste focado bloqueado        | PR com `.only`                                                         | Rodar verificação                            | Falha                                                                       | Passa                                                    | Verificação operacional           | GitHub              | T01      |
 
 Ensaio em homologação não prova o volume de produção nem as metas de capacidade (ET-13).
 
 ## 11. Infraestrutura e ações externas
 
-| Recurso | Manual | Automatizável | Aprovação |
-| --- | --- | --- | --- |
-| Ambientes e segredos do GitHub | Configuração inicial | — | Sim |
-| Tokens de deploy (Cloudflare) e de registro (AWS) | Criação | Rotação | Sim |
-| Alarmes e canal | Configuração | — | Sim |
-| Ensaios | Execução e registro | Parte dos disparos | Sim, por usar homologação |
+| Recurso                                           | Manual               | Automatizável      | Aprovação                 |
+| ------------------------------------------------- | -------------------- | ------------------ | ------------------------- |
+| Ambientes e segredos do GitHub                    | Configuração inicial | —                  | Sim                       |
+| Tokens de deploy (Cloudflare) e de registro (AWS) | Criação              | Rotação            | Sim                       |
+| Alarmes e canal                                   | Configuração         | —                  | Sim                       |
+| Ensaios                                           | Execução e registro  | Parte dos disparos | Sim, por usar homologação |
 
 ## 12. Falha, reversão e recuperação
 

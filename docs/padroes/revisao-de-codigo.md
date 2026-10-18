@@ -16,15 +16,15 @@ Configuração conferida em 14 de outubro de 2026: ESLint 10.12.0, typescript-es
 
 ## O que já dá para ligar no uso atual
 
-| Verificação | Estado no repositório |
-| --- | --- |
-| `strict` e variáveis não usadas | Ligado em `tsconfig.base.json` |
-| `noFallthroughCasesInSwitch` | Ligado na base |
-| Regras recomendadas do typescript-eslint, sem tipos | Ligadas |
-| Prettier via `eslint-config-prettier` | Ligado, por último na configuração |
-| Regras recomendadas de hooks e refresh no `apps/web` | Ligadas |
-| Fronteira entre aplicativos e pacotes | Não ligada |
-| Teste focado (`it.only`, `describe.only`) | Não ligada. Não há suíte |
+| Verificação                                          | Estado no repositório              |
+| ---------------------------------------------------- | ---------------------------------- |
+| `strict` e variáveis não usadas                      | Ligado em `tsconfig.base.json`     |
+| `noFallthroughCasesInSwitch`                         | Ligado na base                     |
+| Regras recomendadas do typescript-eslint, sem tipos  | Ligadas                            |
+| Prettier via `eslint-config-prettier`                | Ligado, por último na configuração |
+| Regras recomendadas de hooks e refresh no `apps/web` | Ligadas                            |
+| Fronteira entre aplicativos e pacotes                | Não ligada                         |
+| Teste focado (`it.only`, `describe.only`)            | Não ligada. Não há suíte           |
 
 ## Regras a avaliar antes de configurar
 

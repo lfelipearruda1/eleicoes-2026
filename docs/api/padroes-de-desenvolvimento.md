@@ -36,17 +36,17 @@ Nomes de arquivo seguem STYLE-007.
 
 A documentação de módulos do Nest, consultada em 14 de outubro de 2026, descreve o módulo como unidade que declara `providers`, `controllers`, `imports` e `exports`. Provider não exportado não é injetável em quem importa o módulo. A documentação de controllers, na mesma data, diz que o controller recebe o pedido e devolve a resposta.
 
-| Peça | Responsabilidade |
-| --- | --- |
-| Module | Compõe e expõe só o que outro módulo precisa |
-| Controller | Adapta HTTP, delega e produz a resposta |
-| Pipe | Valida e transforma a entrada na fronteira |
-| Guard | Decide acesso quando a operação exige acesso |
-| Service ou caso de uso | Executa a operação de aplicação |
-| Função de domínio | Regra que não conhece transporte |
-| Adapter ou repository | Acesso externo ou persistência, se existir |
-| Interceptor | Comportamento transversal que caiba no pipeline, como medida ou correlação |
-| Exception filter | Traduz falha na fronteira HTTP, sem vazar detalhe interno |
+| Peça                   | Responsabilidade                                                           |
+| ---------------------- | -------------------------------------------------------------------------- |
+| Module                 | Compõe e expõe só o que outro módulo precisa                               |
+| Controller             | Adapta HTTP, delega e produz a resposta                                    |
+| Pipe                   | Valida e transforma a entrada na fronteira                                 |
+| Guard                  | Decide acesso quando a operação exige acesso                               |
+| Service ou caso de uso | Executa a operação de aplicação                                            |
+| Função de domínio      | Regra que não conhece transporte                                           |
+| Adapter ou repository  | Acesso externo ou persistência, se existir                                 |
+| Interceptor            | Comportamento transversal que caiba no pipeline, como medida ou correlação |
+| Exception filter       | Traduz falha na fronteira HTTP, sem vazar detalhe interno                  |
 
 ### API-002. Uma camada de aplicação, não duas vazias
 
@@ -155,11 +155,11 @@ export class ZodSchemaPipe implements PipeTransform {
 
 Três níveis, que não se substituem. Ferramenta de execução prevista do monorepo: Vitest. A página de testes do Nest, consultada em 14 de outubro de 2026, usa Vitest nos exemplos e separa teste isolado, módulo de teste e HTTP.
 
-| Nível | O que instancia | O que prova |
-| --- | --- | --- |
-| Isolado | A classe ou a função, com dependência passada à mão | A regra da operação |
-| Composição | `Test.createTestingModule` | O grafo de injeção e os providers exportados |
-| HTTP | Aplicação com `FastifyAdapter` | Rota, status e o pipeline realmente ligado |
+| Nível      | O que instancia                                     | O que prova                                  |
+| ---------- | --------------------------------------------------- | -------------------------------------------- |
+| Isolado    | A classe ou a função, com dependência passada à mão | A regra da operação                          |
+| Composição | `Test.createTestingModule`                          | O grafo de injeção e os providers exportados |
+| HTTP       | Aplicação com `FastifyAdapter`                      | Rota, status e o pipeline realmente ligado   |
 
 Teste direto de controller, com o serviço passado no construtor, não executa guard, pipe nem filter. A página do Nest mostra `overrideGuard`, `overridePipe` e `overrideFilter` justamente porque o teste isolado não passa por eles.
 

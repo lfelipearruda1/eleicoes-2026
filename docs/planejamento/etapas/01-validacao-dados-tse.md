@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-01 |
-| Componente | Origem oficial (TSE), documentação de dados, amostras |
-| Tipo predominante | Investigação controlada |
-| Marco | M1 — Interpretação dos dados e contrato validados (junto com ET-02) |
+| Campo              | Conteúdo                                                                                                                                                                                                                                  |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-01                                                                                                                                                                                                                                     |
+| Componente         | Origem oficial (TSE), documentação de dados, amostras                                                                                                                                                                                     |
+| Tipo predominante  | Investigação controlada                                                                                                                                                                                                                   |
+| Marco              | M1 — Interpretação dos dados e contrato validados (junto com ET-02)                                                                                                                                                                       |
 | Resultado concreto | Uma matriz liga cada informação da tela a um arquivo e campo confirmados, com semântica e evidência, e lista o que ainda falta confirmar. Amostras identificadas por origem, ambiente, abrangência e momento ficam disponíveis para ET-03 |
 
 ## 2. Escopo e exclusões
@@ -55,14 +55,14 @@ No repositório não há amostra, fixture, matriz de campos nem código que cons
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-00: convenção de evidências (ET-00-T04) | Registro formal das amostras (T04 em diante) |
-| Decisão | DP-01 (alcance temporal) | Janela e prioridade de T05 e T07 |
-| Decisão | DP-02 (disponibilidade de amostras) | T05, T07, T08 |
-| Recurso externo | Documentação oficial publicada | T01, T09 |
-| Recurso externo | Arquivos de resultado do segundo turno publicados pelo TSE | Amostra oficial de resultado em T05 |
-| Autorização | Quantidade máxima de requisições por execução de consulta, escrita antes de T02 | T02, T03, T05, T07 |
+| Tipo            | Item                                                                            | Bloqueia                                     |
+| --------------- | ------------------------------------------------------------------------------- | -------------------------------------------- |
+| Implementação   | ET-00: convenção de evidências (ET-00-T04)                                      | Registro formal das amostras (T04 em diante) |
+| Decisão         | DP-01 (alcance temporal)                                                        | Janela e prioridade de T05 e T07             |
+| Decisão         | DP-02 (disponibilidade de amostras)                                             | T05, T07, T08                                |
+| Recurso externo | Documentação oficial publicada                                                  | T01, T09                                     |
+| Recurso externo | Arquivos de resultado do segundo turno publicados pelo TSE                      | Amostra oficial de resultado em T05          |
+| Autorização     | Quantidade máxima de requisições por execução de consulta, escrita antes de T02 | T02, T03, T05, T07                           |
 
 **Podem começar já:** T01 (leitura) e T09 (classificação JWS e resolução), que não fazem requisição a arquivo de resultado. T04 pode começar em paralelo com T01.
 
@@ -72,13 +72,13 @@ No repositório não há amostra, fixture, matriz de campos nem código que cons
 
 **Saídas:**
 
-| Artefato | Garantia | Consumidor |
-| --- | --- | --- |
-| `docs/dados/matriz-dados-tse.md` (proposto): matriz Informação da tela, Arquivo/campo confirmado, Semântica, Evidência, Pendência | Nenhum campo sem evidência; pendências explícitas | ET-02, ET-03 |
-| Amostras em `packages/election-data/fixtures/` (proposto), separadas em `oficial/`, `simulado/` e `sintetico/` | Cada amostra tem arquivo de metadados com origem, ambiente, URL, data e hora, abrangência, ETag e hash | ET-03, ET-04, ET-05 (simulador) |
-| Allowlist candidata de hosts e padrões de caminho | Só hosts e caminhos lidos na documentação ou no EA11 | ET-04-T01, ET-04-T03 |
-| Classificação de JWS e lista de deveres da resolução | Fonte citada | ET-04, ET-07, ET-08, ET-14 |
-| [dados/README.md](../../dados/README.md) atualizado | Pendências resolvidas marcadas, novas registradas | Todos |
+| Artefato                                                                                                                          | Garantia                                                                                               | Consumidor                      |
+| --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------- |
+| `docs/dados/matriz-dados-tse.md` (proposto): matriz Informação da tela, Arquivo/campo confirmado, Semântica, Evidência, Pendência | Nenhum campo sem evidência; pendências explícitas                                                      | ET-02, ET-03                    |
+| Amostras em `packages/election-data/fixtures/` (proposto), separadas em `oficial/`, `simulado/` e `sintetico/`                    | Cada amostra tem arquivo de metadados com origem, ambiente, URL, data e hora, abrangência, ETag e hash | ET-03, ET-04, ET-05 (simulador) |
+| Allowlist candidata de hosts e padrões de caminho                                                                                 | Só hosts e caminhos lidos na documentação ou no EA11                                                   | ET-04-T01, ET-04-T03            |
+| Classificação de JWS e lista de deveres da resolução                                                                              | Fonte citada                                                                                           | ET-04, ET-07, ET-08, ET-14      |
+| [dados/README.md](../../dados/README.md) atualizado                                                                               | Pendências resolvidas marcadas, novas registradas                                                      | Todos                           |
 
 ## 6. Responsabilidades e fronteiras
 
@@ -287,18 +287,18 @@ Decisões que não podem ser tomadas em silêncio aqui: denominador de percentua
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-01-V01 | Fontes registradas | T01 | Revisar a lista de fontes | Cada fonte tem URL, data indicada e data de consulta | Fonte sem data ou de pleito anterior usada como 2026 | Revisão | Documento | T01 |
-| ET-01-V02 | Allowlist candidata | T02 | Revisar hosts listados | Só hosts lidos na documentação ou no EA11 | Host inferido ou de terceiro | Revisão | Documento | T02 |
-| ET-01-V03 | Matriz sem invenção | T06 | Para cada linha, abrir a evidência citada | Toda célula de campo aponta para trecho ou amostra; vazias têm pendência | Campo sem evidência | Revisão | Documento | T06 |
-| ET-01-V04 | Amostras identificadas | T03–T05 | Conferir metadados de cada amostra | Todos os campos de metadados preenchidos; diretório coerente com a natureza | Amostra sem metadado, ou sintética fora de `sintetico/` | Revisão | Repositório | T03, T04, T05 |
-| ET-01-V05 | Disciplina de consulta | T02, T05, T07 | Somar requisições registradas por execução | Total dentro do autorizado; nenhum 404 por tentativa; nenhuma tentativa durante bloqueio | Requisição não registrada, varredura ou repetição em bloqueio | Verificação operacional | Rede real, controlada | T02, T05, T07 |
-| ET-01-V06 | Códigos confirmados | T03 | Cruzar cada código usado em URL com o EA11 guardado | Todos presentes no EA11 vigente | Código vindo só da página ou de outro turno | Revisão | Repositório | T03, T05 |
-| ET-01-V07 | JWS e resolução | T09 | Ler as `DA-NN` criadas | DP-06 e DP-07 resolvidas, com fonte e etapa de cada dever | Pendência sem classificação | Revisão | Documento | T09 |
-| ET-01-V08 | Comparação com referência | T08 | Ler o registro | Valores coincidem no mesmo instante, ou divergência explicada, ou inviabilidade justificada | Diferença sem explicação | Revisão | Documento | T08 |
-| ET-01-V09 | EA15 | T10 | Ler a decisão | Decisão com evidência | Decisão sem evidência | Revisão | Documento | T10 |
-| ET-01-V10 | Documentação coerente | T11 | Comparar [dados/README.md](../../dados/README.md) e [decisoes-e-riscos.md](../decisoes-e-riscos.md) | Estados coincidem | Pendência resolvida aparecendo aberta, ou o contrário | Revisão | Documento | T11 |
+| ID        | Cenário                   | Preparação    | Ação                                                                                                | Sucesso                                                                                     | Falha se                                                      | Nível                   | Ambiente              | Tarefa        |
+| --------- | ------------------------- | ------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------- | --------------------- | ------------- |
+| ET-01-V01 | Fontes registradas        | T01           | Revisar a lista de fontes                                                                           | Cada fonte tem URL, data indicada e data de consulta                                        | Fonte sem data ou de pleito anterior usada como 2026          | Revisão                 | Documento             | T01           |
+| ET-01-V02 | Allowlist candidata       | T02           | Revisar hosts listados                                                                              | Só hosts lidos na documentação ou no EA11                                                   | Host inferido ou de terceiro                                  | Revisão                 | Documento             | T02           |
+| ET-01-V03 | Matriz sem invenção       | T06           | Para cada linha, abrir a evidência citada                                                           | Toda célula de campo aponta para trecho ou amostra; vazias têm pendência                    | Campo sem evidência                                           | Revisão                 | Documento             | T06           |
+| ET-01-V04 | Amostras identificadas    | T03–T05       | Conferir metadados de cada amostra                                                                  | Todos os campos de metadados preenchidos; diretório coerente com a natureza                 | Amostra sem metadado, ou sintética fora de `sintetico/`       | Revisão                 | Repositório           | T03, T04, T05 |
+| ET-01-V05 | Disciplina de consulta    | T02, T05, T07 | Somar requisições registradas por execução                                                          | Total dentro do autorizado; nenhum 404 por tentativa; nenhuma tentativa durante bloqueio    | Requisição não registrada, varredura ou repetição em bloqueio | Verificação operacional | Rede real, controlada | T02, T05, T07 |
+| ET-01-V06 | Códigos confirmados       | T03           | Cruzar cada código usado em URL com o EA11 guardado                                                 | Todos presentes no EA11 vigente                                                             | Código vindo só da página ou de outro turno                   | Revisão                 | Repositório           | T03, T05      |
+| ET-01-V07 | JWS e resolução           | T09           | Ler as `DA-NN` criadas                                                                              | DP-06 e DP-07 resolvidas, com fonte e etapa de cada dever                                   | Pendência sem classificação                                   | Revisão                 | Documento             | T09           |
+| ET-01-V08 | Comparação com referência | T08           | Ler o registro                                                                                      | Valores coincidem no mesmo instante, ou divergência explicada, ou inviabilidade justificada | Diferença sem explicação                                      | Revisão                 | Documento             | T08           |
+| ET-01-V09 | EA15                      | T10           | Ler a decisão                                                                                       | Decisão com evidência                                                                       | Decisão sem evidência                                         | Revisão                 | Documento             | T10           |
+| ET-01-V10 | Documentação coerente     | T11           | Comparar [dados/README.md](../../dados/README.md) e [decisoes-e-riscos.md](../decisoes-e-riscos.md) | Estados coincidem                                                                           | Pendência resolvida aparecendo aberta, ou o contrário         | Revisão                 | Documento             | T11           |
 
 Nenhuma dessas validações prova o coletor. Elas provam que a interpretação tem base. Comportamento sob falha da origem é ET-04.
 

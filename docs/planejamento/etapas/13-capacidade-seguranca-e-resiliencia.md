@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-13 |
-| Componente | Homologação inteira: site, domínio de resultados, R2, coletor na AWS; `tests/load/` |
-| Tipo predominante | Carga, resiliência e verificação de segurança |
-| Marco | M6 — Prontidão operacional |
+| Campo              | Conteúdo                                                                                                                                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ID                 | ET-13                                                                                                                                                                                      |
+| Componente         | Homologação inteira: site, domínio de resultados, R2, coletor na AWS; `tests/load/`                                                                                                        |
+| Tipo predominante  | Carga, resiliência e verificação de segurança                                                                                                                                              |
+| Marco              | M6 — Prontidão operacional                                                                                                                                                                 |
 | Resultado concreto | Um relatório com os cenários realmente executados, suas medições, os limites observados, os ajustes feitos e os riscos remanescentes. Nenhuma capacidade é afirmada fora do cenário medido |
 
 ## 2. Escopo e exclusões
@@ -31,14 +31,14 @@ Estado observado em 17/10/2026: `tests/load/` só tem `.gitkeep`; k6 não está 
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-12: observabilidade, alertas, manual, retornos | T04 em diante |
-| Implementação | ET-11: interface completa com polling real | Modelo de carga em T01 |
-| Decisão | DP-28 (cenários, orçamento do ensaio, interrupção, autorização) | T02 em diante |
-| Decisão | DP-27 (metas de recuperação) | Critério numérico de V08 |
-| Decisão | DP-22 (orçamento) | T04 em diante |
-| Autorização | Execução de carga na homologação, com teto e responsável por interromper | T04–T08 |
+| Tipo          | Item                                                                     | Bloqueia                 |
+| ------------- | ------------------------------------------------------------------------ | ------------------------ |
+| Implementação | ET-12: observabilidade, alertas, manual, retornos                        | T04 em diante            |
+| Implementação | ET-11: interface completa com polling real                               | Modelo de carga em T01   |
+| Decisão       | DP-28 (cenários, orçamento do ensaio, interrupção, autorização)          | T02 em diante            |
+| Decisão       | DP-27 (metas de recuperação)                                             | Critério numérico de V08 |
+| Decisão       | DP-22 (orçamento)                                                        | T04 em diante            |
+| Autorização   | Execução de carga na homologação, com teto e responsável por interromper | T04–T08                  |
 
 **Pode começar antes de ET-12 terminar:** T01 (definição de metas e cenários) e T02 (scripts, rodados só contra servidor local).
 
@@ -48,22 +48,22 @@ Estado observado em 17/10/2026: `tests/load/` só tem `.gitkeep`; k6 não está 
 
 **Saídas:**
 
-| Artefato | Consumidor |
-| --- | --- |
-| Plano de ensaio aprovado em `tests/load/README.md` (proposto) | Execução |
-| Scripts k6 em `tests/load/` (proposto) | Repetição e ET-14 (verificação leve, se aprovada) |
-| Relatório em `docs/planejamento/evidencias/ET-13.md` (proposto) | ET-14 (critério de autorização) |
-| Valores revistos para DP-14, DP-16, DP-17 e limitação de taxa | ET-14 |
+| Artefato                                                        | Consumidor                                        |
+| --------------------------------------------------------------- | ------------------------------------------------- |
+| Plano de ensaio aprovado em `tests/load/README.md` (proposto)   | Execução                                          |
+| Scripts k6 em `tests/load/` (proposto)                          | Repetição e ET-14 (verificação leve, se aprovada) |
+| Relatório em `docs/planejamento/evidencias/ET-13.md` (proposto) | ET-14 (critério de autorização)                   |
+| Valores revistos para DP-14, DP-16, DP-17 e limitação de taxa   | ET-14                                             |
 
 ## 6. Responsabilidades e fronteiras
 
-| Peça | Responsabilidade |
-| --- | --- |
-| Plano de ensaio | Diz o que se mede, onde, quanto custa e quando parar |
-| Gerador de carga | Gera pedidos só aos domínios de homologação listados no script |
-| Observador do gerador | Confirma que o gargalo não é o gerador |
-| Observador do alvo | Lê cache, erros, latência, custo durante o ensaio |
-| Responsável por interromper (a designar) | Para o ensaio ao atingir uma condição |
+| Peça                                     | Responsabilidade                                               |
+| ---------------------------------------- | -------------------------------------------------------------- |
+| Plano de ensaio                          | Diz o que se mede, onde, quanto custa e quando parar           |
+| Gerador de carga                         | Gera pedidos só aos domínios de homologação listados no script |
+| Observador do gerador                    | Confirma que o gargalo não é o gerador                         |
+| Observador do alvo                       | Lê cache, erros, latência, custo durante o ensaio              |
+| Responsável por interromper (a designar) | Para o ensaio ao atingir uma condição                          |
 
 ## 7. Sequência de tarefas
 
@@ -252,30 +252,30 @@ Nenhuma mudança de contrato é esperada. Se a medição mostrar que a divisão 
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-13-V01 | Plano aprovado | T01 | Conferir antes da primeira rodada | Metas, cenários, teto, interrupção, responsável e autorização escritos | Rodada sem algum desses | Revisão | Documento | T01 |
-| ET-13-V02 | Alvos restritos | Scripts | Tentar host fora da lista | Script recusa; nenhum host do TSE | Pedido enviado | Revisão + integração | Local | T02 |
-| ET-13-V03 | Gerador saudável | Rodada curta | Monitorar o gerador | Abaixo do limite definido | Gerador saturado sem registro | Carga | Gerador | T03 |
-| ET-13-V04 | Perfis com cache preenchido | T04 | Executar | Medições registradas por perfil, comparadas às metas aprovadas | Rodada sem medição ou meta violada sem registro | Carga | Homologação | T04, T09 |
-| ET-13-V05 | Troca de versão sob tráfego | T05 | Publicar durante carga | Zero falha em arquivo referenciado; pico ao R2 medido | 404 em arquivo referenciado ou mistura | Carga e resiliência | Homologação | T05, T09 |
-| ET-13-V06 | Exposição | T07 | Buscas e tentativas | Nada exposto | Segredo encontrado ou caminho aberto | Homologação | Homologação | T07 |
-| ET-13-V07 | WAF e IP compartilhado | T07 | Tráfego legítimo de um IP e padrão abusivo (casos separados) | Legítimo atendido dentro do aceito; abusivo contido | Legítimo bloqueado ou abusivo livre | Homologação | Homologação | T07 |
-| ET-13-V08 | Falhas e retomada | T06 | Provocar cada falha | Detecção e retomada medidas e comparadas a DP-27; roteiro executado | Falha sem detecção ou sem retomada | Resiliência | Homologação | T06 |
-| ET-13-V09 | Custo | T04, T08 | Ler custo do período | Dentro do teto | Acima sem interrupção | Verificação operacional | Homologação | T04, T08 |
-| ET-13-V10 | Relatório fiel | T10 | Revisar | Só cenários executados como fato; não testado listado | Extrapolação como fato | Revisão | Documento | T10 |
-| ET-13-V11 | Coletor em execução longa | T08 | Medir memória e ciclos | Memória estável; ciclos sem sobreposição | Crescimento contínuo | Resiliência | Homologação | T08 |
-| ET-13-V12 | Interface com dados parados | Coletor parado | Abrir o site | Último válido com aviso de desatualização | Sem aviso | Homologação | Homologação | T06 |
+| ID        | Cenário                     | Preparação     | Ação                                                         | Sucesso                                                                | Falha se                                        | Nível                   | Ambiente    | Tarefa   |
+| --------- | --------------------------- | -------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------- | ----------------------------------------------- | ----------------------- | ----------- | -------- |
+| ET-13-V01 | Plano aprovado              | T01            | Conferir antes da primeira rodada                            | Metas, cenários, teto, interrupção, responsável e autorização escritos | Rodada sem algum desses                         | Revisão                 | Documento   | T01      |
+| ET-13-V02 | Alvos restritos             | Scripts        | Tentar host fora da lista                                    | Script recusa; nenhum host do TSE                                      | Pedido enviado                                  | Revisão + integração    | Local       | T02      |
+| ET-13-V03 | Gerador saudável            | Rodada curta   | Monitorar o gerador                                          | Abaixo do limite definido                                              | Gerador saturado sem registro                   | Carga                   | Gerador     | T03      |
+| ET-13-V04 | Perfis com cache preenchido | T04            | Executar                                                     | Medições registradas por perfil, comparadas às metas aprovadas         | Rodada sem medição ou meta violada sem registro | Carga                   | Homologação | T04, T09 |
+| ET-13-V05 | Troca de versão sob tráfego | T05            | Publicar durante carga                                       | Zero falha em arquivo referenciado; pico ao R2 medido                  | 404 em arquivo referenciado ou mistura          | Carga e resiliência     | Homologação | T05, T09 |
+| ET-13-V06 | Exposição                   | T07            | Buscas e tentativas                                          | Nada exposto                                                           | Segredo encontrado ou caminho aberto            | Homologação             | Homologação | T07      |
+| ET-13-V07 | WAF e IP compartilhado      | T07            | Tráfego legítimo de um IP e padrão abusivo (casos separados) | Legítimo atendido dentro do aceito; abusivo contido                    | Legítimo bloqueado ou abusivo livre             | Homologação             | Homologação | T07      |
+| ET-13-V08 | Falhas e retomada           | T06            | Provocar cada falha                                          | Detecção e retomada medidas e comparadas a DP-27; roteiro executado    | Falha sem detecção ou sem retomada              | Resiliência             | Homologação | T06      |
+| ET-13-V09 | Custo                       | T04, T08       | Ler custo do período                                         | Dentro do teto                                                         | Acima sem interrupção                           | Verificação operacional | Homologação | T04, T08 |
+| ET-13-V10 | Relatório fiel              | T10            | Revisar                                                      | Só cenários executados como fato; não testado listado                  | Extrapolação como fato                          | Revisão                 | Documento   | T10      |
+| ET-13-V11 | Coletor em execução longa   | T08            | Medir memória e ciclos                                       | Memória estável; ciclos sem sobreposição                               | Crescimento contínuo                            | Resiliência             | Homologação | T08      |
+| ET-13-V12 | Interface com dados parados | Coletor parado | Abrir o site                                                 | Último válido com aviso de desatualização                              | Sem aviso                                       | Homologação             | Homologação | T06      |
 
 ## 11. Infraestrutura e ações externas
 
-| Item | Manual | Aprovação |
-| --- | --- | --- |
-| Instalação do k6 | Sim | Sim (ferramenta nova) |
-| Gerador de carga (se instância temporária) | Criação e desligamento registrados | Sim (custo) |
-| Execução das rodadas | Sim, com responsável por interromper | Sim |
-| Purge de cache, se usado | Sim | Sim |
-| Revogação temporária de credencial em homologação | Sim | Sim |
+| Item                                              | Manual                               | Aprovação             |
+| ------------------------------------------------- | ------------------------------------ | --------------------- |
+| Instalação do k6                                  | Sim                                  | Sim (ferramenta nova) |
+| Gerador de carga (se instância temporária)        | Criação e desligamento registrados   | Sim (custo)           |
+| Execução das rodadas                              | Sim, com responsável por interromper | Sim                   |
+| Purge de cache, se usado                          | Sim                                  | Sim                   |
+| Revogação temporária de credencial em homologação | Sim                                  | Sim                   |
 
 ## 12. Falha, reversão e recuperação
 

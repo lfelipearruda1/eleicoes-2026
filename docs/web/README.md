@@ -38,14 +38,14 @@ O resultado nacional usa o agregado oficial correspondente ao Brasil. Não é um
 
 ## Estados da interface
 
-| Estado | O que o visitante percebe |
-| --- | --- |
-| Carregamento | Ainda não há conteúdo utilizável desta tentativa. Não preencher votos com zero enquanto espera |
-| Dados disponíveis | Painéis preenchidos com a versão indicada pelo manifesto |
-| Dados ainda não disponíveis | A apuração ou o arquivo ainda não existe. O vazio permanece vazio |
-| Nenhuma disputa de governador naquela unidade | O painel de governador explica a ausência. O painel presidencial da unidade continua sujeito ao próprio estado |
-| Falha de rede | A tentativa atual falhou. A última versão válida, se existir, permanece na tela com aviso |
-| Última versão válida com aviso de desatualização | Os números continuam visíveis e o aviso diz que a atualidade dos dados excedeu o esperado |
+| Estado                                           | O que o visitante percebe                                                                                      |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Carregamento                                     | Ainda não há conteúdo utilizável desta tentativa. Não preencher votos com zero enquanto espera                 |
+| Dados disponíveis                                | Painéis preenchidos com a versão indicada pelo manifesto                                                       |
+| Dados ainda não disponíveis                      | A apuração ou o arquivo ainda não existe. O vazio permanece vazio                                              |
+| Nenhuma disputa de governador naquela unidade    | O painel de governador explica a ausência. O painel presidencial da unidade continua sujeito ao próprio estado |
+| Falha de rede                                    | A tentativa atual falhou. A última versão válida, se existir, permanece na tela com aviso                      |
+| Última versão válida com aviso de desatualização | Os números continuam visíveis e o aviso diz que a atualidade dos dados excedeu o esperado                      |
 
 Dados simulados, quando o contrato os identificar, aparecem com marcação visível. Não se misturam visualmente com o ambiente oficial.
 

@@ -43,15 +43,15 @@ docs/planejamento/
 
 ## Convenções
 
-| Item | Formato | Onde |
-| --- | --- | --- |
-| Etapa | `ET-00` a `ET-15` | [Catálogo](etapas/README.md) |
-| Tarefa | `ET-XX-TYY` | Seção 7 de cada plano |
-| Validação | `ET-XX-VYY` | Seção 10 de cada plano |
-| Marco | `M0` a `M8` | [Plano mestre](plano-mestre.md#6-marcos) |
-| Requisito | `PL-REQ-NNN` | [Rastreabilidade](rastreabilidade.md) |
-| Decisão adotada, decisão pendente, risco | `DA-NN`, `DP-NN`, `R-NN` | [Decisões e riscos](decisoes-e-riscos.md) |
-| Regras de engenharia | `SEC-`, `COL-`, `WEB-`, `PKG-`, `PERF-`, `TEST-`, `STYLE-`, `REV-`, `CC-` | Guias em `docs/` (referenciados, não copiados) |
+| Item                                     | Formato                                                                   | Onde                                           |
+| ---------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------- |
+| Etapa                                    | `ET-00` a `ET-15`                                                         | [Catálogo](etapas/README.md)                   |
+| Tarefa                                   | `ET-XX-TYY`                                                               | Seção 7 de cada plano                          |
+| Validação                                | `ET-XX-VYY`                                                               | Seção 10 de cada plano                         |
+| Marco                                    | `M0` a `M8`                                                               | [Plano mestre](plano-mestre.md#6-marcos)       |
+| Requisito                                | `PL-REQ-NNN`                                                              | [Rastreabilidade](rastreabilidade.md)          |
+| Decisão adotada, decisão pendente, risco | `DA-NN`, `DP-NN`, `R-NN`                                                  | [Decisões e riscos](decisoes-e-riscos.md)      |
+| Regras de engenharia                     | `SEC-`, `COL-`, `WEB-`, `PKG-`, `PERF-`, `TEST-`, `STYLE-`, `REV-`, `CC-` | Guias em `docs/` (referenciados, não copiados) |
 
 ## Relação com os outros documentos
 
@@ -63,21 +63,21 @@ docs/planejamento/
 
 Revisão documental feita em 17/10/2026, depois de escrever todos os arquivos. Somente leitura do repositório e verificações de texto; nenhum script da aplicação foi executado.
 
-| Verificação | Resultado |
-| --- | --- |
-| Existência dos 16 planos | Os 16 arquivos `etapas/00` a `etapas/15` existem e seguem as 15 seções do modelo |
-| Conteúdo específico | Cada plano tem tarefas e validações próprias da etapa (174 tarefas e 205 validações no total) |
-| IDs | Toda referência `ET-XX-TYY` e `ET-XX-VYY` em `docs/planejamento/` aponta para um cartão ou linha existente; toda validação está ligada a pelo menos uma tarefa |
-| Links relativos | Conferidos por script local, inclusive âncoras; nenhum link renderizado para arquivo inexistente. As únicas exceções detectadas são os links dentro do bloco de código do [modelo](modelos/plano-de-etapa.md), relativos ao plano que será criado, e não renderizados como link. Caminhos propostos aparecem como código |
-| Dependências | Grafo sem ciclo; igual ao ponto de partida definido; diferenças em relação ao plano anterior justificadas no [plano mestre](plano-mestre.md#4-dependências) |
-| Entradas e saídas encadeadas | Contrato (ET-02) → schemas e normalização (ET-03) → `publish` e ciclo (ET-04) → publicador local e suíte de contrato (ET-05) → leitura web (ET-06) → publicador R2 com a mesma suíte (ET-08) → web completo (ET-11) |
-| Requisitos | `PL-REQ-001` a `PL-REQ-028`, cada um com tarefa e validação |
-| Tarefas sem requisito | Todas justificadas por risco ou por habilitar outra tarefa ([rastreabilidade.md](rastreabilidade.md#tarefas-habilitadoras-e-de-registro)) |
-| Bloqueios | Cada `DP-NN` lista só as tarefas que bloqueia; nenhuma bloqueia ET-00 |
-| Componentes condicionais | API, banco, Redis, balanceador, SSE, WebSocket, filas e Worker na leitura continuam fora (DA-05) |
-| Hospedagem do site | Workers Static Assets; Pages não é destino (DA-01) |
-| Estado | Nenhuma etapa marcada como concluída; nenhum comando declarado como aprovado |
-| Escopo da alteração | Somente Markdown em `docs/planejamento/` e o parágrafo de planejamento em [contexto.md](../contexto.md) |
+| Verificação                  | Resultado                                                                                                                                                                                                                                                                                                                |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Existência dos 16 planos     | Os 16 arquivos `etapas/00` a `etapas/15` existem e seguem as 15 seções do modelo                                                                                                                                                                                                                                         |
+| Conteúdo específico          | Cada plano tem tarefas e validações próprias da etapa (174 tarefas e 205 validações no total)                                                                                                                                                                                                                            |
+| IDs                          | Toda referência `ET-XX-TYY` e `ET-XX-VYY` em `docs/planejamento/` aponta para um cartão ou linha existente; toda validação está ligada a pelo menos uma tarefa                                                                                                                                                           |
+| Links relativos              | Conferidos por script local, inclusive âncoras; nenhum link renderizado para arquivo inexistente. As únicas exceções detectadas são os links dentro do bloco de código do [modelo](modelos/plano-de-etapa.md), relativos ao plano que será criado, e não renderizados como link. Caminhos propostos aparecem como código |
+| Dependências                 | Grafo sem ciclo; igual ao ponto de partida definido; diferenças em relação ao plano anterior justificadas no [plano mestre](plano-mestre.md#4-dependências)                                                                                                                                                              |
+| Entradas e saídas encadeadas | Contrato (ET-02) → schemas e normalização (ET-03) → `publish` e ciclo (ET-04) → publicador local e suíte de contrato (ET-05) → leitura web (ET-06) → publicador R2 com a mesma suíte (ET-08) → web completo (ET-11)                                                                                                      |
+| Requisitos                   | `PL-REQ-001` a `PL-REQ-028`, cada um com tarefa e validação                                                                                                                                                                                                                                                              |
+| Tarefas sem requisito        | Todas justificadas por risco ou por habilitar outra tarefa ([rastreabilidade.md](rastreabilidade.md#tarefas-habilitadoras-e-de-registro))                                                                                                                                                                                |
+| Bloqueios                    | Cada `DP-NN` lista só as tarefas que bloqueia; nenhuma bloqueia ET-00                                                                                                                                                                                                                                                    |
+| Componentes condicionais     | API, banco, Redis, balanceador, SSE, WebSocket, filas e Worker na leitura continuam fora (DA-05)                                                                                                                                                                                                                         |
+| Hospedagem do site           | Workers Static Assets; Pages não é destino (DA-01)                                                                                                                                                                                                                                                                       |
+| Estado                       | Nenhuma etapa marcada como concluída; nenhum comando declarado como aprovado                                                                                                                                                                                                                                             |
+| Escopo da alteração          | Somente Markdown em `docs/planejamento/` e o parágrafo de planejamento em [contexto.md](../contexto.md)                                                                                                                                                                                                                  |
 
 ## Limitações desta revisão
 

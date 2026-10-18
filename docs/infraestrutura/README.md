@@ -24,11 +24,11 @@ Não entram por convenção S3, CloudFront, API Gateway, Kubernetes nem balancea
 
 Há três caches diferentes, e eles não compartilham uma política só:
 
-| O quê | Onde vive | Política |
-| --- | --- | --- |
-| Arquivos do frontend | Workers Static Assets | Cache de asset estático do site. Muda quando um build novo é publicado |
-| Snapshots versionados | R2, via domínio próprio | Cache longo. O nome da versão não é reescrito |
-| Manifesto | R2, via domínio próprio | Cache curto, para o polling perceber a troca de versão. O tempo está pendente |
+| O quê                 | Onde vive               | Política                                                                      |
+| --------------------- | ----------------------- | ----------------------------------------------------------------------------- |
+| Arquivos do frontend  | Workers Static Assets   | Cache de asset estático do site. Muda quando um build novo é publicado        |
+| Snapshots versionados | R2, via domínio próprio | Cache longo. O nome da versão não é reescrito                                 |
+| Manifesto             | R2, via domínio próprio | Cache curto, para o polling perceber a troca de versão. O tempo está pendente |
 
 CORS entra se o site e os resultados tiverem origens diferentes. Os domínios ainda não existem, então esta condição é a esperada até que alguém decida o contrário. A política libera a origem do frontend, no método de leitura. CORS não fecha o arquivo para o resto da internet. Depois de alterar a política, as cópias antigas não ganham os cabeçalhos novos até saírem do cache. O teste de CORS precisa enviar o cabeçalho `Origin`.
 
@@ -50,11 +50,11 @@ Um coletor só é um ponto de falha de atualização, não de leitura. A última
 
 ## Ambientes
 
-| Ambiente | Frontend | Snapshots | Coletor |
-| --- | --- | --- | --- |
-| Local | Vite na máquina | Disco | `pnpm dev:collector` |
+| Ambiente    | Frontend                                    | Snapshots                                      | Coletor                                                          |
+| ----------- | ------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------- |
+| Local       | Vite na máquina                             | Disco                                          | `pnpm dev:collector`                                             |
 | Homologação | Workers Static Assets num domínio de ensaio | Bucket ou prefixo próprio, com domínio próprio | Primeiro a máquina do desenvolvedor publicando no R2; depois EC2 |
-| Produção | Workers Static Assets no domínio final | Bucket ou prefixo próprio | EC2 contínuo |
+| Produção    | Workers Static Assets no domínio final      | Bucket ou prefixo próprio                      | EC2 contínuo                                                     |
 
 Os três ainda não existem fora da máquina de desenvolvimento, e mesmo o fluxo local de snapshots não está implementado. Oficial e simulado do TSE não compartilham o prefixo de produção.
 
@@ -62,18 +62,18 @@ Os três ainda não existem fora da máquina de desenvolvimento, e mesmo o fluxo
 
 Não é preciso terminar o mapa nem o restante do frontend para validar Cloudflare e AWS. A tela mínima basta para provar publicação e leitura.
 
-| Etapa | Trabalho de código | Trabalho de infraestrutura | Validação para avançar |
-| --- | --- | --- | --- |
-| 1. Documentação e validação das fontes | Ler especificações, JWS e a resolução. Fechar as pendências de [dados/README.md](../dados/README.md) que bloqueiam URL e campo | Nenhuma conta | Os códigos e os caminhos saem do EA11 e das instruções, não de exemplo antigo |
-| 2. Normalizador, coletor mínimo e snapshots locais | Validar amostras e gravar versão em disco | Diretório local | Suíte local de validação, falha e preservação da versão anterior |
-| 3. Tela mínima com arquivos locais | Consumir o contrato local, com os estados de vazio e de erro | Nenhuma | A tela distingue ausência, zero e falha |
-| 4. Homologação na Cloudflare, com proteção básica | Build do frontend já existente, se necessário ajustado para publicar | Domínio de ensaio, Workers Static Assets, bucket, domínio dos JSON, cache e proteção mínima | O site de ensaio abre. O caminho `r2.dev` não é o endereço usado |
-| 5. Coletor local publica no R2, e a tela lê dali | Cliente de publicação e URL pública no frontend de homologação | Credencial mínima de homologação e CORS, se as origens diferirem | Uma versão nova aparece sem novo build do site. O cache do manifesto e o dos arquivos se comportam como as regras |
-| 6. Container local | Dockerfile e execução do mesmo coletor | Nenhum recurso AWS | O container publica em disco ou no R2 de ensaio e sobrevive a um reinício |
-| 7. AWS e operação contínua | Nada de painel novo. Ajuste de configuração do processo | Instância, rede, segredo, reinício e log mínimo | O coletor na instância publica sozinho e a instância não serve os JSON ao público |
-| 8. Funcionalidades do frontend | Mapa, painéis, polling e acessibilidade | Sem serviço novo | Os estados de [web/README.md](../web/README.md) na homologação |
-| 9. Automação, monitoramento e proteção | Workflows e sinais de falha | GitHub Actions, alertas e refino das regras | Publicação repetível e aviso quando o dado envelhece ou o processo cai |
-| 10. Carga, recuperação e preparação da produção | Ajustes que os testes mostrarem | Orçamento de carga, domínio final, credencial de produção | Critérios de [testes/README.md](../testes/README.md), ainda com metas numéricas pendentes |
+| Etapa                                              | Trabalho de código                                                                                                             | Trabalho de infraestrutura                                                                  | Validação para avançar                                                                                            |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 1. Documentação e validação das fontes             | Ler especificações, JWS e a resolução. Fechar as pendências de [dados/README.md](../dados/README.md) que bloqueiam URL e campo | Nenhuma conta                                                                               | Os códigos e os caminhos saem do EA11 e das instruções, não de exemplo antigo                                     |
+| 2. Normalizador, coletor mínimo e snapshots locais | Validar amostras e gravar versão em disco                                                                                      | Diretório local                                                                             | Suíte local de validação, falha e preservação da versão anterior                                                  |
+| 3. Tela mínima com arquivos locais                 | Consumir o contrato local, com os estados de vazio e de erro                                                                   | Nenhuma                                                                                     | A tela distingue ausência, zero e falha                                                                           |
+| 4. Homologação na Cloudflare, com proteção básica  | Build do frontend já existente, se necessário ajustado para publicar                                                           | Domínio de ensaio, Workers Static Assets, bucket, domínio dos JSON, cache e proteção mínima | O site de ensaio abre. O caminho `r2.dev` não é o endereço usado                                                  |
+| 5. Coletor local publica no R2, e a tela lê dali   | Cliente de publicação e URL pública no frontend de homologação                                                                 | Credencial mínima de homologação e CORS, se as origens diferirem                            | Uma versão nova aparece sem novo build do site. O cache do manifesto e o dos arquivos se comportam como as regras |
+| 6. Container local                                 | Dockerfile e execução do mesmo coletor                                                                                         | Nenhum recurso AWS                                                                          | O container publica em disco ou no R2 de ensaio e sobrevive a um reinício                                         |
+| 7. AWS e operação contínua                         | Nada de painel novo. Ajuste de configuração do processo                                                                        | Instância, rede, segredo, reinício e log mínimo                                             | O coletor na instância publica sozinho e a instância não serve os JSON ao público                                 |
+| 8. Funcionalidades do frontend                     | Mapa, painéis, polling e acessibilidade                                                                                        | Sem serviço novo                                                                            | Os estados de [web/README.md](../web/README.md) na homologação                                                    |
+| 9. Automação, monitoramento e proteção             | Workflows e sinais de falha                                                                                                    | GitHub Actions, alertas e refino das regras                                                 | Publicação repetível e aviso quando o dado envelhece ou o processo cai                                            |
+| 10. Carga, recuperação e preparação da produção    | Ajustes que os testes mostrarem                                                                                                | Orçamento de carga, domínio final, credencial de produção                                   | Critérios de [testes/README.md](../testes/README.md), ainda com metas numéricas pendentes                         |
 
 ## Custo
 

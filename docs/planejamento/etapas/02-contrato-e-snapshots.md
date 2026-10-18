@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-02 |
-| Componente | Contrato público compartilhado (documento), manifesto, snapshots versionados |
-| Tipo predominante | Documentação técnica com decisões de contrato |
-| Marco | M1 — Interpretação dos dados e contrato validados |
+| Campo              | Conteúdo                                                                                                                                                                           |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-02                                                                                                                                                                              |
+| Componente         | Contrato público compartilhado (documento), manifesto, snapshots versionados                                                                                                       |
+| Tipo predominante  | Documentação técnica com decisões de contrato                                                                                                                                      |
+| Marco              | M1 — Interpretação dos dados e contrato validados                                                                                                                                  |
 | Resultado concreto | Um documento de contrato permite que três pessoas implementem, sem conversar entre si, a validação (ET-03), a publicação (ET-05) e a leitura (ET-06), e que o resultado se encaixe |
 
 ## 2. Escopo e exclusões
@@ -43,12 +43,12 @@ Conceitos já adotados: disponibilidade explícita (ausência não é zero), tr�
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-01: matriz de campos, amostras e tamanhos | T03, T04, T05; tamanho em T06 |
-| Decisão | DP-03 (campos), DP-09 (denominadores, precisão), DP-11 (status oficial) | T03, T04, T05 |
-| Decisão | DP-08 (sinal de atualização) | Uso do IDG no envelope (T01, campo de rastreabilidade) |
-| Recurso externo | Nenhum | — |
+| Tipo            | Item                                                                    | Bloqueia                                               |
+| --------------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
+| Implementação   | ET-01: matriz de campos, amostras e tamanhos                            | T03, T04, T05; tamanho em T06                          |
+| Decisão         | DP-03 (campos), DP-09 (denominadores, precisão), DP-11 (status oficial) | T03, T04, T05                                          |
+| Decisão         | DP-08 (sinal de atualização)                                            | Uso do IDG no envelope (T01, campo de rastreabilidade) |
+| Recurso externo | Nenhum                                                                  | —                                                      |
 
 **Podem começar antes de ET-01 terminar:** T01 (envelope), T02 (disponibilidade e atualidade), T07 (manifesto), T08 (identificador de versão), T09 (versionamento), T10 (publicabilidade), T11 (retenção), T12 (consistência). Nenhuma delas depende de nome de campo da origem.
 
@@ -58,11 +58,11 @@ Conceitos já adotados: disponibilidade explícita (ausência não é zero), tr�
 
 **Saídas:**
 
-| Artefato | Consumidor |
-| --- | --- |
+| Artefato                                                                                                                   | Consumidor                                                                          |
+| -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | `docs/dados/contrato.md` (proposto) ou seção nova em [dados/README.md](../../dados/README.md): contrato público com versão | ET-03 (schemas), ET-05 (publicador), ET-06 e ET-11 (leitura), ET-08 (publicador R2) |
-| Exemplos sintéticos de manifesto e de snapshot, escritos à mão no documento | Revisão; depois viram fixtures de ET-03 |
-| `DA-NN` novas para DP-12, DP-13, DP-14 (mecanismo) e DP-15 (regra) | Todas as etapas seguintes |
+| Exemplos sintéticos de manifesto e de snapshot, escritos à mão no documento                                                | Revisão; depois viram fixtures de ET-03                                             |
+| `DA-NN` novas para DP-12, DP-13, DP-14 (mecanismo) e DP-15 (regra)                                                         | Todas as etapas seguintes                                                           |
 
 ## 6. Responsabilidades e fronteiras
 
@@ -302,18 +302,18 @@ Não podem ser decididos em silêncio: forma do identificador de versão, polít
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-02-V01 | Cobertura da matriz | Matriz de ET-01 e contrato | Cruzar cada informação da tela com o contrato | Cada uma tem campo no contrato ou pendência | Informação da tela sem representação e sem pendência | Revisão | Documento | T03, T04 |
-| ET-02-V02 | Estados da interface | Tabela de estados de [web/README.md](../../web/README.md) | Para cada estado, escrever a combinação de contrato que o produz | Uma combinação por estado, sem ambiguidade | Dois estados com a mesma representação | Revisão | Documento | T02, T05 |
-| ET-02-V03 | Zero × ausência × sem disputa | Três exemplos sintéticos | Ler cada um como o web leria | Os três são distinguíveis sem heurística | Um exige adivinhar | Revisão | Documento | T02, T10 |
-| ET-02-V04 | Exemplos completos | Manifesto e snapshots sintéticos escritos à mão | Conferir campo a campo contra a especificação | Todos os obrigatórios presentes; caminhos resolvem | Campo obrigatório ausente ou caminho que não resolve | Revisão | Documento | T01, T06, T07 |
-| ET-02-V05 | Regressão de versão | Dois manifestos sintéticos, um mais antigo | Aplicar a regra de T08 | O mais antigo é reconhecido como antigo | Regra depende só do relógio local ou é ambígua | Revisão | Documento | T07, T08 |
-| ET-02-V06 | Compatibilidade | Cliente da versão N; contrato N+1 compatível e N+1 incompatível | Seguir a política de T09 | Compatível: cliente lê ignorando o novo; incompatível: cliente mostra estado de recarregar | Cliente antigo exibe dado errado | Revisão | Documento | T09 |
-| ET-02-V07 | Retenção | Regra de T11 | Ler a regra | Fórmula sobre TTL, polling e margem nomeados | Número sem origem | Revisão | Documento | T11 |
-| ET-02-V08 | Horários | Exemplo sintético | Conferir horários | Origem por arquivo, coleta e publicação presentes e distintos | Horário único ou ausente | Revisão | Documento | T01, T10, T12 |
-| ET-02-V09 | Sem campo não confirmado | Contrato e matriz | Para cada campo vindo da origem, achar a linha da matriz | Todos com evidência ou marcados provisórios | Campo da origem sem evidência e sem marca | Revisão | Documento | T03, T04, T05 |
-| ET-02-V10 | Documentação única | T13 | Procurar descrições concorrentes do contrato em `docs/` | Uma fonte, citada pelas demais | Duas definições diferentes | Revisão | Documento | T13 |
+| ID        | Cenário                       | Preparação                                                      | Ação                                                             | Sucesso                                                                                    | Falha se                                             | Nível   | Ambiente  | Tarefa        |
+| --------- | ----------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------- | ------- | --------- | ------------- |
+| ET-02-V01 | Cobertura da matriz           | Matriz de ET-01 e contrato                                      | Cruzar cada informação da tela com o contrato                    | Cada uma tem campo no contrato ou pendência                                                | Informação da tela sem representação e sem pendência | Revisão | Documento | T03, T04      |
+| ET-02-V02 | Estados da interface          | Tabela de estados de [web/README.md](../../web/README.md)       | Para cada estado, escrever a combinação de contrato que o produz | Uma combinação por estado, sem ambiguidade                                                 | Dois estados com a mesma representação               | Revisão | Documento | T02, T05      |
+| ET-02-V03 | Zero × ausência × sem disputa | Três exemplos sintéticos                                        | Ler cada um como o web leria                                     | Os três são distinguíveis sem heurística                                                   | Um exige adivinhar                                   | Revisão | Documento | T02, T10      |
+| ET-02-V04 | Exemplos completos            | Manifesto e snapshots sintéticos escritos à mão                 | Conferir campo a campo contra a especificação                    | Todos os obrigatórios presentes; caminhos resolvem                                         | Campo obrigatório ausente ou caminho que não resolve | Revisão | Documento | T01, T06, T07 |
+| ET-02-V05 | Regressão de versão           | Dois manifestos sintéticos, um mais antigo                      | Aplicar a regra de T08                                           | O mais antigo é reconhecido como antigo                                                    | Regra depende só do relógio local ou é ambígua       | Revisão | Documento | T07, T08      |
+| ET-02-V06 | Compatibilidade               | Cliente da versão N; contrato N+1 compatível e N+1 incompatível | Seguir a política de T09                                         | Compatível: cliente lê ignorando o novo; incompatível: cliente mostra estado de recarregar | Cliente antigo exibe dado errado                     | Revisão | Documento | T09           |
+| ET-02-V07 | Retenção                      | Regra de T11                                                    | Ler a regra                                                      | Fórmula sobre TTL, polling e margem nomeados                                               | Número sem origem                                    | Revisão | Documento | T11           |
+| ET-02-V08 | Horários                      | Exemplo sintético                                               | Conferir horários                                                | Origem por arquivo, coleta e publicação presentes e distintos                              | Horário único ou ausente                             | Revisão | Documento | T01, T10, T12 |
+| ET-02-V09 | Sem campo não confirmado      | Contrato e matriz                                               | Para cada campo vindo da origem, achar a linha da matriz         | Todos com evidência ou marcados provisórios                                                | Campo da origem sem evidência e sem marca            | Revisão | Documento | T03, T04, T05 |
+| ET-02-V10 | Documentação única            | T13                                                             | Procurar descrições concorrentes do contrato em `docs/`          | Uma fonte, citada pelas demais                                                             | Duas definições diferentes                           | Revisão | Documento | T13           |
 
 A prova executável do contrato é ET-03 (schemas e testes). Esta etapa só prova coerência documental.
 

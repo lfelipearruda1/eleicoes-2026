@@ -1,0 +1,197 @@
+# Contrato público dos snapshots
+
+[Dados e integração com o TSE](README.md) · [Plano da ET-02](../planejamento/etapas/02-contrato-e-snapshots.md)
+
+Este documento é a especificação que `@eleicoes/validation` implementa (PKG-002). Ele está sendo escrito por tarefa da ET-02. Hoje tem:
+
+- o **envelope comum de snapshot** (ET-02-T01, 18/10/2026);
+- a disponibilidade e o `sourceTime` opcional (parte da ET-02-T02, DA-18);
+- a forma de `dataVersion` (parte da ET-02-T08, DA-19);
+- a política de campos não previstos (parte da ET-02-T09, DA-20);
+- os horários do manifesto (recorte da DP-14, DA-21).
+
+Números, candidaturas, andamento, divisão de arquivos e os demais campos do manifesto ainda não foram definidos. Este documento **não é o contrato completo**: a versão inicial completa é a entrega da ET-02-T13. Implementação: `packages/validation/src/contract/envelope.ts`.
+
+## Envelope comum de snapshot
+
+Todo arquivo de snapshot começa com os mesmos metadados. O payload eleitoral, ou seja, candidaturas, votos e andamento, fica fora do envelope e ainda não tem definição.
+
+### Regras gerais
+
+1. **Nomes.** As chaves são identificadores em inglês e `camelCase`, como no código (STYLE-004). Os valores enumerados também ficam em inglês. O texto mostrado ao visitante é responsabilidade do web.
+2. **Ausência × `null` × valor.** Nenhum campo do envelope aceita `null`. Campo opcional sem valor fica **ausente**: a chave não aparece. `null`, string vazia ou zero nunca representam "não sei". Um campo obrigatório ausente invalida o arquivo inteiro e nunca é preenchido com valor padrão.
+3. **Sem coerção.** O tipo do JSON precisa ser o tipo declarado. `"1"` não vale como `1`, e `"true"` não vale como `true` (SEC-001).
+4. **Horários.** Seguem o formato ISO 8601 em UTC, com o sufixo `Z` e frações de segundo opcionais, como em `2026-10-25T21:04:17Z` ou `2026-10-25T21:04:17.512Z`. Sem deslocamento local, sem data isolada e sem número de época. O envelope **não** impõe relação de ordem entre horários. A origem pode estar atrasada, adiantada ou ter relógio próprio. Nenhum horário é preenchido a partir de outro.
+5. **Campos não previstos.** Quem publica rejeita; quem lê descarta. Ver [Campos não previstos](#campos-não-previstos-publicação--leitura).
+
+### A. Metadados que a aplicação define
+
+| Campo               | Tipo             | Obrigatório | Significado                                                                                                                                                       | Valores permitidos                                                                                                                                                                                                       | Ausência / `null` | Regra de validação                                                                                                                                               | Quem produz                                                                   | Exemplo                                  | Sustentação                                                                                                                                   |
+| ------------------- | ---------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `contractVersion`   | inteiro          | Sim         | Versão da **forma** do contrato com que o arquivo foi escrito. Não é a versão dos dados                                                                           | Inteiro ≥ 1. Esta especificação é a versão `1`                                                                                                                                                                           | Inválido          | Igual a `1`. Publicação e leitura rejeitam qualquer outra versão (DA-20)                                                                                         | Coletor, como constante da versão do código                                   | `1`                                      | ET-02-T01 (lista); separação forma × dados: [dados/README.md](README.md#contrato-conceitual), linha "Versão do snapshot e versão do contrato" |
+| `dataVersion`       | string           | Sim         | Identificador de uma versão **imutável** do conjunto publicado (versão dos dados) a que o arquivo pertence. É igual em todos os arquivos da versão e no manifesto | UUID versão 4, forma canônica com hífens, hexadecimal minúsculo                                                                                                                                                          | Inválido          | Exatamente 8-4-4-4-12 hexadecimais minúsculos, com versão `4` e variante `8`, `9`, `a` ou `b`. Sem espaço, sem chaves, sem coerção. A validação nunca gera valor | Publicador do coletor, ao montar a versão (gerador fora desta tarefa)         | `"0b7c9a52-3f1e-4d2a-9c4b-6e8f1a2b3c4d"` | DA-06; DA-19. Ver [dataVersion](#dataversion)                                                                                                 |
+| `environment`       | string enumerada | Sim         | **Nosso** ambiente de destino da publicação                                                                                                                       | `local`, `staging` (homologação), `production`                                                                                                                                                                           | Inválido          | Um dos três valores, exatamente como escritos (minúsculas)                                                                                                       | Configuração do coletor                                                       | `"local"`                                | [collector/README.md](../collector/README.md) (ambiente de destino local, homologação ou produção); DA-13                                     |
+| `sourceEnvironment` | string enumerada | Sim         | Ambiente **do TSE** de onde veio o dado                                                                                                                           | `official`, `simulated`                                                                                                                                                                                                  | Inválido          | Um dos dois valores. Se `environment` for `production`, `sourceEnvironment` precisa ser `official`                                                               | Configuração do coletor (host consultado)                                     | `"simulated"`                            | DA-13 ("Produção nunca aponta para dado simulado"); [dados/README.md](README.md#origem)                                                       |
+| `round`             | inteiro          | Sim         | Turno da eleição a que o arquivo se refere                                                                                                                        | `1`, `2`                                                                                                                                                                                                                 | Inválido          | Inteiro igual a 1 ou 2. O produto publica o 2º turno; o valor 1 existe para amostras de formato do 1º turno (DP-02)                                              | Coletor, a partir da configuração confirmada no EA11                          | `2`                                      | [contexto.md](../contexto.md); DP-02. A correspondência entre pleito da origem e turno é do grupo B                                           |
+| `office`            | string enumerada | Sim         | Cargo do resultado                                                                                                                                                | `president`, `governor`                                                                                                                                                                                                  | Inválido          | Um dos dois valores                                                                                                                                              | Coletor, conforme o arquivo normalizado                                       | `"president"`                            | Escopo em [contexto.md](../contexto.md)                                                                                                       |
+| `scope`             | string enumerada | Sim         | Abrangência do resultado: Brasil ou uma unidade da Federação                                                                                                      | `BR` ou a sigla, em maiúsculas, de uma das 27 unidades: `AC`, `AL`, `AP`, `AM`, `BA`, `CE`, `DF`, `ES`, `GO`, `MA`, `MT`, `MS`, `MG`, `PA`, `PB`, `PR`, `PE`, `PI`, `RJ`, `RN`, `RS`, `RO`, `RR`, `SC`, `SP`, `SE`, `TO` | Inválido          | Um dos 28 valores. Se `office` for `governor`, `scope` não pode ser `BR`                                                                                         | Coletor, ao normalizar                                                        | `"DF"`                                   | ET-02-T01, ação 3. Ver [identificação da UF](#identificação-da-unidade-da-federação)                                                          |
+| `availability`      | string enumerada | Sim         | Situação do resultado neste recorte, como **estado interno** do projeto                                                                                           | `available`, `pending`, `not_applicable`, `unknown`                                                                                                                                                                      | Inválido          | Um dos quatro valores, exatamente como escritos                                                                                                                  | Coletor, ao normalizar (mapeamento a partir da origem ainda não implementado) | `"available"`                            | DA-18. Ver [Disponibilidade](#disponibilidade)                                                                                                |
+| `collectedAt`       | string, horário  | Sim         | Instante em que o coletor recebeu a resposta da origem usada neste arquivo                                                                                        | Regra geral 4                                                                                                                                                                                                            | Inválido          | Formato da regra geral 4                                                                                                                                         | Coletor, com relógio injetado na normalização (ET-03)                         | `"2026-10-25T21:04:19Z"`                 | DA-12; [collector/README.md](../collector/README.md#três-horários)                                                                            |
+
+### B. Informações que dependem da interpretação dos arquivos do TSE
+
+O campo e o tipo são nossos. O **valor** vem da origem e depende da matriz da ET-01 (DP-03, DP-04).
+
+| Campo         | Tipo            | Obrigatório | Significado                                                                   | Valores permitidos                                                | Ausência / `null`                                                                                                                                                                                                                                 | Regra de validação                                                                                                                  | Quem produz                                                                                              | Exemplo                                                                    | Sustentação                                                                                                   |
+| ------------- | --------------- | ----------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `sourceTime`  | string, horário | Não         | Instante que o arquivo oficial atribui à totalização ou à geração             | Regra geral 4                                                     | Ausente quando o horário da origem não estiver disponível de forma confirmada e interpretável, em qualquer `availability`. Ausência significa "horário da origem não informado", não "dado recente". `null` e chave com `undefined` são inválidos | Formato da regra geral 4. Nenhuma relação com `collectedAt` é exigida. Nunca é preenchido com `collectedAt` nem com o horário atual | Normalização, convertendo o campo da origem para UTC. Campo, formato e fuso da origem: pendentes (DP-03) | `"2026-10-25T21:03:00Z"` (ilustrativo)                                     | DA-12; ET-02-T12 (horário de origem por arquivo); [collector/README.md](../collector/README.md#três-horários) |
+| `source`      | objeto          | Sim         | Rastreabilidade do arquivo consultado                                         | Campos abaixo                                                     | Inválido                                                                                                                                                                                                                                          | Objeto com os campos abaixo                                                                                                         | Coletor                                                                                                  | —                                                                          | [dados/README.md](README.md#contrato-conceitual), linha "Rastreabilidade"                                     |
+| `source.file` | string          | Sim         | Caminho do arquivo da origem usado, relativo à URL base do ambiente de origem | Caminhos confirmados no EA11 e nas instruções de download (DP-04) | Inválido                                                                                                                                                                                                                                          | String não vazia; sem esquema nem host (`https://…`), sem query string e sem caminho de disco local (SEC-007)                       | Coletor, a partir da URL que montou                                                                      | `"sintetico/exemplo.json"` (sintético; nenhum caminho real foi confirmado) | [dados/README.md](README.md#arquivos-e-painéis); DP-04                                                        |
+
+`round` também depende da origem quanto à correspondência entre pleito e turno. Essa correspondência é tarefa da normalização com o EA11 vigente. O tipo e os valores do campo, em A, não dependem dela.
+
+### C. Informações ainda não confirmadas
+
+| Campo previsto                                                    | Situação                                                                                                                                      | O que falta                                                | Efeito enquanto falta                                                     |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `source.generationId` (IDG)                                       | Opcional e **provisório**                                                                                                                     | Tipo e semântica pela especificação; uso decidido em DP-08 | Fica fora do primeiro schema. Quando entrar, vem como campo opcional novo |
+| Código da eleição na origem (6258 e 6260 lidos na página técnica) | Não é campo do envelope. A disputa é identificada por `round`, `office` e `scope`. O código da origem pode entrar depois como rastreabilidade | DP-04: confirmação no EA11 vigente                         | Nenhum código da origem entra no contrato antes disso                     |
+
+### Fora do envelope: horário de publicação
+
+O horário de publicação é "o instante em que a versão ficou endereçada pelo manifesto" ([collector/README.md](../collector/README.md#três-horários)). Os arquivos de uma versão são imutáveis e são gravados **antes** de o manifesto apontar para eles (DA-06). Por isso esse horário não cabe no envelope dos arquivos e pertence ao manifesto (ET-02-T07). Os três horários de DA-12 continuam distintos no contrato: `sourceTime` e `collectedAt` em cada arquivo, a publicação no manifesto.
+
+### Disponibilidade
+
+DA-18. Os quatro valores são **estados internos** do projeto, não códigos oficiais do TSE. Classificar um arquivo real em um deles cabe ao normalizador e depende da ET-01. Esse mapeamento ainda não foi implementado.
+
+| Valor            | Significado                                                                                                  | O que **não** significa                                                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `available`      | Há resultado validado disponível                                                                             | Que o dado é recente, ou que a apuração terminou. Pode carregar valores zerados quando eles forem dados reais válidos                                              |
+| `pending`        | A disputa está confirmada como aplicável, mas ainda não há resultado disponível                              | Falha de rede                                                                                                                                                      |
+| `not_applicable` | Há confirmação de que a disputa não se aplica ao recorte (por exemplo, governador numa UF sem segundo turno) | Não pode ser inferido de timeout, erro de parsing ou HTTP 404 isolado. Exige evidência                                                                             |
+| `unknown`        | Ainda não há evidência suficiente para determinar a situação                                                 | Não substitui automaticamente um resultado válido numa falha temporária. A última versão válida continua publicada ([collector/README.md](../collector/README.md)) |
+
+Encerramento da apuração não é valor de `availability`. O sinal de atualização encerrada e seus critérios oficiais continuam na ET-02-T02, ação 4, e dependem da ET-01.
+
+O dado simulado é identificado por `sourceEnvironment` (`simulated`) em todo arquivo (ET-02-T02, ação 5). A forma de mostrar isso na tela é da ET-06.
+
+### dataVersion
+
+DA-19.
+
+- `contractVersion` identifica o **formato** do contrato. `dataVersion` identifica uma **versão imutável do conjunto publicado**.
+- `dataVersion` não é código eleitoral do TSE, não é `source.generationId` e não é hash de integridade.
+- O consumidor **não** ordena UUIDs para descobrir a versão mais recente. UUID v4 não tem ordem.
+- Repetir a tentativa de publicar a mesma versão preserva o identificador. Uma verificação sem mudança não cria, por si só, versão nova. O conteúdo de uma versão publicada nunca muda mantendo o identificador.
+- O validador não gera valor. A geração e o protocolo de publicação ficam para ET-04 e ET-05. O pacote de validação não importa `node:crypto`, porque roda também no navegador.
+
+Ainda falta (ET-02-T08, ação 2): como o web reconhece uma versão **mais antiga** servida por outra cópia de cache (R-19, ET-02-V05). Como o UUID não ordena, essa regra precisa de outra informação do manifesto.
+
+### Campos não previstos: publicação × leitura
+
+DA-20. Esta política concilia a ET-03-T03, ação 5, com a ET-02-V06, separando quem publica de quem lê. Vale para o contrato dos nossos snapshots. Não define a política dos parsers dos arquivos brutos do TSE (ET-03-T04).
+
+| Contexto   | Quem usa                         | Chave não prevista                                                    | Campo conhecido inválido ou ausente | `contractVersion` diferente de `1` | Schema                  |
+| ---------- | -------------------------------- | --------------------------------------------------------------------- | ----------------------------------- | ---------------------------------- | ----------------------- |
+| Publicação | Coletor, antes de gravar (ET-05) | **Rejeitada**, no topo e em `source`                                  | Rejeitado                           | Rejeitado                          | `publishEnvelopeSchema` |
+| Leitura    | Web e qualquer consumidor        | **Descartada**: não aparece no objeto validado, no topo e em `source` | Rejeitado                           | Rejeitado                          | `readEnvelopeSchema`    |
+
+- Os dois schemas compartilham campos e regras cruzadas. Só muda o tratamento de chave extra.
+- Um campo opcional novo só é compatível se não mudar o significado nem as exigências dos campos anteriores. Nesse caso o cliente antigo lê e ignora o campo (ET-02-V06).
+- Mudança incompatível exige novo `contractVersion`. O leitor não aceita versão desconhecida só porque os campos parecem semelhantes.
+- Ainda falta (ET-02-T09, ação 3): se o coletor publica as duas versões em caminhos distintos durante uma transição incompatível.
+
+### Envelope × snapshot completo
+
+Os schemas atuais validam **só o objeto do envelope**. Não são o schema do snapshot completo e não devem ser aplicados a um arquivo com payload: na publicação, o schema estrito recusaria as chaves do payload como desconhecidas. Quando o payload for definido (ET-02-T03 a T05), o schema de cada arquivo compõe os mesmos campos do envelope com o payload e aplica a política acima ao documento inteiro. Não existe hoje um `payload` genérico.
+
+### Horários do manifesto (recorte da DP-14)
+
+DA-21. Esta é uma decisão documental. O manifesto, o heartbeat e a publicação **não** foram implementados. Os demais campos do manifesto são da ET-02-T07.
+
+| Horário       | Onde                      | O que representa                                               |
+| ------------- | ------------------------- | -------------------------------------------------------------- |
+| `sourceTime`  | Cada arquivo, opcional    | Horário informado pela origem, quando disponível               |
+| `collectedAt` | Cada arquivo              | Coleta que produziu aquele snapshot                            |
+| `publishedAt` | Manifesto (nome proposto) | Publicação da versão referenciada                              |
+| `checkedAt`   | Manifesto (nome proposto) | Última verificação válida relacionada ao conjunto referenciado |
+
+O manifesto pode registrar `checkedAt` sem recriar os snapshots imutáveis. Regras:
+
+1. Uma verificação bem-sucedida sem mudança pode atualizar `checkedAt`. Ela não altera `dataVersion`, os arquivos da versão nem `publishedAt`.
+2. Regravar o manifesto não muda `publishedAt`.
+3. Falha de consulta não atualiza `checkedAt`. Processo ativo não equivale a consulta bem-sucedida.
+4. Consulta ao acompanhamento (EA14) não comprova que todos os resultados foram verificados. Um horário global não é atualizado como se todas as UFs tivessem sido verificadas quando só parte foi. Se a verificação for parcial, o horário fica no nível que ela cobriu, ou não é atualizado.
+5. Se uma versão nova foi detectada e a publicação dela falhou, `checkedAt` não registra uma confirmação da versão anterior como se ela fosse a atual da origem.
+6. `checkedAt` não prova que a origem gerou dados novos.
+7. O manifesto continua utilizável sem verificação recente. O aviso de desatualização usa os horários; ele não invalida o manifesto.
+8. Atualizações operacionais do manifesto são agrupadas e têm frequência controlada. Cada regravação é uma escrita e afeta o cache do ponteiro (DA-07).
+
+Ficam fora deste recorte, sem valor inventado: intervalo de coleta (DP-16), limiar de desatualização (DP-14, parte do produto), TTL do manifesto (DP-17) e o formato de `checkedAt` por abrangência quando a verificação for parcial (ET-02-T07).
+
+### Identificação da unidade da Federação
+
+O contrato usa **código próprio e estável**: a sigla em maiúsculas das 26 unidades e do Distrito Federal. Brasil é `BR`, que não colide com nenhuma sigla.
+
+- O conjunto de 27 unidades é fato da organização federativa, não dado da apuração. Não contraria a regra de não fixar listas de candidatos ou de unidades com segundo turno ([contexto.md](../contexto.md)). Quais UFs têm disputa de governador continua vindo do EA11 (ET-03-T08).
+- O código da origem (formato, maiúsculas ou minúsculas) não entra no contrato. A conversão do código da origem para a sigla é da normalização e depende da ET-01 (grupo B).
+- Votos no exterior não são uma abrangência deste contrato. O agregado `BR` é o que o arquivo oficial de abrangência Brasil publica, qualquer que seja a composição dele. Não é soma de UFs.
+
+### Exemplo sintético do envelope
+
+Dado sintético, sem relação com a apuração real. É um envelope válido para `publishEnvelopeSchema`. Não é um snapshot completo, porque o payload ainda não tem definição.
+
+```json
+{
+  "contractVersion": 1,
+  "dataVersion": "0b7c9a52-3f1e-4d2a-9c4b-6e8f1a2b3c4d",
+  "environment": "local",
+  "sourceEnvironment": "simulated",
+  "round": 2,
+  "office": "governor",
+  "scope": "DF",
+  "availability": "pending",
+  "collectedAt": "2026-10-25T21:04:19Z",
+  "sourceTime": "2026-10-25T21:03:00Z",
+  "source": { "file": "sintetico/exemplo.json" }
+}
+```
+
+### Critérios de validação do envelope
+
+Cada linha tem teste em `packages/validation/src/contract/envelope.spec.ts`.
+
+| #    | Entrada                                                                                                                                                                               | Resultado exigido                                                                           |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| E-01 | Envelope com todos os obrigatórios válidos                                                                                                                                            | Aceito, com os mesmos valores (sem transformação)                                           |
+| E-02 | Cada obrigatório ausente, um caso por campo                                                                                                                                           | Rejeitado, com o caminho do campo no erro                                                   |
+| E-03 | Cada campo com `null`                                                                                                                                                                 | Rejeitado                                                                                   |
+| E-04 | Tipo errado: `"1"` em `contractVersion` ou `round`; número em campo enumerado                                                                                                         | Rejeitado, sem conversão                                                                    |
+| E-05 | `contractVersion` `0`, negativo ou fracionário                                                                                                                                        | Rejeitado                                                                                   |
+| E-06 | `round` `0`, `3` ou `2.5`                                                                                                                                                             | Rejeitado                                                                                   |
+| E-07 | Valor fora do enumerado em `environment`, `sourceEnvironment`, `office` e `scope`, incluindo a forma minúscula (`"sp"`, `"br"`)                                                       | Rejeitado                                                                                   |
+| E-08 | `environment` `production` com `sourceEnvironment` `simulated`                                                                                                                        | Rejeitado                                                                                   |
+| E-09 | `office` `governor` com `scope` `BR`                                                                                                                                                  | Rejeitado                                                                                   |
+| E-10 | `office` `president` com `scope` `BR` e com uma UF; `governor` com uma UF                                                                                                             | Aceito                                                                                      |
+| E-11 | Horário sem `Z`, com deslocamento (`-03:00`), só data, número de época, data impossível                                                                                               | Rejeitado                                                                                   |
+| E-12 | Horário com e sem fração de segundo                                                                                                                                                   | Aceito                                                                                      |
+| E-13 | `collectedAt` anterior a `sourceTime`                                                                                                                                                 | Aceito (o envelope não impõe ordem)                                                         |
+| E-14 | `source.file` vazio, com `https://`, com query string                                                                                                                                 | Rejeitado                                                                                   |
+| E-15 | `availability` com cada um dos quatro valores; valor desconhecido (`closed`, `AVAILABLE`, vazio); `sourceTime` ausente; `sourceTime` `null` ou com chave presente e valor `undefined` | Os quatro aceitos; desconhecido rejeitado; ausência aceita; `null` e `undefined` rejeitados |
+| E-16 | `dataVersion` UUID v4 minúsculo; UUID v1 e v7; variante inválida; maiúsculas (todas ou uma); espaços; sem hífens; entre chaves; vazio; número                                         | Só o primeiro aceito                                                                        |
+| E-17 | Chave não prevista no topo e em `source`, inclusive `generationId`                                                                                                                    | Publicação: rejeitada. Leitura: descartada do resultado, sem alterar a entrada              |
+| E-18 | Na leitura: valor desconhecido de enum, `contractVersion` `2`, `source.file` ausente, `governor` com `BR`                                                                             | Rejeitado, como na publicação                                                               |
+
+### Pendências restantes
+
+P-01 (disponibilidade e `sourceTime`), P-02 (forma de `dataVersion`) e P-03 (campos não previstos) foram resolvidas por DA-18, DA-19 e DA-20.
+
+| Ponto                                                                                                                        | Efeito                                                                                                | Onde se resolve        |
+| ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------- |
+| Classificação dos arquivos reais em `available`, `pending`, `not_applicable` e `unknown`, e a conversão do horário da origem | Normalização                                                                                          | ET-01, ET-03-T04 a T08 |
+| Regra de regressão de versão com `dataVersion` sem ordem                                                                     | Web não volta a versão antiga (R-19)                                                                  | ET-02-T08, ação 2      |
+| Sinal de atualização encerrada                                                                                               | Parar o polling                                                                                       | ET-02-T02, ação 4      |
+| Publicação dupla numa mudança incompatível                                                                                   | Transição de `contractVersion`                                                                        | ET-02-T09, ação 3      |
+| `source.generationId` e código da eleição da origem                                                                          | Rastreabilidade                                                                                       | DP-08, DP-04           |
+| Restrição "sem caminho de disco local" em `source.file`                                                                      | O schema não distingue caminho da origem de caminho de disco. Só a revisão do publicador garante isso | ET-05                  |

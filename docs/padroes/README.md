@@ -31,14 +31,14 @@ Vale para web, coletor, pacotes e, se um dia existir, API:
 
 ## O que é específico
 
-| Documento | Quando abrir |
-| --- | --- |
-| [API](../api/padroes-de-desenvolvimento.md) | Somente se a tarefa for sobre `apps/api`. O componente continua opcional. |
-| [Coletor](../collector/padroes-de-desenvolvimento.md) | Coleta, validação, normalização, agendamento ou publicação. |
-| [Web](../web/padroes-de-desenvolvimento.md) | Interface, polling e leitura dos snapshots. |
-| [Pacotes compartilhados](#pacotes-compartilhados) | `packages/types`, `packages/validation` ou `packages/election-data`. |
-| [Consultas e transações](../dados/consultas-e-transacoes.md) | Somente se PostgreSQL entrar. Não faz parte da primeira versão. |
-| [Testes de segurança](../testes/seguranca.md) | Ao provar um controle, no nível que realmente o demonstra. |
+| Documento                                                    | Quando abrir                                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| [API](../api/padroes-de-desenvolvimento.md)                  | Somente se a tarefa for sobre `apps/api`. O componente continua opcional. |
+| [Coletor](../collector/padroes-de-desenvolvimento.md)        | Coleta, validação, normalização, agendamento ou publicação.               |
+| [Web](../web/padroes-de-desenvolvimento.md)                  | Interface, polling e leitura dos snapshots.                               |
+| [Pacotes compartilhados](#pacotes-compartilhados)            | `packages/types`, `packages/validation` ou `packages/election-data`.      |
+| [Consultas e transações](../dados/consultas-e-transacoes.md) | Somente se PostgreSQL entrar. Não faz parte da primeira versão.           |
+| [Testes de segurança](../testes/seguranca.md)                | Ao provar um controle, no nível que realmente o demonstra.                |
 
 Os documentos específicos apontam para cá em vez de repetir a regra comum. Se dois textos discordarem, vale o mais específico para o componente e, para o desenho do sistema, vale [arquitetura/README.md](../arquitetura/README.md). Uma contradição deve ser corrigida no documento, não convivendo em silêncio.
 
@@ -65,11 +65,11 @@ Proposta de exceção nova entra na revisão descrita em [revisao-de-codigo.md](
 
 Os três pacotes existem e exportam um módulo vazio. Nenhum `package.json` depende de outro pacote do workspace. Essa independência foi conferida nos manifestos em 14 de outubro de 2026.
 
-| Pacote | Responsabilidade já descrita | Estado |
-| --- | --- | --- |
-| `@eleicoes/types` | Tipos do contrato compartilhado, quando o contrato existir | Export vazio |
-| `@eleicoes/validation` | Schemas Zod desse contrato | Zod 4.6.7 instalado, sem schema |
-| `@eleicoes/election-data` | Material eleitoral compartilhado, quando houver o que compartilhar | Export vazio |
+| Pacote                    | Responsabilidade já descrita                                       | Estado                          |
+| ------------------------- | ------------------------------------------------------------------ | ------------------------------- |
+| `@eleicoes/types`         | Tipos do contrato compartilhado, quando o contrato existir         | Export vazio                    |
+| `@eleicoes/validation`    | Schemas Zod desse contrato                                         | Zod 4.6.7 instalado, sem schema |
+| `@eleicoes/election-data` | Material eleitoral compartilhado, quando houver o que compartilhar | Export vazio                    |
 
 ### PKG-001. A dependência aponta dos aplicativos para os pacotes
 
@@ -117,12 +117,12 @@ Os três pacotes existem e exportam um módulo vazio. Nenhum `package.json` depe
 
 ## Níveis usados nas regras
 
-| Nível | Significado |
-| --- | --- |
-| Obrigatório | Padrão do projeto para o código novo escrito pela equipe. |
+| Nível       | Significado                                                         |
+| ----------- | ------------------------------------------------------------------- |
+| Obrigatório | Padrão do projeto para o código novo escrito pela equipe.           |
 | Recomendado | Preferência que admite outra solução, com justificativa na revisão. |
-| Condicional | Vale só quando o componente citado existir. |
-| Pendente | Depende de decisão que ainda não foi tomada. |
+| Condicional | Vale só quando o componente citado existir.                         |
+| Pendente    | Depende de decisão que ainda não foi tomada.                        |
 
 Identificadores como STYLE-001 e SEC-001 são locais. Não são números de requisito da OWASP.
 

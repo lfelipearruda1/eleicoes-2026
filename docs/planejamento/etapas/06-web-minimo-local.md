@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-06 |
-| Componente | `apps/web` |
-| Tipo predominante | Código com testes de interface |
-| Marco | M2 — Fluxo local completo (conclusão) |
+| Campo              | Conteúdo                                                                                                                                                                                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ID                 | ET-06                                                                                                                                                                                                                                                                          |
+| Componente         | `apps/web`                                                                                                                                                                                                                                                                     |
+| Tipo predominante  | Código com testes de interface                                                                                                                                                                                                                                                 |
+| Marco              | M2 — Fluxo local completo (conclusão)                                                                                                                                                                                                                                          |
 | Resultado concreto | Na máquina, sem nuvem: o simulador muda os dados, o coletor publica em disco, e uma tela mínima mostra o resultado nacional, a UF escolhida e o governador quando houver, distingue carregamento, ausência, falha e desatualização, e passa a exibir a versão nova sem rebuild |
 
 ## 2. Escopo e exclusões
@@ -41,14 +41,14 @@ Guias: WEB-001 a WEB-007 em [web/padroes-de-desenvolvimento.md](../../web/padroe
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-05: publicação local, servidor de desenvolvimento, simulador | T08, V11 |
-| Implementação | ET-03: schema público em `@eleicoes/validation` | T03 |
-| Contrato | ET-02: divisão de arquivos, estados, compatibilidade | T03 a T06 |
-| Decisão | DP-19 (ferramentas de teste de interface) | T01, T09 |
-| Decisão | DP-11 (status oficial) | Rótulo de status em T05 |
-| Decisão | DP-14 (limiar) | Valor do aviso em T04; a tela usa valor provisório de configuração local |
+| Tipo          | Item                                                            | Bloqueia                                                                 |
+| ------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Implementação | ET-05: publicação local, servidor de desenvolvimento, simulador | T08, V11                                                                 |
+| Implementação | ET-03: schema público em `@eleicoes/validation`                 | T03                                                                      |
+| Contrato      | ET-02: divisão de arquivos, estados, compatibilidade            | T03 a T06                                                                |
+| Decisão       | DP-19 (ferramentas de teste de interface)                       | T01, T09                                                                 |
+| Decisão       | DP-11 (status oficial)                                          | Rótulo de status em T05                                                  |
+| Decisão       | DP-14 (limiar)                                                  | Valor do aviso em T04; a tela usa valor provisório de configuração local |
 
 **Início parcial:** com o contrato de ET-02 e o schema de ET-03, T01 a T07 podem ser feitas com fixtures sintéticas servidas localmente, antes de ET-05 terminar. Isso não comprova a integração com a publicação real; essa prova é T08.
 
@@ -58,21 +58,21 @@ Guias: WEB-001 a WEB-007 em [web/padroes-de-desenvolvimento.md](../../web/padroe
 
 **Saídas:**
 
-| Artefato | Consumidor |
-| --- | --- |
+| Artefato                                                               | Consumidor                                                   |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------ |
 | Leitura de snapshots em `apps/web/src/features/resultados/` (proposto) | ET-08 (aponta para o domínio de homologação), ET-11 (evolui) |
-| Tela mínima com os estados | Demonstração de M2; ET-08 (tela de ensaio) |
-| Suíte de interface | ET-11, ET-12 |
-| `apps/web/.env.example` com `VITE_RESULTS_BASE_URL` (nome proposto) | ET-08, ET-12 |
+| Tela mínima com os estados                                             | Demonstração de M2; ET-08 (tela de ensaio)                   |
+| Suíte de interface                                                     | ET-11, ET-12                                                 |
+| `apps/web/.env.example` com `VITE_RESULTS_BASE_URL` (nome proposto)    | ET-08, ET-12                                                 |
 
 ## 6. Responsabilidades e fronteiras
 
-| Peça (proposta) | Decide | Adapta transporte | Efeito |
-| --- | --- | --- | --- |
-| `features/resultados/<leitura>.ts` | Se a resposta é válida (schema) e qual erro ocorreu | `fetch` com `AbortSignal` | Requisição |
-| Hook de leitura | Qual estado exibir; descartar resposta obsoleta | — | Temporizador |
-| Componentes | Apresentação | — | Nenhum |
-| `App.tsx` | Composição | — | — |
+| Peça (proposta)                    | Decide                                              | Adapta transporte         | Efeito       |
+| ---------------------------------- | --------------------------------------------------- | ------------------------- | ------------ |
+| `features/resultados/<leitura>.ts` | Se a resposta é válida (schema) e qual erro ocorreu | `fetch` com `AbortSignal` | Requisição   |
+| Hook de leitura                    | Qual estado exibir; descartar resposta obsoleta     | —                         | Temporizador |
+| Componentes                        | Apresentação                                        | —                         | Nenhum       |
+| `App.tsx`                          | Composição                                          | —                         | —            |
 
 A tela não normaliza, não calcula percentual, não ordena candidatos de outro jeito e não deriva o nacional das UFs. WEB-002: estado no menor escopo; WEB-003: efeito só para requisição e temporizador.
 
@@ -265,24 +265,24 @@ A tela não normaliza, não calcula percentual, não ordena candidatos de outro 
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-06-V01 | URL de configuração | Valor ausente, inválido, válido (casos separados) | Iniciar | Erro claro nos dois primeiros; leitura no terceiro | Falha silenciosa | Unitário | Local | T02 |
-| ET-06-V02 | Leitura válida | Manifesto e arquivos sintéticos | Ler | Dados tipados da versão do manifesto | Arquivo de outra versão lido | Unitário | Local | T03 |
-| ET-06-V03 | Resposta inválida | Arquivo que não passa no schema | Ler | Erro "inválido"; nenhum dado exibido como novo | Dado exibido | Unitário | Local | T03 |
-| ET-06-V04 | Contrato incompatível | Manifesto com versão de contrato não suportada | Ler e renderizar | Estado de recarregar | Tentativa de exibir | Interface | Local | T03 |
-| ET-06-V05 | Resposta fora de ordem | UF A lenta, UF B rápida | Selecionar A, depois B | Tela mostra B | Tela mostra A | Interface | Local | T04, T06 |
-| ET-06-V06 | Falha após sucesso | Versão exibida; servidor falha | Verificar de novo | Último válido visível com aviso | Tela vazia ou zerada | Interface | Local | T04 |
-| ET-06-V07 | Horários e desatualização | Versão com horário antigo; limiar provisório | Renderizar | Três horários; aviso quando acima do limiar | Só hora do download, ou sem aviso | Interface | Local | T04 |
-| ET-06-V08 | Ausência não é zero | Arquivo "ainda não disponível" | Renderizar | Texto de indisponível; nenhum zero | Zero exibido | Interface | Local | T05 |
-| ET-06-V09 | Sem governador | UF com "sem disputa" | Selecionar | Explicação; painel presidencial da UF segue | Painel vazio sem explicação | Interface | Local | T06 |
-| ET-06-V10 | Texto com marcação | Nome com `<b>` em fixture | Renderizar | Texto literal | Elemento criado | Interface | Local | T05 |
-| ET-06-V11 | Fluxo vertical | Simulador, coletor, servidor, web | Roteiro de T08 | v1 → v2 sem rebuild; falha da origem mantém v2; servidor parado mostra falha com último válido | Qualquer passo diferente | Ponta a ponta (manual) | Local | T08 |
-| ET-06-V12 | Bundle limpo | `pnpm build` | Busca por host do TSE e padrões de credencial | Nenhum achado | Achado | Integração | Local | T10 |
-| ET-06-V13 | Nacional pelo agregado | Fixture Brasil e fixtures de UF com líderes diferentes | Renderizar Brasil | Valores do arquivo Brasil | Valores derivados das UFs | Interface | Local | T05 |
-| ET-06-V14 | Simulado marcado | Manifesto com origem simulada | Renderizar | Marcação visível | Sem marcação | Interface | Local | T05 |
-| ET-06-V15 | Sem pedido sobreposto | Manifesto lento; timers falsos | Avançar dois intervalos | Um pedido em andamento | Dois pedidos | Unitário | Local | T07 |
-| ET-06-V16 | Ferramenta de teste | T01 | `pnpm test` | Testes de componente executados | Não executados | Integração | Local | T01 |
+| ID        | Cenário                   | Preparação                                             | Ação                                          | Sucesso                                                                                        | Falha se                          | Nível                  | Ambiente | Tarefa   |
+| --------- | ------------------------- | ------------------------------------------------------ | --------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------- | ---------------------- | -------- | -------- |
+| ET-06-V01 | URL de configuração       | Valor ausente, inválido, válido (casos separados)      | Iniciar                                       | Erro claro nos dois primeiros; leitura no terceiro                                             | Falha silenciosa                  | Unitário               | Local    | T02      |
+| ET-06-V02 | Leitura válida            | Manifesto e arquivos sintéticos                        | Ler                                           | Dados tipados da versão do manifesto                                                           | Arquivo de outra versão lido      | Unitário               | Local    | T03      |
+| ET-06-V03 | Resposta inválida         | Arquivo que não passa no schema                        | Ler                                           | Erro "inválido"; nenhum dado exibido como novo                                                 | Dado exibido                      | Unitário               | Local    | T03      |
+| ET-06-V04 | Contrato incompatível     | Manifesto com versão de contrato não suportada         | Ler e renderizar                              | Estado de recarregar                                                                           | Tentativa de exibir               | Interface              | Local    | T03      |
+| ET-06-V05 | Resposta fora de ordem    | UF A lenta, UF B rápida                                | Selecionar A, depois B                        | Tela mostra B                                                                                  | Tela mostra A                     | Interface              | Local    | T04, T06 |
+| ET-06-V06 | Falha após sucesso        | Versão exibida; servidor falha                         | Verificar de novo                             | Último válido visível com aviso                                                                | Tela vazia ou zerada              | Interface              | Local    | T04      |
+| ET-06-V07 | Horários e desatualização | Versão com horário antigo; limiar provisório           | Renderizar                                    | Três horários; aviso quando acima do limiar                                                    | Só hora do download, ou sem aviso | Interface              | Local    | T04      |
+| ET-06-V08 | Ausência não é zero       | Arquivo "ainda não disponível"                         | Renderizar                                    | Texto de indisponível; nenhum zero                                                             | Zero exibido                      | Interface              | Local    | T05      |
+| ET-06-V09 | Sem governador            | UF com "sem disputa"                                   | Selecionar                                    | Explicação; painel presidencial da UF segue                                                    | Painel vazio sem explicação       | Interface              | Local    | T06      |
+| ET-06-V10 | Texto com marcação        | Nome com `<b>` em fixture                              | Renderizar                                    | Texto literal                                                                                  | Elemento criado                   | Interface              | Local    | T05      |
+| ET-06-V11 | Fluxo vertical            | Simulador, coletor, servidor, web                      | Roteiro de T08                                | v1 → v2 sem rebuild; falha da origem mantém v2; servidor parado mostra falha com último válido | Qualquer passo diferente          | Ponta a ponta (manual) | Local    | T08      |
+| ET-06-V12 | Bundle limpo              | `pnpm build`                                           | Busca por host do TSE e padrões de credencial | Nenhum achado                                                                                  | Achado                            | Integração             | Local    | T10      |
+| ET-06-V13 | Nacional pelo agregado    | Fixture Brasil e fixtures de UF com líderes diferentes | Renderizar Brasil                             | Valores do arquivo Brasil                                                                      | Valores derivados das UFs         | Interface              | Local    | T05      |
+| ET-06-V14 | Simulado marcado          | Manifesto com origem simulada                          | Renderizar                                    | Marcação visível                                                                               | Sem marcação                      | Interface              | Local    | T05      |
+| ET-06-V15 | Sem pedido sobreposto     | Manifesto lento; timers falsos                         | Avançar dois intervalos                       | Um pedido em andamento                                                                         | Dois pedidos                      | Unitário               | Local    | T07      |
+| ET-06-V16 | Ferramenta de teste       | T01                                                    | `pnpm test`                                   | Testes de componente executados                                                                | Não executados                    | Integração             | Local    | T01      |
 
 Teste local de interface não prova cache, CORS real nem comportamento da borda (ET-08). O roteiro V11 é manual; ferramenta de ponta a ponta automatizada é decisão de ET-11.
 

@@ -126,16 +126,16 @@ Até o schema existir, esta é a semântica que o código novo deve preservar. E
 
 ## Formas de função
 
-| Construção | Quando usar | Quando evitar | Exemplo |
-| --- | --- | --- | --- |
-| Declaração `function` | Operação nomeada, reutilizável ou exportada | Callback de uma linha | `function normalizeLabel(value: string): string` |
-| Arrow function | Callback e função local curta | Método que precise de `this` dinâmico | `items.filter((item) => item.isCurrent)` |
-| Método de classe | Comportamento da instância, inclusive serviço Nest | Função pura que não usa estado da instância | `readCurrent()` dentro de um serviço |
-| Função síncrona | Cálculo ou decisão já em memória | Operação cujo contrato é I/O | `isSnapshotFresh(publishedAt, now, maxAgeMs)` |
-| Função `async` | O contrato espera uma Promise | Trabalho só de CPU, “por hábito” | `async function publishSnapshot(...)` |
-| Callback | API que já pede callback, ou predicado de coleção | Cadeia longa de callbacks quando `async`/`await` expressa a sequência | predicado de `filter` |
-| Função pura | Regra de domínio sem I/O | Quando o efeito é o objetivo da função | normalizar um valor já em memória |
-| Função com efeito | Publicar, gravar, agendar, registrar | Escondida dentro de `map` | `publishSnapshot` |
+| Construção            | Quando usar                                        | Quando evitar                                                         | Exemplo                                          |
+| --------------------- | -------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------ |
+| Declaração `function` | Operação nomeada, reutilizável ou exportada        | Callback de uma linha                                                 | `function normalizeLabel(value: string): string` |
+| Arrow function        | Callback e função local curta                      | Método que precise de `this` dinâmico                                 | `items.filter((item) => item.isCurrent)`         |
+| Método de classe      | Comportamento da instância, inclusive serviço Nest | Função pura que não usa estado da instância                           | `readCurrent()` dentro de um serviço             |
+| Função síncrona       | Cálculo ou decisão já em memória                   | Operação cujo contrato é I/O                                          | `isSnapshotFresh(publishedAt, now, maxAgeMs)`    |
+| Função `async`        | O contrato espera uma Promise                      | Trabalho só de CPU, “por hábito”                                      | `async function publishSnapshot(...)`            |
+| Callback              | API que já pede callback, ou predicado de coleção  | Cadeia longa de callbacks quando `async`/`await` expressa a sequência | predicado de `filter`                            |
+| Função pura           | Regra de domínio sem I/O                           | Quando o efeito é o objetivo da função                                | normalizar um valor já em memória                |
+| Função com efeito     | Publicar, gravar, agendar, registrar               | Escondida dentro de `map`                                             | `publishSnapshot`                                |
 
 ### TS-009. Arrow e `async` não são alternativas
 
@@ -148,7 +148,11 @@ Até o schema existir, esta é a semântica que o código novo deve preservar. E
 **Exemplo adequado de função síncrona.** Ilustrativo. `maxAgeMs` é parâmetro, não meta do projeto.
 
 ```ts
-function isSnapshotFresh(publishedAt: Date, now: Date, maxAgeMs: number): boolean {
+function isSnapshotFresh(
+  publishedAt: Date,
+  now: Date,
+  maxAgeMs: number,
+): boolean {
   return now.getTime() - publishedAt.getTime() <= maxAgeMs
 }
 ```

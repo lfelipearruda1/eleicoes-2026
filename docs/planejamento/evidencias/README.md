@@ -8,16 +8,16 @@ Um arquivo por etapa, `ET-XX.md`, criado quando a etapa começa. O [catálogo](.
 
 Cada verificação registrada tem:
 
-| Coluna | Conteúdo |
-| --- | --- |
-| Data | Dia (e hora, quando importa) da execução |
-| Executor | Quem executou, ou "a designar" |
-| Comando ou ação | O comando exato, ou a ação manual descrita |
-| Ambiente | Máquina, diretório, versões de Node e pnpm, ou ambiente de nuvem |
-| Resultado observado | Código de saída e saída resumida; o que de fato apareceu |
-| Classificação | Aprovado, Reprovado, Bloqueado, Não executado, ou Executado sem testes encontrados |
-| Limitação | O que o resultado não prova |
-| Artefato | Link para arquivo, captura ou log, quando houver |
+| Coluna              | Conteúdo                                                                           |
+| ------------------- | ---------------------------------------------------------------------------------- |
+| Data                | Dia (e hora, quando importa) da execução                                           |
+| Executor            | Quem executou, ou "a designar"                                                     |
+| Comando ou ação     | O comando exato, ou a ação manual descrita                                         |
+| Ambiente            | Máquina, diretório, versões de Node e pnpm, ou ambiente de nuvem                   |
+| Resultado observado | Código de saída e saída resumida; o que de fato apareceu                           |
+| Classificação       | Aprovado, Reprovado, Bloqueado, Não executado, ou Executado sem testes encontrados |
+| Limitação           | O que o resultado não prova                                                        |
+| Artefato            | Link para arquivo, captura ou log, quando houver                                   |
 
 ## Regras
 

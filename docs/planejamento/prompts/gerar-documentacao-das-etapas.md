@@ -78,24 +78,24 @@ Engenharia, por referência e sem copiar o guia: módulos por responsabilidade; 
 
 Crie um Markdown por etapa selecionada, no caminho do catálogo:
 
-| ID | Caminho |
-| --- | --- |
-| ET-00 | `docs/planejamento/etapas/00-base-do-projeto.md` |
-| ET-01 | `docs/planejamento/etapas/01-validacao-dados-tse.md` |
-| ET-02 | `docs/planejamento/etapas/02-contrato-e-snapshots.md` |
-| ET-03 | `docs/planejamento/etapas/03-validacao-e-normalizacao.md` |
-| ET-04 | `docs/planejamento/etapas/04-coletor.md` |
-| ET-05 | `docs/planejamento/etapas/05-publicacao-e-snapshots-locais.md` |
-| ET-06 | `docs/planejamento/etapas/06-interface-funcional-inicial.md` |
-| ET-07 | `docs/planejamento/etapas/07-homologacao-cloudflare.md` |
-| ET-08 | `docs/planejamento/etapas/08-integracao-cloudflare.md` |
-| ET-09 | `docs/planejamento/etapas/09-container-do-coletor.md` |
-| ET-10 | `docs/planejamento/etapas/10-aws-e-operacao-do-coletor.md` |
-| ET-11 | `docs/planejamento/etapas/11-frontend-completo.md` |
-| ET-12 | `docs/planejamento/etapas/12-automacao-e-operacao.md` |
+| ID    | Caminho                                                             |
+| ----- | ------------------------------------------------------------------- |
+| ET-00 | `docs/planejamento/etapas/00-base-do-projeto.md`                    |
+| ET-01 | `docs/planejamento/etapas/01-validacao-dados-tse.md`                |
+| ET-02 | `docs/planejamento/etapas/02-contrato-e-snapshots.md`               |
+| ET-03 | `docs/planejamento/etapas/03-validacao-e-normalizacao.md`           |
+| ET-04 | `docs/planejamento/etapas/04-coletor.md`                            |
+| ET-05 | `docs/planejamento/etapas/05-publicacao-e-snapshots-locais.md`      |
+| ET-06 | `docs/planejamento/etapas/06-interface-funcional-inicial.md`        |
+| ET-07 | `docs/planejamento/etapas/07-homologacao-cloudflare.md`             |
+| ET-08 | `docs/planejamento/etapas/08-integracao-cloudflare.md`              |
+| ET-09 | `docs/planejamento/etapas/09-container-do-coletor.md`               |
+| ET-10 | `docs/planejamento/etapas/10-aws-e-operacao-do-coletor.md`          |
+| ET-11 | `docs/planejamento/etapas/11-frontend-completo.md`                  |
+| ET-12 | `docs/planejamento/etapas/12-automacao-e-operacao.md`               |
 | ET-13 | `docs/planejamento/etapas/13-capacidade-seguranca-e-resiliencia.md` |
-| ET-14 | `docs/planejamento/etapas/14-entrada-em-producao.md` |
-| ET-15 | `docs/planejamento/etapas/15-continuidade-e-encerramento.md` |
+| ET-14 | `docs/planejamento/etapas/14-entrada-em-producao.md`                |
+| ET-15 | `docs/planejamento/etapas/15-continuidade-e-encerramento.md`        |
 
 Se o arquivo já existir, atualize-o. Não deixe versão paralela com outro nome.
 

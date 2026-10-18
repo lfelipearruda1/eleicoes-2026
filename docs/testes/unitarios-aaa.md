@@ -2,7 +2,7 @@
 
 [Voltar aos testes](README.md) · [Padrões comuns](../padroes/README.md)
 
-A suíte não existe. `pnpm test` roda Vitest 5.0.4 com `--passWithNoTests`. Este arquivo não cria teste executável. Os blocos são documentação. Nenhum deles foi executado.
+A primeira suíte real é `packages/validation/src/contract/envelope.spec.ts`. `pnpm test` roda Vitest 5.0.4 sem `--passWithNoTests` e falha quando não encontra teste. Os blocos deste arquivo são documentação e não foram executados.
 
 A página de boas práticas de teste unitário da Microsoft, consultada em 14 de outubro de 2026, descreve Arrange, Act e Assert para projetos .NET. Usamos o padrão de estrutura, não as ferramentas, os atributos nem a arquitetura dessa plataforma. A mesma página diz que fake, stub e mock são usados de forma inconsistente na literatura. O glossário abaixo é o deste projeto.
 
@@ -40,12 +40,12 @@ A página de timers do Vitest, consultada em 14 de outubro de 2026, mostra `vi.u
 
 **Regra:**
 
-| Dublê | Papel aqui |
-| --- | --- |
-| Fake | Implementação simples que funciona de verdade, como um publicador em memória |
-| Stub | Devolve valor combinado e não é o foco da asserção |
-| Spy | Registra chamadas de uma função real ou substituta |
-| Mock | Dublê cuja expectativa de chamada decide o resultado do teste |
+| Dublê | Papel aqui                                                                   |
+| ----- | ---------------------------------------------------------------------------- |
+| Fake  | Implementação simples que funciona de verdade, como um publicador em memória |
+| Stub  | Devolve valor combinado e não é o foco da asserção                           |
+| Spy   | Registra chamadas de uma função real ou substituta                           |
+| Mock  | Dublê cuja expectativa de chamada decide o resultado do teste                |
 
 Mockar a fronteira, não cada função interna. Não mockar a unidade sob teste. Preferir efeito e resultado observáveis. Verificar chamada quando a chamada for o contrato, como “o manifesto não foi atualizado”. Não testar método privado por conveniência; testar pelo comportamento público. Se a regra só é alcançável pelo privado, a fronteira pública está estreita demais ou o teste está no lugar errado.
 

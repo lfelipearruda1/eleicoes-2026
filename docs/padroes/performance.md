@@ -106,10 +106,10 @@ Sentry, OpenTelemetry e Grafana continuam planejados e não são obrigatórios n
 
 ## Três provas diferentes
 
-| Prova | O que mostra | O que não mostra |
-| --- | --- | --- |
-| Teste unitário | Decisão, limite lógico, preservação da versão | Capacidade do site |
-| Benchmark | Diferença entre duas implementações num cenário fixo | Comportamento com a audiência real |
+| Prova          | O que mostra                                                             | O que não mostra                                |
+| -------------- | ------------------------------------------------------------------------ | ----------------------------------------------- |
+| Teste unitário | Decisão, limite lógico, preservação da versão                            | Capacidade do site                              |
+| Benchmark      | Diferença entre duas implementações num cenário fixo                     | Comportamento com a audiência real              |
 | Teste de carga | O ambiente autorizado, com o tamanho e a regra de cache usados no ensaio | O TSE, e qualquer número fora do cenário medido |
 
 k6 é a ferramenta prevista para carga contra a nossa infraestrutura. Não está instalado. Não apontar script de carga ao TSE.

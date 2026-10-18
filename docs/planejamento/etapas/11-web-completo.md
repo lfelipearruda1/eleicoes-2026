@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-11 |
-| Componente | `apps/web` |
-| Tipo predominante | Código com testes de interface e verificação em homologação |
-| Marco | M5 — Produto funcional |
+| Campo              | Conteúdo                                                                                                                                                                                                                                                                                                         |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-11                                                                                                                                                                                                                                                                                                            |
+| Componente         | `apps/web`                                                                                                                                                                                                                                                                                                       |
+| Tipo predominante  | Código com testes de interface e verificação em homologação                                                                                                                                                                                                                                                      |
+| Marco              | M5 — Produto funcional                                                                                                                                                                                                                                                                                           |
 | Resultado concreto | Na homologação, o visitante escolhe uma UF pelo mapa ou por uma lista equivalente, vê o Brasil e a UF, vê governador só onde há disputa, acompanha a atualização periódica sem pedidos sobrepostos, e entende quando o dado está indisponível, falhou ou envelheceu, com teclado, leitor de tela e tela estreita |
 
 ## 2. Escopo e exclusões
@@ -31,15 +31,15 @@ Estado observado em 17/10/2026: só a tela inicial existe em `apps/web`. A parti
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-06: leitura, hook, painéis mínimos | Início de todas as tarefas de código |
-| Implementação | ET-08: homologação publicando resultados | Conclusão (T13 em homologação) |
-| Decisão | DP-29 (GeoJSON e cor do mapa) | T01, T02 |
-| Decisão | DP-14 (limiar de desatualização) | Valor de T09 |
-| Decisão | DP-17 (intervalo de polling) | Valor de T07; o mecanismo não espera |
-| Decisão | DP-11 (status oficial) | Rótulo em T05 |
-| Decisão | DP-19 (ponta a ponta) | Automação de T13 |
+| Tipo          | Item                                     | Bloqueia                             |
+| ------------- | ---------------------------------------- | ------------------------------------ |
+| Implementação | ET-06: leitura, hook, painéis mínimos    | Início de todas as tarefas de código |
+| Implementação | ET-08: homologação publicando resultados | Conclusão (T13 em homologação)       |
+| Decisão       | DP-29 (GeoJSON e cor do mapa)            | T01, T02                             |
+| Decisão       | DP-14 (limiar de desatualização)         | Valor de T09                         |
+| Decisão       | DP-17 (intervalo de polling)             | Valor de T07; o mecanismo não espera |
+| Decisão       | DP-11 (status oficial)                   | Rótulo em T05                        |
+| Decisão       | DP-19 (ponta a ponta)                    | Automação de T13                     |
 
 **Início parcial:** depois de ET-06, todas as tarefas de código podem avançar com fixtures e com a publicação local. A conclusão exige ET-08 (dados reais publicados na homologação). Esta etapa não depende de ET-09 nem de ET-10.
 
@@ -49,21 +49,21 @@ Estado observado em 17/10/2026: só a tela inicial existe em `apps/web`. A parti
 
 **Saídas:**
 
-| Artefato | Consumidor |
-| --- | --- |
+| Artefato                                                                                         | Consumidor                                                   |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------ |
 | Interface completa em `apps/web/src/features/` (proposto: `mapa/`, `resultados/`, `selecao-uf/`) | ET-12 (build e deploy), ET-13 (cenários de interface), ET-14 |
-| Geometria das UFs com atribuição e licença em `apps/web/src/features/mapa/` (proposto) | Build |
-| Suíte de interação e roteiro de ponta a ponta | ET-12, ET-13 |
+| Geometria das UFs com atribuição e licença em `apps/web/src/features/mapa/` (proposto)           | Build                                                        |
+| Suíte de interação e roteiro de ponta a ponta                                                    | ET-12, ET-13                                                 |
 
 ## 6. Responsabilidades e fronteiras
 
-| Peça (proposta) | Responsabilidade |
-| --- | --- |
+| Peça (proposta)              | Responsabilidade                                                                          |
+| ---------------------------- | ----------------------------------------------------------------------------------------- |
 | Agendador de leitura (um só) | Quando ler o manifesto; sem sobreposição; variação; segundo plano; parada no encerramento |
-| Hook de resultados | Estado de exibição; último válido; descarte de obsoleto |
-| Mapa | Apresentar UFs e emitir seleção |
-| Lista de UFs | Mesma seleção, caminho principal para teclado e leitor de tela |
-| Painéis | Apresentar o que o contrato traz |
+| Hook de resultados           | Estado de exibição; último válido; descarte de obsoleto                                   |
+| Mapa                         | Apresentar UFs e emitir seleção                                                           |
+| Lista de UFs                 | Mesma seleção, caminho principal para teclado e leitor de tela                            |
+| Painéis                      | Apresentar o que o contrato traz                                                          |
 
 A seleção é um estado compartilhado por mapa e lista, no menor componente comum (WEB-002). Cada painel não dispara a própria consulta (WEB-005).
 
@@ -297,23 +297,23 @@ A seleção é um estado compartilhado por mapa e lista, no menor componente com
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-11-V01 | Geometria | T01 | Cruzar feições com UFs do contrato; ler licença | 27 unidades com identificador; licença e atribuição registradas | Unidade faltando ou licença ausente | Revisão + unitário | Local | T01 |
-| ET-11-V02 | Seleção no mapa | Mapa renderizado | Clicar; usar teclado | UF selecionada; seleção visível sem cor | Seleção só por cor, ou teclado não funciona | Interface | Local | T02 |
-| ET-11-V03 | Lista equivalente | Mapa e lista | Selecionar em cada um | Estado compartilhado | Divergência | Interface | Local | T03 |
-| ET-11-V04 | Brasil/UF | Visão Brasil | Abrir UF; voltar | Ida e volta; foco previsível | Foco perdido ou estado preso | Interface | Local | T04 |
-| ET-11-V05 | Painel presidencial | Fixtures parcial e final | Renderizar | Rótulos distintos; parcial indicado; nenhum "eleito" nosso | Vencedor declarado ou rótulos confundidos | Interface | Local | T05 |
-| ET-11-V06 | Governador | UF com disputa, sem disputa, sem dado (casos separados) | Selecionar | Painel, explicação, indisponível | Estados confundidos | Interface | Local | T06 |
-| ET-11-V07 | Polling | Timers e aleatoriedade controlados | Avançar tempo; simular segundo plano; manifesto encerrado; resposta lenta (casos separados) | Sem sobreposição; intervalos variam; URL sem parâmetro aleatório; segundo plano reduzido; parada no encerramento | Qualquer caso diferente | Unitário | Local | T07 |
-| ET-11-V08 | Ordem e regressão | Respostas invertidas; manifesto antigo | Resolver fora de ordem | Estado mais novo e seleção atual preservados | Regressão | Unitário | Local | T08 |
-| ET-11-V09 | Falha e envelhecimento | Versão exibida | Falhar leitura; avançar além do limiar (casos separados) | Último válido com aviso de falha; aviso de desatualização no limiar | Tela vazia, zerada, ou sem aviso | Interface | Local | T09 |
-| ET-11-V10 | Teclado e leitor | Interface completa | Checklist manual e verificação automatizada, se aprovada | Sem bloqueador registrado | Bloqueador | Interface | Local | T10 |
-| ET-11-V11 | Tela estreita | Largura pequena | Navegar | Seleção de UF disponível; painéis legíveis | Seleção inacessível | Interface | Local | T10 |
-| ET-11-V12 | Apresentação segura | Texto com marcação; URL não permitida | Renderizar | Texto literal; link não criado | Elemento criado ou link aceito | Interface | Local | T11 |
-| ET-11-V13 | Custo do mapa | Build | Medir bundle e redesenho | Valores registrados | Sem registro | Integração | Local | T12 |
-| ET-11-V14 | Nacional não é contagem | UFs com líderes diferentes do nacional | Renderizar Brasil e mapa | Nacional do agregado; legenda de liderança por UF, se houver cor | Nacional derivado do mapa | Interface | Local | T02 |
-| ET-11-V15 | Percurso em homologação | ET-08 ativo | Roteiro de T13 | Todos os estados observados e registrados | Estado não observado | Ponta a ponta | Homologação | T13 |
+| ID        | Cenário                 | Preparação                                              | Ação                                                                                        | Sucesso                                                                                                          | Falha se                                    | Nível              | Ambiente    | Tarefa |
+| --------- | ----------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------ | ----------- | ------ |
+| ET-11-V01 | Geometria               | T01                                                     | Cruzar feições com UFs do contrato; ler licença                                             | 27 unidades com identificador; licença e atribuição registradas                                                  | Unidade faltando ou licença ausente         | Revisão + unitário | Local       | T01    |
+| ET-11-V02 | Seleção no mapa         | Mapa renderizado                                        | Clicar; usar teclado                                                                        | UF selecionada; seleção visível sem cor                                                                          | Seleção só por cor, ou teclado não funciona | Interface          | Local       | T02    |
+| ET-11-V03 | Lista equivalente       | Mapa e lista                                            | Selecionar em cada um                                                                       | Estado compartilhado                                                                                             | Divergência                                 | Interface          | Local       | T03    |
+| ET-11-V04 | Brasil/UF               | Visão Brasil                                            | Abrir UF; voltar                                                                            | Ida e volta; foco previsível                                                                                     | Foco perdido ou estado preso                | Interface          | Local       | T04    |
+| ET-11-V05 | Painel presidencial     | Fixtures parcial e final                                | Renderizar                                                                                  | Rótulos distintos; parcial indicado; nenhum "eleito" nosso                                                       | Vencedor declarado ou rótulos confundidos   | Interface          | Local       | T05    |
+| ET-11-V06 | Governador              | UF com disputa, sem disputa, sem dado (casos separados) | Selecionar                                                                                  | Painel, explicação, indisponível                                                                                 | Estados confundidos                         | Interface          | Local       | T06    |
+| ET-11-V07 | Polling                 | Timers e aleatoriedade controlados                      | Avançar tempo; simular segundo plano; manifesto encerrado; resposta lenta (casos separados) | Sem sobreposição; intervalos variam; URL sem parâmetro aleatório; segundo plano reduzido; parada no encerramento | Qualquer caso diferente                     | Unitário           | Local       | T07    |
+| ET-11-V08 | Ordem e regressão       | Respostas invertidas; manifesto antigo                  | Resolver fora de ordem                                                                      | Estado mais novo e seleção atual preservados                                                                     | Regressão                                   | Unitário           | Local       | T08    |
+| ET-11-V09 | Falha e envelhecimento  | Versão exibida                                          | Falhar leitura; avançar além do limiar (casos separados)                                    | Último válido com aviso de falha; aviso de desatualização no limiar                                              | Tela vazia, zerada, ou sem aviso            | Interface          | Local       | T09    |
+| ET-11-V10 | Teclado e leitor        | Interface completa                                      | Checklist manual e verificação automatizada, se aprovada                                    | Sem bloqueador registrado                                                                                        | Bloqueador                                  | Interface          | Local       | T10    |
+| ET-11-V11 | Tela estreita           | Largura pequena                                         | Navegar                                                                                     | Seleção de UF disponível; painéis legíveis                                                                       | Seleção inacessível                         | Interface          | Local       | T10    |
+| ET-11-V12 | Apresentação segura     | Texto com marcação; URL não permitida                   | Renderizar                                                                                  | Texto literal; link não criado                                                                                   | Elemento criado ou link aceito              | Interface          | Local       | T11    |
+| ET-11-V13 | Custo do mapa           | Build                                                   | Medir bundle e redesenho                                                                    | Valores registrados                                                                                              | Sem registro                                | Integração         | Local       | T12    |
+| ET-11-V14 | Nacional não é contagem | UFs com líderes diferentes do nacional                  | Renderizar Brasil e mapa                                                                    | Nacional do agregado; legenda de liderança por UF, se houver cor                                                 | Nacional derivado do mapa                   | Interface          | Local       | T02    |
+| ET-11-V15 | Percurso em homologação | ET-08 ativo                                             | Roteiro de T13                                                                              | Todos os estados observados e registrados                                                                        | Estado não observado                        | Ponta a ponta      | Homologação | T13    |
 
 Testes de interface com fixtures não provam cache nem comportamento sob carga; V15 prova o percurso, não a capacidade (ET-13).
 

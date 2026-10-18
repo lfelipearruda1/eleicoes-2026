@@ -58,23 +58,23 @@ Transação explícita curta. Não chamar TSE, R2 nem outro serviço de rede enq
 
 **Nível:** Condicional.
 
-| Caso | Decisão |
-| --- | --- |
-| Uma escrita que o banco já executa de forma atômica | Uma instrução. Sem `BEGIN` explícito só por cerimônia. |
-| Várias escritas que precisam valer juntas ou falhar juntas | Uma transação explícita no caso de uso, no mesmo contexto. |
-| Leituras que precisam observar um estado estável | Transação com isolamento escolhido, ou uma consulta só, se uma consulta bastar. |
-| Consulta sem exigência extra de consistência | Instrução simples. Não abrir transação longa. |
-| Fluxo que mistura banco e serviço externo | A transação do banco termina antes da chamada externa, ou o desenho trata os dois lados. Rollback SQL não desfaz o outro lado. |
+| Caso                                                       | Decisão                                                                                                                        |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Uma escrita que o banco já executa de forma atômica        | Uma instrução. Sem `BEGIN` explícito só por cerimônia.                                                                         |
+| Várias escritas que precisam valer juntas ou falhar juntas | Uma transação explícita no caso de uso, no mesmo contexto.                                                                     |
+| Leituras que precisam observar um estado estável           | Transação com isolamento escolhido, ou uma consulta só, se uma consulta bastar.                                                |
+| Consulta sem exigência extra de consistência               | Instrução simples. Não abrir transação longa.                                                                                  |
+| Fluxo que mistura banco e serviço externo                  | A transação do banco termina antes da chamada externa, ou o desenho trata os dois lados. Rollback SQL não desfaz o outro lado. |
 
 Para corrida, avaliar escrita condicional, restrição, versão otimista ou lock. A escolha depende da regra. Não prescrever Serializable para toda operação.
 
 Diferenças práticas, a partir da documentação de isolamento do PostgreSQL 18:
 
-| Nível | O que o projeto precisa lembrar |
-| --- | --- |
-| Read Committed | Padrão. Cada comando vê o que estava confirmado quando o comando começou. É suficiente para muita escrita simples e insuficiente para regra que exige uma fotografia estável de várias leituras. |
+| Nível           | O que o projeto precisa lembrar                                                                                                                                                                                                                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Read Committed  | Padrão. Cada comando vê o que estava confirmado quando o comando começou. É suficiente para muita escrita simples e insuficiente para regra que exige uma fotografia estável de várias leituras.                                                                                                                  |
 | Repeatable Read | A fotografia é do início da transação. Atualização concorrente da mesma linha pode falhar com erro de serialização. A aplicação precisa repetir a transação inteira. Leitura pura não encontra esse conflito. O PostgreSQL também não apresenta phantom read nesse nível, garantia acima do mínimo do padrão SQL. |
-| Serializable | Acrescenta monitoramento de anomalia de serialização, com o mesmo tipo de falha que pede repetir a transação. Tem custo extra. Não é o nível padrão deste projeto. |
+| Serializable    | Acrescenta monitoramento de anomalia de serialização, com o mesmo tipo de falha que pede repetir a transação. Tem custo extra. Não é o nível padrão deste projeto.                                                                                                                                                |
 
 Repetir a transação inteira quando o erro for de serialização ou deadlock, com limite de tentativas. Só repetir se os efeitos externos ainda não tiverem acontecido, ou se forem idempotentes. A documentação de locks explícitos, consultada na mesma data, diz que o PostgreSQL aborta uma das transações em deadlock e que lock fica retido até o fim da transação. Segurar lock enquanto se espera rede é o caso que essa página desaconselha ao falar de transação longa.
 

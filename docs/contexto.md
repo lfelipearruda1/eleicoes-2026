@@ -44,14 +44,14 @@ O desenho adotado concentra a leitura oficial num coletor, publica snapshots e d
 
 ## Como ler o estado de cada afirmação
 
-| Rótulo | Significado |
-| --- | --- |
-| Decisão adotada | Escolha de arquitetura ou de produto definida para este projeto. |
-| Implementado | Existe no repositório e foi conferido. |
-| Planejado | Previsto, ainda sem implementação ou sem recurso provisionado. |
-| Proposta | Detalhe sugerido, ainda sem validação. |
-| Pendente | Informação necessária que ainda não foi confirmada. |
-| Fora da primeira versão | Adiado de propósito. |
+| Rótulo                  | Significado                                                      |
+| ----------------------- | ---------------------------------------------------------------- |
+| Decisão adotada         | Escolha de arquitetura ou de produto definida para este projeto. |
+| Implementado            | Existe no repositório e foi conferido.                           |
+| Planejado               | Previsto, ainda sem implementação ou sem recurso provisionado.   |
+| Proposta                | Detalhe sugerido, ainda sem validação.                           |
+| Pendente                | Informação necessária que ainda não foi confirmada.              |
+| Fora da primeira versão | Adiado de propósito.                                             |
 
 Uma decisão adotada não significa que o recurso já foi implementado ou provisionado.
 
@@ -75,30 +75,30 @@ Três mecanismos parecidos precisam permanecer distintos:
 
 ## Stack
 
-| Tecnologia | Finalidade | Onde | Estado |
-| --- | --- | --- | --- |
-| TypeScript 6.0.3 | Linguagem principal | Monorepositório | Implementado |
-| pnpm 12.11.2 e workspaces | Instalação e pacotes | Raiz | Implementado |
-| Node.js 24.22.0 | Runtime | `.nvmrc` e `engines` (`>=24.22.0 <25`) | Implementado. A inicialização foi planejada com Node.js 24 LTS; o repositório fixa 24.22.0 |
-| React 19.3.1 | Interface | `apps/web` | Implementado como base. As telas de resultado não existem |
-| Vite 8.3.4 | Desenvolvimento e build do frontend | `apps/web` | Implementado |
-| Tailwind CSS 4.3.3 | Estilo | `apps/web` | Implementado na folha inicial |
-| SVG e GeoJSON | Mapa | `apps/web` | Decisão adotada. Não implementado. A fonte cartográfica está pendente |
-| Node.js e TypeScript | Coleta | `apps/collector` | Ponto de entrada mínimo implementado. A coleta não existe |
-| Zod 4.6.7 | Validação | `packages/validation` | Dependência instalada. Não há schemas |
-| Vitest 5.0.4 | Testes compatíveis com a ferramenta | Raiz | Ferramenta configurada. A suíte não existe |
-| k6 | Testes de carga futuros | `tests/load` | Planejado. A pasta só tem `.gitkeep` |
-| Git e GitHub | Versionamento | Repositório | Git está em uso. Workflows de GitHub Actions ainda não existem |
-| GitHub Actions | Testes e publicação automatizados | `.github/workflows` | Planejado. A pasta só tem `.gitkeep` |
-| Cloudflare Workers Static Assets | Hospedagem do frontend | Cloudflare | Decisão adotada e planejada. Não provisionado |
-| Cloudflare R2 | Armazenamento dos snapshots | Cloudflare | Planejado. Não provisionado |
-| CDN da Cloudflare | Entrega e cache dos resultados | Domínio próprio associado ao R2 | Planejado. Não provisionado |
-| Proteções da Cloudflare | WAF, limite de pedidos e proteção contra negação de serviço, conforme domínio, produto e plano | Caminhos públicos | Planejado. O plano está pendente |
-| AWS EC2 e Docker | Execução contínua do coletor | AWS | Planejado. Não há Dockerfile nem instância |
-| Sentry | Exceções | A definir | Planejado. Não é obrigação do primeiro dia |
-| OpenTelemetry e Grafana | Métricas e observabilidade | A definir | Planejado. Não é obrigação do primeiro dia |
-| NestJS e Fastify | API opcional em Node.js | `apps/api` | Fora da primeira versão |
-| Redis, PostgreSQL, balanceador de carga, SSE, WebSocket e filas | Serviços sem requisito demonstrado | — | Fora da primeira versão |
+| Tecnologia                                                      | Finalidade                                                                                     | Onde                                   | Estado                                                                                        |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------- |
+| TypeScript 6.0.3                                                | Linguagem principal                                                                            | Monorepositório                        | Implementado                                                                                  |
+| pnpm 12.11.2 e workspaces                                       | Instalação e pacotes                                                                           | Raiz                                   | Implementado                                                                                  |
+| Node.js 24.22.0                                                 | Runtime                                                                                        | `.nvmrc` e `engines` (`>=24.22.0 <25`) | Implementado. A inicialização foi planejada com Node.js 24 LTS; o repositório fixa 24.22.0    |
+| React 19.3.1                                                    | Interface                                                                                      | `apps/web`                             | Implementado como base. As telas de resultado não existem                                     |
+| Vite 8.3.4                                                      | Desenvolvimento e build do frontend                                                            | `apps/web`                             | Implementado                                                                                  |
+| Tailwind CSS 4.3.3                                              | Estilo                                                                                         | `apps/web`                             | Implementado na folha inicial                                                                 |
+| SVG e GeoJSON                                                   | Mapa                                                                                           | `apps/web`                             | Decisão adotada. Não implementado. A fonte cartográfica está pendente                         |
+| Node.js e TypeScript                                            | Coleta                                                                                         | `apps/collector`                       | Ponto de entrada mínimo implementado. A coleta não existe                                     |
+| Zod 4.6.7                                                       | Validação                                                                                      | `packages/validation`                  | Implementado só o schema do envelope dos snapshots (publicação e leitura). Payload sem schema |
+| Vitest 5.0.4                                                    | Testes compatíveis com a ferramenta                                                            | Raiz                                   | Implementado. Suíte inicial do envelope; `pnpm test` falha sem testes                         |
+| k6                                                              | Testes de carga futuros                                                                        | `tests/load`                           | Planejado. A pasta só tem `.gitkeep`                                                          |
+| Git e GitHub                                                    | Versionamento                                                                                  | Repositório                            | Git está em uso. Workflows de GitHub Actions ainda não existem                                |
+| GitHub Actions                                                  | Testes e publicação automatizados                                                              | `.github/workflows`                    | Planejado. A pasta só tem `.gitkeep`                                                          |
+| Cloudflare Workers Static Assets                                | Hospedagem do frontend                                                                         | Cloudflare                             | Decisão adotada e planejada. Não provisionado                                                 |
+| Cloudflare R2                                                   | Armazenamento dos snapshots                                                                    | Cloudflare                             | Planejado. Não provisionado                                                                   |
+| CDN da Cloudflare                                               | Entrega e cache dos resultados                                                                 | Domínio próprio associado ao R2        | Planejado. Não provisionado                                                                   |
+| Proteções da Cloudflare                                         | WAF, limite de pedidos e proteção contra negação de serviço, conforme domínio, produto e plano | Caminhos públicos                      | Planejado. O plano está pendente                                                              |
+| AWS EC2 e Docker                                                | Execução contínua do coletor                                                                   | AWS                                    | Planejado. Não há Dockerfile nem instância                                                    |
+| Sentry                                                          | Exceções                                                                                       | A definir                              | Planejado. Não é obrigação do primeiro dia                                                    |
+| OpenTelemetry e Grafana                                         | Métricas e observabilidade                                                                     | A definir                              | Planejado. Não é obrigação do primeiro dia                                                    |
+| NestJS e Fastify                                                | API opcional em Node.js                                                                        | `apps/api`                             | Fora da primeira versão                                                                       |
+| Redis, PostgreSQL, balanceador de carga, SSE, WebSocket e filas | Serviços sem requisito demonstrado                                                             | —                                      | Fora da primeira versão                                                                       |
 
 ## Responsabilidade de cada aplicação
 
@@ -112,18 +112,18 @@ Três mecanismos parecidos precisam permanecer distintos:
 
 O workspace está em `pnpm-workspace.yaml` e inclui `apps/*` e `packages/*`. Nenhum pacote depende de outro nesta etapa. `pnpm build` percorre os builds existentes na ordem do workspace.
 
-| Caminho | Pacote | O que há hoje |
-| --- | --- | --- |
-| `apps/web` | `@eleicoes/web` | React, Vite e Tailwind. A tela exibe o título do ambiente inicial |
-| `apps/collector` | `@eleicoes/collector` | `src/index.ts` registra que a integração com o TSE ainda não existe |
-| `apps/api` | nenhum | Pasta reservada |
-| `packages/types` | `@eleicoes/types` | Export vazio |
-| `packages/election-data` | `@eleicoes/election-data` | Export vazio |
-| `packages/validation` | `@eleicoes/validation` | Zod instalado, sem schemas |
-| `docs/` | — | Esta documentação |
-| `tests/load/` | — | Reservada para k6 |
-| `infra/cloudflare/` | — | Reservada, sem configuração |
-| `.github/workflows/` | — | Reservada, sem workflows |
+| Caminho                  | Pacote                    | O que há hoje                                                       |
+| ------------------------ | ------------------------- | ------------------------------------------------------------------- |
+| `apps/web`               | `@eleicoes/web`           | React, Vite e Tailwind. A tela exibe o título do ambiente inicial   |
+| `apps/collector`         | `@eleicoes/collector`     | `src/index.ts` registra que a integração com o TSE ainda não existe |
+| `apps/api`               | nenhum                    | Pasta reservada                                                     |
+| `packages/types`         | `@eleicoes/types`         | Export vazio                                                        |
+| `packages/election-data` | `@eleicoes/election-data` | Export vazio                                                        |
+| `packages/validation`    | `@eleicoes/validation`    | Zod instalado, sem schemas                                          |
+| `docs/`                  | —                         | Esta documentação                                                   |
+| `tests/load/`            | —                         | Reservada para k6                                                   |
+| `infra/cloudflare/`      | —                         | Reservada, sem configuração                                         |
+| `.github/workflows/`     | —                         | Reservada, sem workflows                                            |
 
 Comandos já definidos na raiz: `pnpm dev:web`, `pnpm dev:collector`, `pnpm build`, `pnpm typecheck`, `pnpm lint`, `pnpm format`, `pnpm format:check` e `pnpm test`.
 

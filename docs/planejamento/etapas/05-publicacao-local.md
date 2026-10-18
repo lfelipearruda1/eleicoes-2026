@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-05 |
-| Componente | `apps/collector` (publicação em disco, simulador local, servidor estático de desenvolvimento) |
-| Tipo predominante | Código com testes de integração em disco |
-| Marco | M2 — Fluxo local completo |
+| Campo              | Conteúdo                                                                                                                                                                                                                                                               |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-05                                                                                                                                                                                                                                                                  |
+| Componente         | `apps/collector` (publicação em disco, simulador local, servidor estático de desenvolvimento)                                                                                                                                                                          |
+| Tipo predominante  | Código com testes de integração em disco                                                                                                                                                                                                                               |
+| Marco              | M2 — Fluxo local completo                                                                                                                                                                                                                                              |
 | Resultado concreto | O coletor grava versões imutáveis em disco e só depois troca o manifesto. Falha no meio preserva a versão anterior; reinício retoma sem publicar vazio. Um simulador local faz os dados evoluírem e um servidor estático de desenvolvimento entrega os arquivos ao web |
 
 ## 2. Escopo e exclusões
@@ -38,12 +38,12 @@ Estado observado em 17/10/2026: não há código de publicação. A ordem de pub
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Contrato | ET-02: manifesto, caminhos, identificador, publicabilidade (DP-12, DP-13) | T01, T03, T04, T05 |
-| Implementação | ET-03: schemas do manifesto e dos arquivos | T04 |
-| Implementação | ET-04: assinatura `publish` e processo em `main.ts` | T10 |
-| Decisão | DP-20 (leitura local pelo web) | T12 |
+| Tipo          | Item                                                                      | Bloqueia           |
+| ------------- | ------------------------------------------------------------------------- | ------------------ |
+| Contrato      | ET-02: manifesto, caminhos, identificador, publicabilidade (DP-12, DP-13) | T01, T03, T04, T05 |
+| Implementação | ET-03: schemas do manifesto e dos arquivos                                | T04                |
+| Implementação | ET-04: assinatura `publish` e processo em `main.ts`                       | T10                |
+| Decisão       | DP-20 (leitura local pelo web)                                            | T12                |
 
 **Pode começar com ET-04 em andamento:** T01 a T09 e T11 dependem só de ET-02 e ET-03; a integração (T10) espera ET-04.
 
@@ -53,22 +53,22 @@ Estado observado em 17/10/2026: não há código de publicação. A ordem de pub
 
 **Saídas:**
 
-| Artefato | Garantia | Consumidor |
-| --- | --- | --- |
-| Árvore em disco: `<raiz>/<ambiente>/<versões>/...` e manifesto, conforme ET-02 | Versão imutável; manifesto aponta só para versão completa e verificada | ET-06 (leitura local), testes |
-| Publicador local em `apps/collector/src/publication/` (proposto) | Mesma ordem que o publicador R2 seguirá | ET-08 (referência de comportamento) |
-| Suíte de contrato do publicador, reutilizável | Os mesmos cenários rodam contra o publicador R2 com transporte falso | ET-08-T04 |
-| Simulador em `apps/collector/scripts/simulador/` (proposto) | Dados sintéticos marcados | ET-06, ET-08, ET-09, ET-13 |
-| Servidor estático de desenvolvimento em `apps/collector/scripts/` (proposto) | Só GET e HEAD, só a raiz de publicação | ET-06 |
+| Artefato                                                                       | Garantia                                                               | Consumidor                          |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------- | ----------------------------------- |
+| Árvore em disco: `<raiz>/<ambiente>/<versões>/...` e manifesto, conforme ET-02 | Versão imutável; manifesto aponta só para versão completa e verificada | ET-06 (leitura local), testes       |
+| Publicador local em `apps/collector/src/publication/` (proposto)               | Mesma ordem que o publicador R2 seguirá                                | ET-08 (referência de comportamento) |
+| Suíte de contrato do publicador, reutilizável                                  | Os mesmos cenários rodam contra o publicador R2 com transporte falso   | ET-08-T04                           |
+| Simulador em `apps/collector/scripts/simulador/` (proposto)                    | Dados sintéticos marcados                                              | ET-06, ET-08, ET-09, ET-13          |
+| Servidor estático de desenvolvimento em `apps/collector/scripts/` (proposto)   | Só GET e HEAD, só a raiz de publicação                                 | ET-06                               |
 
 ## 6. Responsabilidades e fronteiras
 
-| Peça | Decide | Efeito |
-| --- | --- | --- |
-| Montagem de caminho | Se uma chave é segura | Nenhum |
-| Publicador local | Ordem: versão → verificação → manifesto | Escrita em disco |
-| Orquestração (ET-04) | Quando publicar | Chama `publish` |
-| Servidor de desenvolvimento | Nada de regra | Entrega arquivos |
+| Peça                        | Decide                                  | Efeito           |
+| --------------------------- | --------------------------------------- | ---------------- |
+| Montagem de caminho         | Se uma chave é segura                   | Nenhum           |
+| Publicador local            | Ordem: versão → verificação → manifesto | Escrita em disco |
+| Orquestração (ET-04)        | Quando publicar                         | Chama `publish`  |
+| Servidor de desenvolvimento | Nada de regra                           | Entrega arquivos |
 
 A regra de completude é a mesma do publicador R2; a suíte de contrato (T06, T08) é compartilhada para não duplicar o critério.
 
@@ -288,20 +288,20 @@ A regra de completude é a mesma do publicador R2; a suíte de contrato (T06, T0
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-05-V01 | Falha preserva A | Estado válido A publicado; escrita injetada que falha no meio de B | Publicar B; ler o manifesto | Manifesto referencia A; erro devolvido; arquivos de A legíveis | Manifesto aponta para B, ou erro engolido | Integração | Disco temporário | T06 |
-| ET-05-V02 | Sucesso troca para B | Estado A | Publicar B sem falha | Manifesto referencia B; arquivos de B legíveis | Manifesto em A ou B incompleto | Integração | Disco temporário | T01, T05, T06 |
-| ET-05-V03 | Interrupção e reinício | Processo interrompido após gravar arquivos de B e antes do manifesto | Reiniciar e publicar C | Partida lê A; restos de B não promovidos; C publicada; nenhum manifesto vazio | Manifesto vazio, B promovida, ou falha em publicar C | Integração | Disco temporário | T07 |
-| ET-05-V04 | Caminho hostil | Identificadores com `..`, absoluto, controle, link simbólico | Publicar | Recusa; nada fora da raiz | Arquivo escrito fora | Integração | Disco temporário | T02 |
-| ET-05-V05 | Identificador repetido | Versão existente | Republicar com mesmo conteúdo; com conteúdo diferente (casos separados) | Primeiro idempotente; segundo falha | Conteúdo sobrescrito | Integração | Disco temporário | T03 |
-| ET-05-V06 | Leitura sem mistura | Leitor com manifesto de A | Publicar B; leitor lê arquivos | Leitor obtém só A | Mistura de A e B | Integração | Disco temporário | T05, T08 |
-| ET-05-V07 | Ambientes separados | Configuração simulado e oficial | Publicar nos dois; publicar com prefixo trocado | Prefixos distintos; troca recusada | Mesmo prefixo, ou troca aceita | Integração | Disco temporário | T09 |
-| ET-05-V08 | Conjunto inválido | Arquivo ausente; arquivo que não passa no schema (casos separados) | Publicar | Manifesto inalterado; erro | Manifesto trocado | Integração | Disco temporário | T04 |
-| ET-05-V09 | Ciclo integrado | Simulador em estados 1, 2, 2 | Três ciclos | Duas versões; terceiro ciclo sem versão nova | Versão por ciclo sem mudança, ou falta versão | Integração | Local | T10 |
-| ET-05-V10 | Simulador | Sequência completa | Percorrer estados | Cada estado respondido como documentado; marcação sintética | Estado inalcançável ou sem marca | Integração | Local | T11 |
-| ET-05-V11 | Servidor de desenvolvimento | Raiz com versões | GET manifesto; GET arquivo; GET com `..`; POST | Dois primeiros 200 com JSON; `..` recusado; POST recusado | Arquivo fora da raiz ou escrita aceita | Integração | Local | T12 |
-| ET-05-V12 | Sem remoção | Várias publicações | Listar versões | Todas presentes | Alguma removida | Integração | Disco temporário | T01 |
+| ID        | Cenário                     | Preparação                                                           | Ação                                                                    | Sucesso                                                                       | Falha se                                             | Nível      | Ambiente         | Tarefa        |
+| --------- | --------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------- | ---------- | ---------------- | ------------- |
+| ET-05-V01 | Falha preserva A            | Estado válido A publicado; escrita injetada que falha no meio de B   | Publicar B; ler o manifesto                                             | Manifesto referencia A; erro devolvido; arquivos de A legíveis                | Manifesto aponta para B, ou erro engolido            | Integração | Disco temporário | T06           |
+| ET-05-V02 | Sucesso troca para B        | Estado A                                                             | Publicar B sem falha                                                    | Manifesto referencia B; arquivos de B legíveis                                | Manifesto em A ou B incompleto                       | Integração | Disco temporário | T01, T05, T06 |
+| ET-05-V03 | Interrupção e reinício      | Processo interrompido após gravar arquivos de B e antes do manifesto | Reiniciar e publicar C                                                  | Partida lê A; restos de B não promovidos; C publicada; nenhum manifesto vazio | Manifesto vazio, B promovida, ou falha em publicar C | Integração | Disco temporário | T07           |
+| ET-05-V04 | Caminho hostil              | Identificadores com `..`, absoluto, controle, link simbólico         | Publicar                                                                | Recusa; nada fora da raiz                                                     | Arquivo escrito fora                                 | Integração | Disco temporário | T02           |
+| ET-05-V05 | Identificador repetido      | Versão existente                                                     | Republicar com mesmo conteúdo; com conteúdo diferente (casos separados) | Primeiro idempotente; segundo falha                                           | Conteúdo sobrescrito                                 | Integração | Disco temporário | T03           |
+| ET-05-V06 | Leitura sem mistura         | Leitor com manifesto de A                                            | Publicar B; leitor lê arquivos                                          | Leitor obtém só A                                                             | Mistura de A e B                                     | Integração | Disco temporário | T05, T08      |
+| ET-05-V07 | Ambientes separados         | Configuração simulado e oficial                                      | Publicar nos dois; publicar com prefixo trocado                         | Prefixos distintos; troca recusada                                            | Mesmo prefixo, ou troca aceita                       | Integração | Disco temporário | T09           |
+| ET-05-V08 | Conjunto inválido           | Arquivo ausente; arquivo que não passa no schema (casos separados)   | Publicar                                                                | Manifesto inalterado; erro                                                    | Manifesto trocado                                    | Integração | Disco temporário | T04           |
+| ET-05-V09 | Ciclo integrado             | Simulador em estados 1, 2, 2                                         | Três ciclos                                                             | Duas versões; terceiro ciclo sem versão nova                                  | Versão por ciclo sem mudança, ou falta versão        | Integração | Local            | T10           |
+| ET-05-V10 | Simulador                   | Sequência completa                                                   | Percorrer estados                                                       | Cada estado respondido como documentado; marcação sintética                   | Estado inalcançável ou sem marca                     | Integração | Local            | T11           |
+| ET-05-V11 | Servidor de desenvolvimento | Raiz com versões                                                     | GET manifesto; GET arquivo; GET com `..`; POST                          | Dois primeiros 200 com JSON; `..` recusado; POST recusado                     | Arquivo fora da raiz ou escrita aceita               | Integração | Local            | T12           |
+| ET-05-V12 | Sem remoção                 | Várias publicações                                                   | Listar versões                                                          | Todas presentes                                                               | Alguma removida                                      | Integração | Disco temporário | T01           |
 
 Disco local tem renomeação atômica por arquivo; o R2 e a CDN não. Esses testes não provam a ordem nem a visibilidade no R2 e no cache (ET-08-V04, ET-08-V06, ET-13).
 

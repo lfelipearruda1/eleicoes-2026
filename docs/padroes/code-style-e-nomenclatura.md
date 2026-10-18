@@ -24,14 +24,14 @@ Regras de forma do código novo. Elas não mudam os arquivos de configuração n
 
 **Regra:** As escolhas explícitas e consistentes ficam como estão.
 
-| Opção | Onde está | Efeito adotado |
-| --- | --- | --- |
-| `semi: false` | `.prettierrc.json` | Sem ponto e vírgula. A sugestão genérica de usar ponto e vírgula não se aplica: a configuração existe. |
-| `singleQuote: true` | `.prettierrc.json` | Aspas simples. |
-| `trailingComma: "all"` | `.prettierrc.json` | Vírgula final onde a linguagem permite. |
-| `indent_size = 2`, `indent_style = space` | `.editorconfig` | Dois espaços. |
-| `end_of_line = lf` | `.editorconfig` | LF. |
-| `insert_final_newline = true` | `.editorconfig` | Linha final nos arquivos que o EditorConfig cobre. Em Markdown, `trim_trailing_whitespace` fica desligado. |
+| Opção                                     | Onde está          | Efeito adotado                                                                                             |
+| ----------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------- |
+| `semi: false`                             | `.prettierrc.json` | Sem ponto e vírgula. A sugestão genérica de usar ponto e vírgula não se aplica: a configuração existe.     |
+| `singleQuote: true`                       | `.prettierrc.json` | Aspas simples.                                                                                             |
+| `trailingComma: "all"`                    | `.prettierrc.json` | Vírgula final onde a linguagem permite.                                                                    |
+| `indent_size = 2`, `indent_style = space` | `.editorconfig`    | Dois espaços.                                                                                              |
+| `end_of_line = lf`                        | `.editorconfig`    | LF.                                                                                                        |
+| `insert_final_newline = true`             | `.editorconfig`    | Linha final nos arquivos que o EditorConfig cobre. Em Markdown, `trim_trailing_whitespace` fica desligado. |
 
 O código já segue a ausência de ponto e vírgula e as aspas simples, como em `apps/web/src/App.tsx` e `apps/collector/src/index.ts`.
 
@@ -120,13 +120,13 @@ O número é ilustrativo. O projeto ainda não adotou limite de tamanho; o valor
 
 **Regra:**
 
-| Artefato | Nome |
-| --- | --- |
-| Módulo de backend, função utilitária, adaptador | `kebab-case.ts` |
-| Componente React | `PascalCase.tsx` |
-| Hook | `useNomeDoHook.ts` |
-| Módulo Nest, se a API existir | sufixos `.module.ts`, `.controller.ts`, `.service.ts` |
-| Teste | `.spec.ts` ou `.spec.tsx`, ao lado da unidade |
+| Artefato                                        | Nome                                                  |
+| ----------------------------------------------- | ----------------------------------------------------- |
+| Módulo de backend, função utilitária, adaptador | `kebab-case.ts`                                       |
+| Componente React                                | `PascalCase.tsx`                                      |
+| Hook                                            | `useNomeDoHook.ts`                                    |
+| Módulo Nest, se a API existir                   | sufixos `.module.ts`, `.controller.ts`, `.service.ts` |
+| Teste                                           | `.spec.ts` ou `.spec.tsx`, ao lado da unidade         |
 
 Ponto de entrada já usado permanece: `main.tsx`, `index.ts`, `vite.config.ts`. Não se renomeia `App.tsx`. O componente de entrada exporta função default, e `main.tsx` importa esse default. Componente novo de funcionalidade usa export nomeado. Mudar o `App` atual só por causa dessa preferência está fora desta etapa.
 
@@ -146,14 +146,14 @@ Ponto de entrada já usado permanece: `main.tsx`, `index.ts`, `vite.config.ts`. 
 
 **Regra:** Preferir um verbo que diga o efeito.
 
-| Nome | Uso |
-| --- | --- |
-| `fetchElectionResult` | Busca externa. Não normaliza nem publica. |
-| `publishSnapshot` | Efeito de publicação. |
-| `normalizeElectionResult` | Transformação para o modelo interno. |
-| `isSnapshotFresh` | Consulta de condição, sem efeito. |
-| `handleStateSelection` | Tratamento de evento na interface. |
-| `onStateSelect` | Callback recebido por um componente. |
+| Nome                      | Uso                                       |
+| ------------------------- | ----------------------------------------- |
+| `fetchElectionResult`     | Busca externa. Não normaliza nem publica. |
+| `publishSnapshot`         | Efeito de publicação.                     |
+| `normalizeElectionResult` | Transformação para o modelo interno.      |
+| `isSnapshotFresh`         | Consulta de condição, sem efeito.         |
+| `handleStateSelection`    | Tratamento de evento na interface.        |
+| `onStateSelect`           | Callback recebido por um componente.      |
 
 O prefixo não documenta timeout, formato nem o que acontece na falha. Isso fica no tipo de retorno e, se a operação cruzar uma fronteira, no documento do contrato.
 
@@ -202,7 +202,11 @@ type PublishInput = {
 }
 
 type PublishOutcome =
-  | { readonly published: false; readonly reason: 'missing' | 'invalid' | 'write-failed'; readonly manifest?: ManifestPointer }
+  | {
+      readonly published: false
+      readonly reason: 'missing' | 'invalid' | 'write-failed'
+      readonly manifest?: ManifestPointer
+    }
   | { readonly published: true; readonly manifest: ManifestPointer }
 
 function decidePublication(

@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-15 |
-| Componente | Operação de produção e homologação depois do período principal: site, R2, coletor, credenciais, custos |
-| Tipo predominante | Decisão e operação |
-| Marco | M8 — Continuidade ou encerramento controlado |
+| Campo              | Conteúdo                                                                                                                                                                                                                                                                                           |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-15                                                                                                                                                                                                                                                                                              |
+| Componente         | Operação de produção e homologação depois do período principal: site, R2, coletor, credenciais, custos                                                                                                                                                                                             |
+| Tipo predominante  | Decisão e operação                                                                                                                                                                                                                                                                                 |
+| Marco              | M8 — Continuidade ou encerramento controlado                                                                                                                                                                                                                                                       |
 | Resultado concreto | Existe uma decisão escrita sobre o que continua no ar, por quanto tempo e com qual custo; o histórico está preservado e rastreável; a interface informa que a atualização terminou; coleta, credenciais e recursos foram ajustados só no que a decisão autorizou; nada foi apagado automaticamente |
 
 ## 2. Escopo e exclusões
@@ -32,13 +32,13 @@ Estado observado em 17/10/2026: não há política de retenção; [collector/REA
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-14: produção operando e inventariada | T02–T08 |
-| Contrato | ET-02-T02 (sinal de encerramento), ET-02-T11 (retenção mínima) | T03, T07 |
-| Decisão | DP-31 (continuidade, retenção, encerramento) | T04–T07 |
-| Decisão | DP-15 (retenção mínima) | T07 |
-| Autorização | Parada de coleta, revogação, desligamento e qualquer remoção | T04–T07 |
+| Tipo          | Item                                                           | Bloqueia |
+| ------------- | -------------------------------------------------------------- | -------- |
+| Implementação | ET-14: produção operando e inventariada                        | T02–T08  |
+| Contrato      | ET-02-T02 (sinal de encerramento), ET-02-T11 (retenção mínima) | T03, T07 |
+| Decisão       | DP-31 (continuidade, retenção, encerramento)                   | T04–T07  |
+| Decisão       | DP-15 (retenção mínima)                                        | T07      |
+| Autorização   | Parada de coleta, revogação, desligamento e qualquer remoção   | T04–T07  |
 
 **Pode começar já:** T01 (redação da política). Sem decisão aprovada, a etapa permanece aberta e os recursos seguem como estão.
 
@@ -48,20 +48,20 @@ Estado observado em 17/10/2026: não há política de retenção; [collector/REA
 
 **Saídas:**
 
-| Artefato | Consumidor |
-| --- | --- |
-| Política em `docs/operacao/continuidade.md` (proposto) | Responsáveis pelo produto e pela operação; ET-14-T01 |
-| Arquivo final do histórico com hashes e metadados | Consulta futura, auditoria |
-| Inventário final de recursos e custos | Responsável financeiro (a designar) |
-| Registro de aprendizados em `docs/planejamento/evidencias/ET-15.md` (proposto) | Próximos projetos |
+| Artefato                                                                       | Consumidor                                           |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| Política em `docs/operacao/continuidade.md` (proposto)                         | Responsáveis pelo produto e pela operação; ET-14-T01 |
+| Arquivo final do histórico com hashes e metadados                              | Consulta futura, auditoria                           |
+| Inventário final de recursos e custos                                          | Responsável financeiro (a designar)                  |
+| Registro de aprendizados em `docs/planejamento/evidencias/ET-15.md` (proposto) | Próximos projetos                                    |
 
 ## 6. Responsabilidades e fronteiras
 
-| Papel (nome a designar) | Responsabilidade |
-| --- | --- |
-| Produto | Decide o que continua visível e por quanto tempo |
-| Operação | Executa parada, revogação e redução de custos autorizadas |
-| Quem aprova remoção | Autoriza, por escrito, cada remoção |
+| Papel (nome a designar) | Responsabilidade                                          |
+| ----------------------- | --------------------------------------------------------- |
+| Produto                 | Decide o que continua visível e por quanto tempo          |
+| Operação                | Executa parada, revogação e redução de custos autorizadas |
+| Quem aprova remoção     | Autoriza, por escrito, cada remoção                       |
 
 ## 7. Sequência de tarefas
 
@@ -212,16 +212,16 @@ O sinal de atualização encerrada é parte do contrato desde ET-02. Navegadores
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-15-V01 | Política aprovada | T01 | Revisar | Decisões, responsáveis e itens que exigem aprovação escritos; data de aprovação | Execução sem política | Revisão | Documento | T01 |
-| ET-15-V02 | Histórico íntegro | T02 | Recalcular resumos da cópia | Todos conferem | Divergência | Verificação operacional | Produção | T02 |
-| ET-15-V03 | Encerramento visível | T03 | Abrir o site; observar rede | Mensagem visível; polling parado | Polling segue ou mensagem ausente | Verificação operacional | Produção | T03 |
-| ET-15-V04 | Coleta parada | T04 | Observar manifesto e logs por uma janela | Nenhuma versão nova; nenhum reinício automático | Processo volta sozinho | Verificação operacional | Produção | T04 |
-| ET-15-V05 | Remoção autorizada | T07 | Comparar inventários e aprovações | Toda remoção tem aprovação; nada além foi removido | Remoção sem aprovação | Revisão | Produção | T07 |
-| ET-15-V06 | Credenciais revogadas | T05 | Tentar usar cada credencial revogada | Recusa | Aceita | Verificação operacional | Produção | T05 |
-| ET-15-V07 | Custo residual | T06 | Ler inventário e custo | Cada recurso com dono e custo | Recurso sem dono | Revisão | Produção | T06 |
-| ET-15-V08 | Aprendizados | T08 | Revisar | Registro publicado; catálogo atualizado | Ausente | Revisão | Documento | T08 |
+| ID        | Cenário               | Preparação | Ação                                     | Sucesso                                                                         | Falha se                          | Nível                   | Ambiente  | Tarefa |
+| --------- | --------------------- | ---------- | ---------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------- | ----------------------- | --------- | ------ |
+| ET-15-V01 | Política aprovada     | T01        | Revisar                                  | Decisões, responsáveis e itens que exigem aprovação escritos; data de aprovação | Execução sem política             | Revisão                 | Documento | T01    |
+| ET-15-V02 | Histórico íntegro     | T02        | Recalcular resumos da cópia              | Todos conferem                                                                  | Divergência                       | Verificação operacional | Produção  | T02    |
+| ET-15-V03 | Encerramento visível  | T03        | Abrir o site; observar rede              | Mensagem visível; polling parado                                                | Polling segue ou mensagem ausente | Verificação operacional | Produção  | T03    |
+| ET-15-V04 | Coleta parada         | T04        | Observar manifesto e logs por uma janela | Nenhuma versão nova; nenhum reinício automático                                 | Processo volta sozinho            | Verificação operacional | Produção  | T04    |
+| ET-15-V05 | Remoção autorizada    | T07        | Comparar inventários e aprovações        | Toda remoção tem aprovação; nada além foi removido                              | Remoção sem aprovação             | Revisão                 | Produção  | T07    |
+| ET-15-V06 | Credenciais revogadas | T05        | Tentar usar cada credencial revogada     | Recusa                                                                          | Aceita                            | Verificação operacional | Produção  | T05    |
+| ET-15-V07 | Custo residual        | T06        | Ler inventário e custo                   | Cada recurso com dono e custo                                                   | Recurso sem dono                  | Revisão                 | Produção  | T06    |
+| ET-15-V08 | Aprendizados          | T08        | Revisar                                  | Registro publicado; catálogo atualizado                                         | Ausente                           | Revisão                 | Documento | T08    |
 
 ## 11. Infraestrutura e ações externas
 

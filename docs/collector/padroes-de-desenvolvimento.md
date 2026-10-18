@@ -30,16 +30,16 @@ Schema do contrato compartilhado fica em `packages/validation` quando passar a e
 
 ### O que cada parte faz
 
-| Parte | Faz | Não faz |
-| --- | --- | --- |
-| Configuração | Lê ambiente e recusa subir se o obrigatório faltar ou for incoerente | Não busca o TSE na carga do módulo |
-| Cliente da origem | Pede URLs allowlisted, com limite de tempo, tamanho, redirect e tentativa | Não normaliza e não publica |
-| Validação | Recusa corpo que não fecha o contrato | Não “conserta” número inválido |
-| Normalização | Produz o modelo interno | Não roda no navegador |
-| Orquestração | Uma tentativa de ciclo: buscar, validar, normalizar, publicar | Não atende visita |
-| Publicação | Grava a versão e só então o ponteiro | Não serve o arquivo ao público |
-| Agendamento | Dispara o próximo ciclo quando o anterior terminou | Não empilha ciclos |
-| Observabilidade | Registra etapa, versão, código e tempo | Não grava credencial nem corpo completo |
+| Parte             | Faz                                                                       | Não faz                                 |
+| ----------------- | ------------------------------------------------------------------------- | --------------------------------------- |
+| Configuração      | Lê ambiente e recusa subir se o obrigatório faltar ou for incoerente      | Não busca o TSE na carga do módulo      |
+| Cliente da origem | Pede URLs allowlisted, com limite de tempo, tamanho, redirect e tentativa | Não normaliza e não publica             |
+| Validação         | Recusa corpo que não fecha o contrato                                     | Não “conserta” número inválido          |
+| Normalização      | Produz o modelo interno                                                   | Não roda no navegador                   |
+| Orquestração      | Uma tentativa de ciclo: buscar, validar, normalizar, publicar             | Não atende visita                       |
+| Publicação        | Grava a versão e só então o ponteiro                                      | Não serve o arquivo ao público          |
+| Agendamento       | Dispara o próximo ciclo quando o anterior terminou                        | Não empilha ciclos                      |
+| Observabilidade   | Registra etapa, versão, código e tempo                                    | Não grava credencial nem corpo completo |
 
 ## COL-002. `main.ts` compõe; não concentra a regra
 

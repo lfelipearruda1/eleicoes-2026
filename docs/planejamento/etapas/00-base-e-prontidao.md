@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-00 |
-| Componente | Raiz do monorepositório, `apps/web`, `apps/collector`, `packages/*`, `docs/` |
-| Tipo predominante | Investigação, com correções mínimas de configuração e documentação |
-| Marco | M0 — Base pronta |
+| Campo              | Conteúdo                                                                                                                                                                                                                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-00                                                                                                                                                                                                                                                                           |
+| Componente         | Raiz do monorepositório, `apps/web`, `apps/collector`, `packages/*`, `docs/`                                                                                                                                                                                                    |
+| Tipo predominante  | Investigação, com correções mínimas de configuração e documentação                                                                                                                                                                                                              |
+| Marco              | M0 — Base pronta                                                                                                                                                                                                                                                                |
 | Resultado concreto | Um registro de evidências diz quais comandos funcionam, em qual versão de Node e pnpm, como os pacotes compartilhados serão consumidos e quais divergências entre documentação e repositório foram corrigidas ou registradas. Quem começar ET-03 não precisa redescobrir a base |
 
 ## 2. Escopo e exclusões
@@ -38,29 +38,29 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 Inspeção de arquivos em 17/10/2026. Nenhum script da aplicação foi executado nesta inspeção.
 
-| Evidência | O que se pode afirmar |
-| --- | --- |
-| [package.json](../../../package.json) | `packageManager` `pnpm@12.11.2`; `engines` Node `>=24.22.0 <25`; scripts `dev:web`, `dev:collector`, `build`, `typecheck`, `lint`, `format`, `format:check`, `test`. `test` é `vitest run --passWithNoTests` |
-| [pnpm-workspace.yaml](../../../pnpm-workspace.yaml) | Workspaces `apps/*` e `packages/*`; `allowBuilds` para `esbuild`; `minimumReleaseAgeExclude` para React 19.3.1 |
-| [.nvmrc](../../../.nvmrc) | `24.22.0` |
-| [tsconfig.base.json](../../../tsconfig.base.json) | `strict`, `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`, `isolatedModules` |
-| [eslint.config.mjs](../../../eslint.config.mjs) | Recomendados de ESLint e typescript-eslint sem tipos; hooks e refresh no web; Prettier por último. Sem regra contra `else`, sem regra contra `.only` |
-| [packages/validation/package.json](../../../packages/validation/package.json) e equivalentes | `exports` apontam para `./dist/index.js`; nenhum app declara dependência de pacote do workspace |
-| `apps/*/dist`, `packages/*/dist` | Existem localmente, ignorados pelo Git, com data de 14/10/2026 23:07. Indicam um build histórico. Não foi repetido |
-| Shell de inspeção | `node -v` respondeu `v18.20.8`; `pnpm -v` falhou porque o corepack não encontrou `pnpm 12.11.2` no cache. `~/.nvm/versions/node/v24.22.0` existe. Ou seja: o ambiente padrão desta máquina não é o declarado; é preciso `nvm use` |
-| [apps/collector/src/index.ts](../../../apps/collector/src/index.ts) | Só um `console.log`. COL-001 propõe `main.ts` como composição; divergência registrada em [collector/padroes-de-desenvolvimento.md](../../collector/padroes-de-desenvolvimento.md) |
-| [README.md](../../../README.md) | Cita `infra/cloudflare` "para Cloudflare Pages" e lista Pages entre os adiados. Decisão vigente é DA-01 |
-| Raiz | Não há `AGENTS.md` nem `.cursor/rules/`. Não há `vitest.config.*`. `.github/workflows/` só tem `.gitkeep` |
+| Evidência                                                                                    | O que se pode afirmar                                                                                                                                                                                                             |
+| -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [package.json](../../../package.json)                                                        | `packageManager` `pnpm@12.11.2`; `engines` Node `>=24.22.0 <25`; scripts `dev:web`, `dev:collector`, `build`, `typecheck`, `lint`, `format`, `format:check`, `test`. `test` é `vitest run --passWithNoTests`                      |
+| [pnpm-workspace.yaml](../../../pnpm-workspace.yaml)                                          | Workspaces `apps/*` e `packages/*`; `allowBuilds` para `esbuild`; `minimumReleaseAgeExclude` para React 19.3.1                                                                                                                    |
+| [.nvmrc](../../../.nvmrc)                                                                    | `24.22.0`                                                                                                                                                                                                                         |
+| [tsconfig.base.json](../../../tsconfig.base.json)                                            | `strict`, `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`, `isolatedModules`                                                                                                                                 |
+| [eslint.config.mjs](../../../eslint.config.mjs)                                              | Recomendados de ESLint e typescript-eslint sem tipos; hooks e refresh no web; Prettier por último. Sem regra contra `else`, sem regra contra `.only`                                                                              |
+| [packages/validation/package.json](../../../packages/validation/package.json) e equivalentes | `exports` apontam para `./dist/index.js`; nenhum app declara dependência de pacote do workspace                                                                                                                                   |
+| `apps/*/dist`, `packages/*/dist`                                                             | Existem localmente, ignorados pelo Git, com data de 14/10/2026 23:07. Indicam um build histórico. Não foi repetido                                                                                                                |
+| Shell de inspeção                                                                            | `node -v` respondeu `v18.20.8`; `pnpm -v` falhou porque o corepack não encontrou `pnpm 12.11.2` no cache. `~/.nvm/versions/node/v24.22.0` existe. Ou seja: o ambiente padrão desta máquina não é o declarado; é preciso `nvm use` |
+| [apps/collector/src/index.ts](../../../apps/collector/src/index.ts)                          | Só um `console.log`. COL-001 propõe `main.ts` como composição; divergência registrada em [collector/padroes-de-desenvolvimento.md](../../collector/padroes-de-desenvolvimento.md)                                                 |
+| [README.md](../../../README.md)                                                              | Cita `infra/cloudflare` "para Cloudflare Pages" e lista Pages entre os adiados. Decisão vigente é DA-01                                                                                                                           |
+| Raiz                                                                                         | Não há `AGENTS.md` nem `.cursor/rules/`. Não há `vitest.config.*`. `.github/workflows/` só tem `.gitkeep`                                                                                                                         |
 
 Documentos lidos: [contexto.md](../../contexto.md), [padroes/README.md](../../padroes/README.md), [revisao-de-codigo.md](../../padroes/revisao-de-codigo.md), [testes/README.md](../../testes/README.md).
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | Nenhuma etapa anterior | — |
+| Tipo            | Item                                                                                                            | Bloqueia  |
+| --------------- | --------------------------------------------------------------------------------------------------------------- | --------- |
+| Implementação   | Nenhuma etapa anterior                                                                                          | —         |
 | Recurso externo | Node 24.22.0 disponível via nvm na máquina de quem executa; pnpm 12.11.2 via corepack ou instalação equivalente | ET-00-T02 |
-| Decisão | Nenhuma prévia. Esta etapa resolve DP-18 | — |
+| Decisão         | Nenhuma prévia. Esta etapa resolve DP-18                                                                        | —         |
 
 Todas as tarefas podem começar.
 
@@ -70,12 +70,12 @@ Todas as tarefas podem começar.
 
 **Saídas:**
 
-| Artefato | Consumidor |
-| --- | --- |
+| Artefato                                                                                        | Consumidor                                                                |
+| ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | `docs/planejamento/evidencias/ET-00.md` (proposto): versões, comandos, resultados, divergências | Todas as etapas; o [catálogo](README.md) usa para mudar o estado da ET-00 |
-| Decisão DP-18 registrada como `DA-NN` em [decisoes-e-riscos.md](../decisoes-e-riscos.md) | ET-03-T01 |
-| README da raiz sem a menção a Pages como destino | Quem lê o projeto pela primeira vez |
-| Regra de lint de STYLE-009, se aprovada | Todo código novo a partir de ET-03 |
+| Decisão DP-18 registrada como `DA-NN` em [decisoes-e-riscos.md](../decisoes-e-riscos.md)        | ET-03-T01                                                                 |
+| README da raiz sem a menção a Pages como destino                                                | Quem lê o projeto pela primeira vez                                       |
+| Regra de lint de STYLE-009, se aprovada                                                         | Todo código novo a partir de ET-03                                        |
 
 ## 6. Responsabilidades e fronteiras
 
@@ -216,20 +216,20 @@ Nenhum contrato de dados é criado. A decisão de DP-18 afeta como o contrato de
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-00-V01 | Versões efetivas | Shell novo na raiz | `nvm use`; `node -v`; `pnpm -v` | Node 24.22.0 e pnpm 12.11.2, ou diferença registrada com correção | Versão diferente sem registro | Verificação operacional | Local | T01 |
-| ET-00-V02 | Instalação reproduzível | V01 aprovada | `pnpm install --frozen-lockfile`; `git status` | Instala sem alterar `pnpm-lock.yaml` | Lockfile alterado ou instalação falha sem causa registrada | Integração | Local | T02 |
-| ET-00-V03 | Build | V02 | `pnpm build` | Código 0; `dist` gerado nos cinco pacotes | Código diferente de 0 sem causa registrada | Integração | Local | T02 |
-| ET-00-V04 | Tipos | V02 | `pnpm typecheck` | Código 0 | Erro de tipo não registrado | Integração | Local | T02 |
-| ET-00-V05 | Lint | V02 | `pnpm lint` | Código 0 | Erro não registrado | Integração | Local | T02 |
-| ET-00-V06 | Formatação | V02 | `pnpm format:check` | Código 0, ou arquivos divergentes listados | Divergência não registrada | Integração | Local | T02 |
-| ET-00-V07 | Ressalva da suíte vazia | V02 | `pnpm test` | Resultado registrado com a nota "zero arquivos de teste; não é evidência de suíte" | Registro apresenta o resultado como suíte aprovada | Verificação operacional | Local | T02 |
-| ET-00-V08 | Divergência de Pages | T05 aplicada | Busca textual por "Pages" em `README.md` e `docs/` | Toda ocorrência diz que Pages não é destino | Alguma ocorrência apresenta Pages como destino | Revisão | Local | T05 |
-| ET-00-V09 | Decisão de resolução de pacotes | T03 | Ler a `DA-NN` criada | Diz o que muda, em qual tarefa, como `typecheck` e `dev` se comportam e como evitar `dist` antigo | Decisão sem efeito verificável ou que faça o web importar o coletor | Revisão | Documento | T03 |
-| ET-00-V10 | Convenção de evidências | T04 | Ler `evidencias/README.md` (proposto) | Colunas definidas e proibição de segredo explícita | Ausência de proibição de segredo | Revisão | Documento | T04 |
-| ET-00-V11 | Regra contra `else` | T06, exemplos temporários | `pnpm lint` nos exemplos e no repositório | Exemplo com `else` e com `else if` falha; guarda e `switch` passam; repositório passa | Falso positivo em `switch`/guarda, ou `else` passa | Integração | Local | T06 |
-| ET-00-V12 | Catálogo coerente | T07 | Conferir cada linha alterada do catálogo | Toda mudança cita evidência | Estado alterado sem evidência | Revisão | Documento | T07 |
+| ID        | Cenário                         | Preparação                | Ação                                               | Sucesso                                                                                           | Falha se                                                            | Nível                   | Ambiente  | Tarefa |
+| --------- | ------------------------------- | ------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ----------------------- | --------- | ------ |
+| ET-00-V01 | Versões efetivas                | Shell novo na raiz        | `nvm use`; `node -v`; `pnpm -v`                    | Node 24.22.0 e pnpm 12.11.2, ou diferença registrada com correção                                 | Versão diferente sem registro                                       | Verificação operacional | Local     | T01    |
+| ET-00-V02 | Instalação reproduzível         | V01 aprovada              | `pnpm install --frozen-lockfile`; `git status`     | Instala sem alterar `pnpm-lock.yaml`                                                              | Lockfile alterado ou instalação falha sem causa registrada          | Integração              | Local     | T02    |
+| ET-00-V03 | Build                           | V02                       | `pnpm build`                                       | Código 0; `dist` gerado nos cinco pacotes                                                         | Código diferente de 0 sem causa registrada                          | Integração              | Local     | T02    |
+| ET-00-V04 | Tipos                           | V02                       | `pnpm typecheck`                                   | Código 0                                                                                          | Erro de tipo não registrado                                         | Integração              | Local     | T02    |
+| ET-00-V05 | Lint                            | V02                       | `pnpm lint`                                        | Código 0                                                                                          | Erro não registrado                                                 | Integração              | Local     | T02    |
+| ET-00-V06 | Formatação                      | V02                       | `pnpm format:check`                                | Código 0, ou arquivos divergentes listados                                                        | Divergência não registrada                                          | Integração              | Local     | T02    |
+| ET-00-V07 | Ressalva da suíte vazia         | V02                       | `pnpm test`                                        | Resultado registrado com a nota "zero arquivos de teste; não é evidência de suíte"                | Registro apresenta o resultado como suíte aprovada                  | Verificação operacional | Local     | T02    |
+| ET-00-V08 | Divergência de Pages            | T05 aplicada              | Busca textual por "Pages" em `README.md` e `docs/` | Toda ocorrência diz que Pages não é destino                                                       | Alguma ocorrência apresenta Pages como destino                      | Revisão                 | Local     | T05    |
+| ET-00-V09 | Decisão de resolução de pacotes | T03                       | Ler a `DA-NN` criada                               | Diz o que muda, em qual tarefa, como `typecheck` e `dev` se comportam e como evitar `dist` antigo | Decisão sem efeito verificável ou que faça o web importar o coletor | Revisão                 | Documento | T03    |
+| ET-00-V10 | Convenção de evidências         | T04                       | Ler `evidencias/README.md` (proposto)              | Colunas definidas e proibição de segredo explícita                                                | Ausência de proibição de segredo                                    | Revisão                 | Documento | T04    |
+| ET-00-V11 | Regra contra `else`             | T06, exemplos temporários | `pnpm lint` nos exemplos e no repositório          | Exemplo com `else` e com `else if` falha; guarda e `switch` passam; repositório passa             | Falso positivo em `switch`/guarda, ou `else` passa                  | Integração              | Local     | T06    |
+| ET-00-V12 | Catálogo coerente               | T07                       | Conferir cada linha alterada do catálogo           | Toda mudança cita evidência                                                                       | Estado alterado sem evidência                                       | Revisão                 | Documento | T07    |
 
 Esses níveis provam o estado da máquina e da configuração. Não provam funcionalidade: não há funcionalidade a provar nesta etapa.
 

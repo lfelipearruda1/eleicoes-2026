@@ -6,12 +6,12 @@ Estado documental, estado da implementação e prontidão: ver o [catálogo](REA
 
 ## 1. Identificação e objetivo
 
-| Campo | Conteúdo |
-| --- | --- |
-| ID | ET-14 |
-| Componente | Produção: site, domínio de resultados, R2, coletor na AWS, workflows com aprovação |
-| Tipo predominante | Operação |
-| Marco | M7 — Produção validada |
+| Campo              | Conteúdo                                                                                                                                                                                                                                                                                     |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ID                 | ET-14                                                                                                                                                                                                                                                                                        |
+| Componente         | Produção: site, domínio de resultados, R2, coletor na AWS, workflows com aprovação                                                                                                                                                                                                           |
+| Tipo predominante  | Operação                                                                                                                                                                                                                                                                                     |
+| Marco              | M7 — Produção validada                                                                                                                                                                                                                                                                       |
 | Resultado concreto | O site de produção está publicado no domínio final, lendo resultados oficiais publicados por um coletor de produção com credenciais próprias; verificações antes e depois da abertura passaram; há responsáveis acompanhando a primeira janela e critérios escritos de interrupção e retorno |
 
 ## 2. Escopo e exclusões
@@ -31,18 +31,18 @@ Estado observado em 17/10/2026: não há recurso de produção. Base: [infraestr
 
 ## 4. Dependências e critérios de entrada
 
-| Tipo | Item | Bloqueia |
-| --- | --- | --- |
-| Implementação | ET-13: relatório e ajustes | T01, T02 |
-| Implementação | ET-12: workflows, manual, retornos | T03, T07 |
-| Decisão | DP-30 (autorização) | T07 |
-| Decisão | DP-21 (domínios finais), DP-22 (orçamento de produção) | T03 |
-| Decisão | DP-07 (deveres da resolução) cumpridos | T07 |
-| Decisão | DP-31 (política de continuidade) redigida | T01 (a política precisa existir antes; sua execução é ET-15) |
-| Decisão | DP-01 (alcance temporal) | T01 |
-| Decisão | DP-16, DP-17, DP-14, DP-27 com valores, ou risco aceito por escrito | T02 |
-| Recurso externo | Arquivos oficiais do pleito disponíveis | T04, T07 |
-| Autorização | Criação de recursos de produção; publicação | T03, T07 |
+| Tipo            | Item                                                                | Bloqueia                                                     |
+| --------------- | ------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Implementação   | ET-13: relatório e ajustes                                          | T01, T02                                                     |
+| Implementação   | ET-12: workflows, manual, retornos                                  | T03, T07                                                     |
+| Decisão         | DP-30 (autorização)                                                 | T07                                                          |
+| Decisão         | DP-21 (domínios finais), DP-22 (orçamento de produção)              | T03                                                          |
+| Decisão         | DP-07 (deveres da resolução) cumpridos                              | T07                                                          |
+| Decisão         | DP-31 (política de continuidade) redigida                           | T01 (a política precisa existir antes; sua execução é ET-15) |
+| Decisão         | DP-01 (alcance temporal)                                            | T01                                                          |
+| Decisão         | DP-16, DP-17, DP-14, DP-27 com valores, ou risco aceito por escrito | T02                                                          |
+| Recurso externo | Arquivos oficiais do pleito disponíveis                             | T04, T07                                                     |
+| Autorização     | Criação de recursos de produção; publicação                         | T03, T07                                                     |
 
 **Pode começar antes de ET-13 terminar:** T01 (redação dos critérios) e a preparação de T03 em forma de lista, sem criar recurso.
 
@@ -52,20 +52,20 @@ Estado observado em 17/10/2026: não há recurso de produção. Base: [infraestr
 
 **Saídas:**
 
-| Artefato | Consumidor |
-| --- | --- |
-| Recursos de produção e inventário em `infra/cloudflare/` e `infra/aws/` (propostos) | Operação, ET-15 |
-| Checklist de autorização preenchido em `docs/planejamento/evidencias/ET-14.md` (proposto) | Registro de M7 |
-| Registro de abertura e da primeira janela | ET-15 |
+| Artefato                                                                                  | Consumidor      |
+| ----------------------------------------------------------------------------------------- | --------------- |
+| Recursos de produção e inventário em `infra/cloudflare/` e `infra/aws/` (propostos)       | Operação, ET-15 |
+| Checklist de autorização preenchido em `docs/planejamento/evidencias/ET-14.md` (proposto) | Registro de M7  |
+| Registro de abertura e da primeira janela                                                 | ET-15           |
 
 ## 6. Responsabilidades e fronteiras
 
-| Papel (nome a designar) | Responsabilidade |
-| --- | --- |
-| Quem autoriza | Decide a abertura com base no checklist |
-| Operação | Executa a publicação e acompanha a janela |
-| Produto | Decide sobre conteúdo exibido e comunicação |
-| Segurança | Confirma credenciais e exposição |
+| Papel (nome a designar) | Responsabilidade                            |
+| ----------------------- | ------------------------------------------- |
+| Quem autoriza           | Decide a abertura com base no checklist     |
+| Operação                | Executa a publicação e acompanha a janela   |
+| Produto                 | Decide sobre conteúdo exibido e comunicação |
+| Segurança               | Confirma credenciais e exposição            |
 
 Uma pessoa pode acumular papéis; o registro diz quem fez o quê.
 
@@ -249,20 +249,20 @@ Nenhuma mudança de contrato na abertura. Mudança de contrato depois da abertur
 
 ## 10. Plano de validação
 
-| ID | Cenário | Preparação | Ação | Sucesso | Falha se | Nível | Ambiente | Tarefa |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ET-14-V01 | Checklist | T01 | Revisar | Cada critério com evidência e aprovação | Critério sem evidência marcado como cumprido | Revisão | Documento | T01 |
-| ET-14-V02 | Decisões classificadas | T02 | Revisar registro | Nenhuma DP sem classificação | DP ignorada | Revisão | Documento | T02 |
-| ET-14-V03 | Escopo cruzado | Credenciais de homologação e de produção | Gravar em produção com a de homologação e vice-versa | Ambas recusadas | Alguma aceita | Verificação operacional | Produção + homologação | T03 |
-| ET-14-V04 | Só oficial | Bucket de produção | Inventário e leitura do manifesto | Só objetos oficiais; ambiente `oficial` | Objeto simulado ou de teste | Verificação operacional | Produção | T05 |
-| ET-14-V05 | Fontes vigentes | EA11 do momento | Comparar com a configuração | Coincidem | Divergência não corrigida | Revisão | Produção | T04 |
-| ET-14-V06 | Verificações pré-abertura | T05 | Executar a lista | Todas passam | Alguma falha | Homologação de produção | Produção | T05 |
-| ET-14-V07 | Recuperação em produção | T06 | Parar e religar; retorno e volta | Comportamento igual ao de homologação | Diferença | Verificação operacional | Produção | T06 |
-| ET-14-V08 | Bundle e configuração de produção | Build de produção | Buscar segredo; conferir URL base | URL de produção; nenhum segredo | URL de homologação ou segredo | Integração | Produção | T03, T05 |
-| ET-14-V09 | Pós-publicação | T07 | Repetir verificações e conferir números | Passam; números coincidem ou divergência explicada | Divergência sem explicação | Verificação operacional | Produção | T08 |
-| ET-14-V10 | Acompanhamento | T06, T09 | Conferir alertas e registro da janela | Alertas chegam; janela registrada | Alerta não chega | Verificação operacional | Produção | T06, T09 |
-| ET-14-V11 | Interrupção | T10 | Pausar publicação | Pausa efetiva; site com último válido e aviso | Publicação continua | Verificação operacional | Produção | T10 |
-| ET-14-V12 | Registro de abertura | T07 | Revisar | Horário, versões e autorização registrados | Falta item | Revisão | Documento | T07 |
+| ID        | Cenário                           | Preparação                               | Ação                                                 | Sucesso                                            | Falha se                                     | Nível                   | Ambiente               | Tarefa   |
+| --------- | --------------------------------- | ---------------------------------------- | ---------------------------------------------------- | -------------------------------------------------- | -------------------------------------------- | ----------------------- | ---------------------- | -------- |
+| ET-14-V01 | Checklist                         | T01                                      | Revisar                                              | Cada critério com evidência e aprovação            | Critério sem evidência marcado como cumprido | Revisão                 | Documento              | T01      |
+| ET-14-V02 | Decisões classificadas            | T02                                      | Revisar registro                                     | Nenhuma DP sem classificação                       | DP ignorada                                  | Revisão                 | Documento              | T02      |
+| ET-14-V03 | Escopo cruzado                    | Credenciais de homologação e de produção | Gravar em produção com a de homologação e vice-versa | Ambas recusadas                                    | Alguma aceita                                | Verificação operacional | Produção + homologação | T03      |
+| ET-14-V04 | Só oficial                        | Bucket de produção                       | Inventário e leitura do manifesto                    | Só objetos oficiais; ambiente `oficial`            | Objeto simulado ou de teste                  | Verificação operacional | Produção               | T05      |
+| ET-14-V05 | Fontes vigentes                   | EA11 do momento                          | Comparar com a configuração                          | Coincidem                                          | Divergência não corrigida                    | Revisão                 | Produção               | T04      |
+| ET-14-V06 | Verificações pré-abertura         | T05                                      | Executar a lista                                     | Todas passam                                       | Alguma falha                                 | Homologação de produção | Produção               | T05      |
+| ET-14-V07 | Recuperação em produção           | T06                                      | Parar e religar; retorno e volta                     | Comportamento igual ao de homologação              | Diferença                                    | Verificação operacional | Produção               | T06      |
+| ET-14-V08 | Bundle e configuração de produção | Build de produção                        | Buscar segredo; conferir URL base                    | URL de produção; nenhum segredo                    | URL de homologação ou segredo                | Integração              | Produção               | T03, T05 |
+| ET-14-V09 | Pós-publicação                    | T07                                      | Repetir verificações e conferir números              | Passam; números coincidem ou divergência explicada | Divergência sem explicação                   | Verificação operacional | Produção               | T08      |
+| ET-14-V10 | Acompanhamento                    | T06, T09                                 | Conferir alertas e registro da janela                | Alertas chegam; janela registrada                  | Alerta não chega                             | Verificação operacional | Produção               | T06, T09 |
+| ET-14-V11 | Interrupção                       | T10                                      | Pausar publicação                                    | Pausa efetiva; site com último válido e aviso      | Publicação continua                          | Verificação operacional | Produção               | T10      |
+| ET-14-V12 | Registro de abertura              | T07                                      | Revisar                                              | Horário, versões e autorização registrados         | Falta item                                   | Revisão                 | Documento              | T07      |
 
 ## 11. Infraestrutura e ações externas
 

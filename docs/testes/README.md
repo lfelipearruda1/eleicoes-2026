@@ -12,12 +12,12 @@ Os rótulos de estado estão em [contexto.md](../contexto.md). Metas numéricas 
 
 ## Ferramentas
 
-| Ferramenta | Papel | Estado |
-| --- | --- | --- |
-| Vitest | Testes de validação, normalização, publicação em disco e comportamento que couber na ferramenta | Prevista e já configurada. Nenhum arquivo de teste |
-| k6 | Carga contra a nossa infraestrutura autorizada | Prevista. Não instalada e não executada |
-| Teste de ponta a ponta no navegador | Percurso do visitante | Pendente. Não há ferramenta escolhida no repositório |
-| Supertest | HTTP de uma API Node | Só se uma API compatível for introduzida. Fora da primeira versão |
+| Ferramenta                          | Papel                                                                                           | Estado                                                                                                                     |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Vitest                              | Testes de validação, normalização, publicação em disco e comportamento que couber na ferramenta | Configurada. Primeira suíte: `packages/validation/src/contract/envelope.spec.ts` (ET-03-T03). `pnpm test` falha sem testes |
+| k6                                  | Carga contra a nossa infraestrutura autorizada                                                  | Prevista. Não instalada e não executada                                                                                    |
+| Teste de ponta a ponta no navegador | Percurso do visitante                                                                           | Pendente. Não há ferramenta escolhida no repositório                                                                       |
+| Supertest                           | HTTP de uma API Node                                                                            | Só se uma API compatível for introduzida. Fora da primeira versão                                                          |
 
 Amostras oficiais entram identificadas pela eleição, pelo arquivo e pela data em que foram obtidas. Dado sintético fica em outro diretório e com nome que não se confunda com captura oficial. Os dois não se misturam num mesmo caso sem o teste dizer qual é qual.
 
@@ -72,18 +72,18 @@ k6 é a ferramenta prevista para esse ensaio. O script ainda não existe e não 
 
 ## Critérios para avançar
 
-| Etapa | Aprovação nesta fase | Número ainda pendente |
-| --- | --- | --- |
-| Fontes | URLs e códigos conferidos no EA11 vigente e nas instruções de 2026 | Nenhum intervalo |
-| Normalizador local | Casos de ausência, zero, inválido, retificação e versão anterior passam no Vitest | Precisão decimal, até a especificação |
-| Tela mínima | Os estados de vazio e de falha aparecem com arquivos locais | Nenhum |
-| Cloudflare de ensaio | Site no ar, JSON pelo domínio próprio, `r2.dev` fora do caminho, proteção básica ligada | Plano e tempos de cache |
-| Publicação a partir do computador | Nova versão visível sem rebuild do frontend. Manifesto e arquivo com caches distintos | TTL |
-| Docker local | Reinício conserva a versão | Política exata de reinício |
-| AWS | Publicação contínua e instância fechada à leitura pública | Região, tipo e meta de recuperação |
-| Frontend completo | Mapa, painéis, polling e acessibilidade no ensaio | Intervalo de polling |
-| Automação e alerta | Workflow repete o que a máquina já fez. Alerta de parada e de atraso dispara num ensaio | Limiar de atraso e canal do alerta |
-| Carga e produção | Metas de cache, erro e custo cumpridas no ambiente autorizado. Roteiro de retorno executado | Visitantes, RPS, latência, erro e orçamento |
+| Etapa                             | Aprovação nesta fase                                                                        | Número ainda pendente                       |
+| --------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Fontes                            | URLs e códigos conferidos no EA11 vigente e nas instruções de 2026                          | Nenhum intervalo                            |
+| Normalizador local                | Casos de ausência, zero, inválido, retificação e versão anterior passam no Vitest           | Precisão decimal, até a especificação       |
+| Tela mínima                       | Os estados de vazio e de falha aparecem com arquivos locais                                 | Nenhum                                      |
+| Cloudflare de ensaio              | Site no ar, JSON pelo domínio próprio, `r2.dev` fora do caminho, proteção básica ligada     | Plano e tempos de cache                     |
+| Publicação a partir do computador | Nova versão visível sem rebuild do frontend. Manifesto e arquivo com caches distintos       | TTL                                         |
+| Docker local                      | Reinício conserva a versão                                                                  | Política exata de reinício                  |
+| AWS                               | Publicação contínua e instância fechada à leitura pública                                   | Região, tipo e meta de recuperação          |
+| Frontend completo                 | Mapa, painéis, polling e acessibilidade no ensaio                                           | Intervalo de polling                        |
+| Automação e alerta                | Workflow repete o que a máquina já fez. Alerta de parada e de atraso dispara num ensaio     | Limiar de atraso e canal do alerta          |
+| Carga e produção                  | Metas de cache, erro e custo cumpridas no ambiente autorizado. Roteiro de retorno executado | Visitantes, RPS, latência, erro e orçamento |
 
 Enquanto a célula de número estiver pendente, a etapa pode ser preparada, e não pode ser anunciada como capacidade comprovada.
 
