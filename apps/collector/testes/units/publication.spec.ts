@@ -22,7 +22,7 @@ import {
   MAX_DOCUMENT_BYTES,
   SNAPSHOTS_DIR,
 } from '../../src/constants.js'
-import type { PublicationError } from '../../src/publication/error.js'
+import type { CollectorError } from '../../src/error.js'
 import {
   publishSnapshot,
   type PublishRequest,
@@ -99,11 +99,11 @@ const publishError = (
   options: Partial<PublishRequest> = {},
 ) => errorOf(publish(document, options))
 
-async function errorOf(promise: Promise<unknown>): Promise<PublicationError> {
+async function errorOf(promise: Promise<unknown>): Promise<CollectorError> {
   try {
     await promise
   } catch (error) {
-    return error as PublicationError
+    return error as CollectorError
   }
   throw new Error('a operação deveria falhar')
 }

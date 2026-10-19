@@ -11,7 +11,7 @@ import {
 } from '@eleicoes/validation'
 
 import { MANIFEST_FILE } from '../constants.js'
-import { PublicationError } from './error.js'
+import { CollectorError } from '../error.js'
 import {
   hasErrorCode,
   readLimitedFile,
@@ -30,7 +30,7 @@ async function readValidJson<T>(
   try {
     return schema.parse(JSON.parse(content.toString('utf8')))
   } catch (error) {
-    throw new PublicationError('CORRUPTED_FILE', filePath, error)
+    throw new CollectorError('CORRUPTED_FILE', filePath, error)
   }
 }
 
@@ -41,7 +41,7 @@ export async function readManifest(
   const manifestPath = path.join(channelDirectory, MANIFEST_FILE)
   const manifest = await readValidJson(manifestPath, readManifestSchema)
   if (manifest !== undefined && manifest.channel !== channel) {
-    throw new PublicationError('FOREIGN_MANIFEST', manifestPath)
+    throw new CollectorError('FOREIGN_MANIFEST', manifestPath)
   }
   return manifest
 }
@@ -53,11 +53,11 @@ export async function loadSnapshot(
   const snapshotPath = path.join(channelDirectory, manifest.current.path)
   const snapshot = await readValidJson(snapshotPath, readEnvelopeSchema)
   if (snapshot === undefined) {
-    throw new PublicationError('NOT_FOUND', snapshotPath)
+    throw new CollectorError('NOT_FOUND', snapshotPath)
   }
   const mismatches = findSnapshotMismatches(manifest, snapshot)
   if (mismatches.length > 0) {
-    throw new PublicationError('SNAPSHOT_MISMATCH', mismatches.join(', '))
+    throw new CollectorError('SNAPSHOT_MISMATCH', mismatches.join(', '))
   }
   return snapshot
 }
@@ -66,7 +66,7 @@ export async function readPublication(root: string, channel: string) {
   const channelDirectory = await resolveChannelDirectory(root, channel, false)
   const manifest = await readManifest(channelDirectory, channel)
   if (manifest === undefined) {
-    throw new PublicationError(
+    throw new CollectorError(
       'NOT_FOUND',
       path.join(channelDirectory, MANIFEST_FILE),
     )

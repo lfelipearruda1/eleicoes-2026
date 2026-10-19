@@ -6,7 +6,7 @@ import path from 'node:path'
 import type { SnapshotEnvelope } from '@eleicoes/validation'
 
 import { DEMO_CHANNEL, DEMO_NOTICE } from './constants.js'
-import { PublicationError } from './publication/error.js'
+import { CollectorError } from './error.js'
 import { publishSnapshot } from './publication/publish.js'
 import { readPublication } from './publication/read.js'
 import { listSnapshots } from './publication/storage.js'
@@ -50,7 +50,7 @@ export async function runDemo(baseDirectory = tmpdir()) {
         dataVersion: manifest.current.dataVersion,
       }
     } catch (error) {
-      if (error instanceof PublicationError) return { rejected: error.code }
+      if (error instanceof CollectorError) return { rejected: error.code }
       throw error
     }
   }

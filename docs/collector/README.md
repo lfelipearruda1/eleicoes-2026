@@ -109,6 +109,22 @@ Garantias implementadas e testadas:
 
 Não garantido: durabilidade em queda de energia (não há `fsync` do diretório) e exclusão contra processo que não usa o bloqueio.
 
+## Consulta ao TSE
+
+Implementação: `apps/collector/src/tse/`. `http.ts` cuida do transporte: GET, timeout de 15 s até o fim do corpo, limite de 5 MiB, sem redirect, sem retry, só HTTPS no host exato da origem. `ea11.ts` lê a configuração, escolhe a eleição e monta a URL. `ea20.ts` faz o parser do resultado. `capture.ts` grava as capturas e `run.ts` orquestra. Os valores ficam em `src/constants.ts`.
+
+```sh
+pnpm collector:tse:once --source official --round 2 --output .local/tse [--election <código>]
+pnpm collector:tse:replay --input <arquivo EA20> --output .local/tse
+```
+
+- **Ordem:** uma execução faz duas requisições em sequência (configuração e resultado), com pelo menos 1 s entre os inícios.
+- **Eleição:** a eleição vem da configuração. Se houver mais de uma compatível, o comando para e lista as opções para `--election`. Ele não troca de turno nem de origem. `--source simulated` é recusado enquanto o endereço do simulado não for confirmado.
+- **Pastas:** cada execução cria `<output>/<origem>/<id>/` sem sobrescrever nada, com `config.json` e `result.json` (bytes recebidos), `metadata.json` (URL, status, ETag/Last-Modified, validação, origem da amostra) e `summary.json` (recorte extraído). Resposta inválida vira `result.rejected.json`.
+- **Validadores:** `<output>/<origem>/last-valid.json` guarda, por URL exata, a última cópia válida e o validador HTTP dela. Só cópias validadas entram. Um 304 reaproveita essa cópia, e um 304 sem cópia é erro.
+- **Replay:** `tse-replay` reprocessa um arquivo sem rede, com o mesmo parser.
+- **Escopo:** o resumo é um artefato interno de integração, não um snapshot público. Não passa pelo publicador.
+
 ## Um publicador
 
 A primeira versão tem um único publicador ativo. Duas instâncias publicando ao mesmo tempo podem gravar versões entrelaçadas ou fazer o manifesto apontar para um conjunto incompleto.

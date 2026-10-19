@@ -2,12 +2,18 @@ import { parseArgs } from 'node:util'
 
 import { EXIT_CODE, HELP, USAGE_ERRORS } from './constants.js'
 import { runDemo } from './demo.js'
-import { PublicationError } from './publication/error.js'
+import { CollectorError } from './error.js'
 import { publishSnapshot } from './publication/publish.js'
 import { readPublication } from './publication/read.js'
 import { listSnapshots } from './publication/storage.js'
+import { runTseOnce, runTseReplay } from './tse/run.js'
 
-type Options = Partial<Record<'out' | 'channel' | 'input', string>>
+type Options = Partial<
+  Record<
+    'out' | 'channel' | 'input' | 'source' | 'round' | 'election' | 'output',
+    string
+  >
+>
 
 function requireOptions<K extends keyof Options>(
   options: Options,
@@ -15,7 +21,7 @@ function requireOptions<K extends keyof Options>(
 ) {
   const missing = names.filter((name) => !options[name])
   if (missing.length > 0) {
-    throw new PublicationError(
+    throw new CollectorError(
       'MISSING_OPTIONS',
       missing.map((name) => `--${name}`).join(', '),
     )
@@ -32,11 +38,15 @@ function parseCommandLine(argv: string[]) {
         out: { type: 'string' },
         channel: { type: 'string' },
         input: { type: 'string' },
+        source: { type: 'string' },
+        round: { type: 'string' },
+        election: { type: 'string' },
+        output: { type: 'string' },
         help: { type: 'boolean', short: 'h' },
       },
     })
   } catch (error) {
-    throw new PublicationError('INVALID_ARGUMENTS', (error as Error).message)
+    throw new CollectorError('INVALID_ARGUMENTS', (error as Error).message)
   }
 }
 
@@ -59,6 +69,19 @@ const commands = {
     }
   },
   demo: (options: Options) => runDemo(options.out),
+  'tse-once': async (options: Options) => {
+    const { source, round, output } = requireOptions(
+      options,
+      'source',
+      'round',
+      'output',
+    )
+    return runTseOnce({ source, round, output, election: options.election })
+  },
+  'tse-replay': async (options: Options) => {
+    const { input, output } = requireOptions(options, 'input', 'output')
+    return runTseReplay({ input, output })
+  },
 }
 
 export async function runCli(
@@ -74,13 +97,13 @@ export async function runCli(
       return EXIT_CODE.success
     }
     if (!Object.hasOwn(commands, name)) {
-      throw new PublicationError('UNKNOWN_COMMAND', name)
+      throw new CollectorError('UNKNOWN_COMMAND', name)
     }
     const result = await commands[name as keyof typeof commands](values)
     print(JSON.stringify(result, null, 2))
     return EXIT_CODE.success
   } catch (error) {
-    if (!(error instanceof PublicationError)) {
+    if (!(error instanceof CollectorError)) {
       printError(String(error))
       return EXIT_CODE.failure
     }

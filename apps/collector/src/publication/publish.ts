@@ -9,7 +9,7 @@ import {
 } from '@eleicoes/validation'
 
 import { MANIFEST_FILE } from '../constants.js'
-import { PublicationError } from './error.js'
+import { CollectorError } from '../error.js'
 import { loadSnapshot, readManifest } from './read.js'
 import {
   hasErrorCode,
@@ -40,7 +40,7 @@ const serialize = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`
 async function readInput(inputPath: string) {
   const content = await readLimitedFile(inputPath).catch((error: unknown) => {
     if (hasErrorCode(error, 'ENOENT')) {
-      throw new PublicationError('NOT_FOUND', inputPath)
+      throw new CollectorError('NOT_FOUND', inputPath)
     }
     throw error
   })
@@ -48,21 +48,18 @@ async function readInput(inputPath: string) {
   try {
     document = JSON.parse(content.toString('utf8'))
   } catch (error) {
-    throw new PublicationError('INVALID_JSON', inputPath, error)
+    throw new CollectorError('INVALID_JSON', inputPath, error)
   }
   const parsed = publishEnvelopeSchema.safeParse(document)
   if (!parsed.success) {
     const fields = parsed.error.issues.map((issue) => issue.path.join('.'))
-    throw new PublicationError(
+    throw new CollectorError(
       'INVALID_DOCUMENT',
       [...new Set(fields)].join(', '),
     )
   }
   if (parsed.data.environment !== 'local') {
-    throw new PublicationError(
-      'UNSUPPORTED_ENVIRONMENT',
-      parsed.data.environment,
-    )
+    throw new CollectorError('UNSUPPORTED_ENVIRONMENT', parsed.data.environment)
   }
   return parsed.data
 }
@@ -83,7 +80,7 @@ export async function publishSnapshot(
       previous === undefined &&
       (await listSnapshots(channelDirectory)).length > 0
     ) {
-      throw new PublicationError('MANIFEST_MISSING', channelDirectory)
+      throw new CollectorError('MANIFEST_MISSING', channelDirectory)
     }
     const contextMismatches = previous
       ? findSnapshotMismatches(previous, snapshot).filter(
@@ -91,10 +88,7 @@ export async function publishSnapshot(
         )
       : []
     if (contextMismatches.length > 0) {
-      throw new PublicationError(
-        'CHANNEL_MISMATCH',
-        contextMismatches.join(', '),
-      )
+      throw new CollectorError('CHANNEL_MISMATCH', contextMismatches.join(', '))
     }
 
     const content = serialize(snapshot)
@@ -105,18 +99,18 @@ export async function publishSnapshot(
     const isCurrent = previous?.current.dataVersion === snapshot.dataVersion
     const revision = (previous?.revision ?? 0) + 1
     if (!isCurrent && !Number.isSafeInteger(revision)) {
-      throw new PublicationError('REVISION_LIMIT', String(previous?.revision))
+      throw new CollectorError('REVISION_LIMIT', String(previous?.revision))
     }
     const isNew = !isCurrent && (await writeFileIfAbsent(snapshotPath, content))
     if (!isNew) {
       const existing = await readLimitedFile(snapshotPath)
       if (!existing.equals(Buffer.from(content))) {
-        throw new PublicationError('VERSION_CONFLICT', snapshot.dataVersion)
+        throw new CollectorError('VERSION_CONFLICT', snapshot.dataVersion)
       }
       if (isCurrent && previous) {
         return { status: 'unchanged', channelDirectory, manifest: previous }
       }
-      throw new PublicationError('VERSION_NOT_CURRENT', snapshot.dataVersion)
+      throw new CollectorError('VERSION_NOT_CURRENT', snapshot.dataVersion)
     }
 
     const manifest = publishManifestSchema.parse({

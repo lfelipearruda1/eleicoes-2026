@@ -13,6 +13,8 @@
     "collector:publish": "pnpm --filter @eleicoes/collector... run build && node apps/collector/dist/main.js publish",
     "collector:inspect": "pnpm --filter @eleicoes/collector... run build && node apps/collector/dist/main.js inspect",
     "collector:demo": "pnpm --filter @eleicoes/collector... run build && node apps/collector/dist/main.js demo",
+    "collector:tse:once": "pnpm --filter @eleicoes/collector... run build && node apps/collector/dist/main.js tse-once",
+    "collector:tse:replay": "pnpm --filter @eleicoes/collector... run build && node apps/collector/dist/main.js tse-replay",
     "build": "pnpm -r --if-present run build",
     "typecheck": "pnpm -r --if-present run typecheck",
     "lint": "eslint .",

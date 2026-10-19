@@ -111,24 +111,31 @@ Não é regra geral que votos ou totais nunca diminuam. Uma retificação oficia
 
 Resposta inválida, timeout e bloqueio não produzem snapshot. O manifesto segue na última versão boa.
 
+## Consulta controlada de 19/10/2026
+
+Feita pelo comando `tse-once` (ver [collector/README.md](../collector/README.md#consulta-ao-tse)). Evidência em [ET-04.md](../planejamento/evidencias/ET-04.md).
+
+- **Resolvido por observação do `ele-c.json` oficial:** ciclo `ele2026`, pleito `3221` (25/10/2026), eleição `6258` com `t: "2"`, abrangência `br` e cargo `1` (Presidente). São os mesmos códigos da página técnica. O próprio arquivo declara o diretório do resultado unificado (`arq`, tipo `u`): `<base>/<ambiente>/<ciclo>/<cd_eleicao>/dados/<uf>`.
+- **Nome do arquivo EA20:** `<uf>-c<cargo com 4 dígitos>-e<eleição com 6 dígitos>-u.json`. Ele não está no `ele-c.json`; vem do índice oficial e respondeu 200 nos dois turnos.
+- **Não confirmado em especificação:** os PDFs EA11/EA20 em `www.tse.jus.br` responderam 403 ao cliente automatizado, e o bloqueio não foi contornado. O significado dos campos consumidos foi inferido da estrutura observada. Por exemplo, a soma de `vap` é igual a `v.vv` no 1º turno, o que indica que `pvap` é percentual dos votos válidos. Isso continua pendente de conferência no PDF.
+- **Horários:** `dg`/`hg` e `dt`/`ht` vêm sem fuso e são preservados como recebidos; nenhum `sourceTime` em UTC é produzido. Antes da totalização, `dt`/`ht` vêm vazios.
+
 ## Pendências
 
-| Questão                                             | Fonte necessária                                         | Impacto                                        | Etapa                                                    |
-| --------------------------------------------------- | -------------------------------------------------------- | ---------------------------------------------- | -------------------------------------------------------- |
-| Códigos de ciclo, pleito e cargo realmente vigentes | EA11 (`ele-c.json`) e instruções de download             | O coletor não pode montar URL                  | Antes da consulta controlada                             |
-| Caminho de produção do segundo turno                | Instruções de download de 2026 e configuração oficial    | 404 e risco de bloqueio                        | Antes da consulta controlada                             |
-| Exemplos de simulado diante do FAQ desencontrado    | Página técnica e instruções                              | Separar ensaio e produção                      | Antes de qualquer consulta ao simulado                   |
-| Unidades com governador no segundo turno            | Configuração oficial vigente, não o cenário do simulado  | Mostrar ou omitir o painel                     | Antes do painel de governador                            |
-| Candidatos                                          | Arquivos oficiais da divulgação, não lista editorial     | Não fixar nome no código                       | Normalização                                             |
-| Campos e tipos de EA11, EA14, EA15 e EA20           | PDFs de especificação de 2026                            | Schema e contrato                              | Normalizador                                             |
-| IDG serve para ordenar gerações?                    | Especificação, além do FAQ já lido                       | Detectar mudança                               | Normalizador                                             |
-| Denominadores dos percentuais                       | Especificação                                            | Não exibir percentual com base errada          | Normalizador                                             |
-| Zero, ausência e retificação                        | Especificação e amostras identificadas                   | A interface não pode transformar vazio em zero | Normalizador e web                                       |
-| Verificação JWS                                     | Manual de verificação dos arquivos JWS                   | Integridade da origem                          | Antes da publicação de homologação, se o manual a exigir |
-| Deveres dos artigos 264 a 269                       | Resolução TSE nº 23.751/2026                             | O que a divulgação própria pode fazer          | Antes da exposição pública                               |
-| Intervalo e concorrência da coleta                  | Limite publicado pelo TSE, ensaio controlado e orçamento | Carga na origem e atraso                       | Consulta controlada                                      |
-| EA15 é necessário para o painel estadual?           | Especificação do EA15 e do EA20 de abrangência estadual  | Evitar baixar município sem necessidade        | Desenho da coleta                                        |
-| Fonte do GeoJSON                                    | Base cartográfica pública a escolher                     | Mapa                                           | Tela com mapa                                            |
+| Questão                                          | Fonte necessária                                                                      | Impacto                                        | Etapa                                                    |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------- | ---------------------------------------------- | -------------------------------------------------------- |
+| Exemplos de simulado diante do FAQ desencontrado | Página técnica e instruções                                                           | Separar ensaio e produção                      | Antes de qualquer consulta ao simulado                   |
+| Unidades com governador no segundo turno         | Configuração oficial vigente, não o cenário do simulado                               | Mostrar ou omitir o painel                     | Antes do painel de governador                            |
+| Candidatos                                       | Arquivos oficiais da divulgação, não lista editorial                                  | Não fixar nome no código                       | Normalização                                             |
+| Campos e tipos de EA11, EA14, EA15 e EA20        | PDFs de especificação de 2026 (403 ao cliente automatizado em 19/10; ler manualmente) | Schema e contrato                              | Normalizador                                             |
+| IDG serve para ordenar gerações?                 | Especificação, além do FAQ já lido                                                    | Detectar mudança                               | Normalizador                                             |
+| Denominadores dos percentuais                    | Especificação                                                                         | Não exibir percentual com base errada          | Normalizador                                             |
+| Zero, ausência e retificação                     | Especificação e amostras identificadas                                                | A interface não pode transformar vazio em zero | Normalizador e web                                       |
+| Verificação JWS                                  | Manual de verificação dos arquivos JWS                                                | Integridade da origem                          | Antes da publicação de homologação, se o manual a exigir |
+| Deveres dos artigos 264 a 269                    | Resolução TSE nº 23.751/2026                                                          | O que a divulgação própria pode fazer          | Antes da exposição pública                               |
+| Intervalo e concorrência da coleta               | Limite publicado pelo TSE, ensaio controlado e orçamento                              | Carga na origem e atraso                       | Consulta controlada                                      |
+| EA15 é necessário para o painel estadual?        | Especificação do EA15 e do EA20 de abrangência estadual                               | Evitar baixar município sem necessidade        | Desenho da coleta                                        |
+| Fonte do GeoJSON                                 | Base cartográfica pública a escolher                                                  | Mapa                                           | Tela com mapa                                            |
 
 ## Referências
 

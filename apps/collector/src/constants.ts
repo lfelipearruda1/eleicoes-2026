@@ -12,14 +12,51 @@ export const EXIT_CODE = { success: 0, failure: 1, usage: 2 } as const
 
 export const HELP = `Uso: collector <comando> [opções]
 
-  publish  --out <pasta> --channel <canal> --input <arquivo.json>
-  inspect  --out <pasta> --channel <canal>
-  demo     [--out <pasta>]`
+  publish     --out <pasta> --channel <canal> --input <arquivo.json>
+  inspect     --out <pasta> --channel <canal>
+  demo        [--out <pasta>]
+  tse-once    --source official --round <1|2> --output <pasta> [--election <código>]
+  tse-replay  --input <arquivo EA20> --output <pasta>`
+
+export const TSE_SOURCES = {
+  official: {
+    confirmed: true,
+    host: 'resultados.tse.jus.br',
+    environment: 'oficial',
+  },
+  simulated: {
+    confirmed: false,
+    host: 'resultados-sim.tse.jus.br',
+    environment: 'simulado2026',
+  },
+} as const
+
+export const TSE_CONFIG_PATH = '/{environment}/comum/config/ele-c.json'
+export const TSE_RESULT_DIRECTORY_TEMPLATE =
+  '<base>/<ambiente>/<ciclo>/<cd_eleicao>/dados/<uf>'
+export const TSE_RESULT_FILE_TYPE = 'u'
+export const TSE_PRESIDENT_OFFICE_CODE = '1'
+export const TSE_NATIONAL_SCOPE = 'br'
+
+export const TSE_REQUEST_TIMEOUT_MS = 15_000
+export const TSE_MAX_RESPONSE_BYTES = 5 * 1024 * 1024
+export const TSE_MIN_REQUEST_INTERVAL_MS = 1_000
+
+export const TSE_CAPTURE_FILES = {
+  config: 'config.json',
+  result: 'result.json',
+  rejected: 'result.rejected.json',
+  metadata: 'metadata.json',
+  summary: 'summary.json',
+  lastValid: 'last-valid.json',
+} as const
 
 export const USAGE_ERRORS = [
   'MISSING_OPTIONS',
   'UNKNOWN_COMMAND',
   'INVALID_ARGUMENTS',
+  'INVALID_ROUND',
+  'UNKNOWN_SOURCE',
 ]
 
 export const ERROR_MESSAGES = {
@@ -55,6 +92,41 @@ export const ERROR_MESSAGES = {
     `dataVersion ${dataVersion} já foi publicado com outro conteúdo`,
   VERSION_NOT_CURRENT: (dataVersion: string) =>
     `dataVersion ${dataVersion} já existe e não é o atual; republique com um dataVersion novo`,
+  INVALID_ROUND: (round: string) => `turno "${round}" inválido: use 1 ou 2`,
+  UNKNOWN_SOURCE: (source: string) =>
+    `origem "${source}" desconhecida: use official ou simulated`,
+  SOURCE_NOT_CONFIRMED: (source: string) =>
+    `a origem ${source} não tem endereço confirmado para esta execução`,
+  URL_NOT_ALLOWED: (url: string) =>
+    `${url} não é permitido: só HTTPS, host da origem, sem porta nem credenciais`,
+  REMOTE_REDIRECT: (location: string) =>
+    `a origem respondeu com redirecionamento para ${location}; não foi seguido. Confirme o destino antes de mudar a configuração`,
+  REMOTE_BLOCKED: (detail: string) =>
+    `a origem recusou o acesso (${detail}); as consultas a esse host foram encerradas`,
+  REMOTE_NOT_FOUND: (url: string) =>
+    `${url} não existe na origem (404); revise a URL antes de tentar de novo`,
+  REMOTE_HTTP_ERROR: (detail: string) => `a origem respondeu ${detail}`,
+  REMOTE_TIMEOUT: (url: string) =>
+    `${url} não terminou de responder em ${TSE_REQUEST_TIMEOUT_MS} ms`,
+  REMOTE_TRANSPORT: (url: string) => `falha de rede ao consultar ${url}`,
+  RESPONSE_TOO_LARGE: (url: string) =>
+    `${url} passou de ${TSE_MAX_RESPONSE_BYTES} bytes; leitura cancelada e limite mantido`,
+  RESPONSE_NOT_JSON: (url: string) =>
+    `${url} não devolveu JSON (HTML ou conteúdo malformado)`,
+  NOT_MODIFIED_WITHOUT_COPY: (url: string) =>
+    `${url} respondeu 304, mas não há cópia válida local; nenhum resultado foi produzido`,
+  INVALID_TSE_CONFIG: (fields: string) =>
+    `a configuração de eleições (EA11) não tem o formato esperado nos campos: ${fields}`,
+  TSE_LAYOUT_CHANGED: (detail: string) =>
+    `o diretório de resultados da configuração mudou (${detail}); confirme a nova nomenclatura`,
+  ELECTION_NOT_FOUND: (detail: string) =>
+    `a configuração não lista eleição presidencial de abrangência Brasil para ${detail}`,
+  ELECTION_AMBIGUOUS: (options: string) =>
+    `mais de uma eleição corresponde; escolha com --election: ${options}`,
+  INVALID_TSE_RESULT: (fields: string) =>
+    `o resultado (EA20) não tem o formato esperado nos campos: ${fields}`,
+  TSE_RESULT_MISMATCH: (detail: string) =>
+    `o resultado recebido não corresponde ao solicitado: ${detail}`,
   REVISION_LIMIT: (revision: string) =>
     `revisão ${revision} chegou ao limite de inteiro seguro; use um canal novo`,
 } as const

@@ -21,7 +21,7 @@ import {
   SNAPSHOTS_DIR,
   TEMP_FILE_PREFIX,
 } from '../constants.js'
-import { PublicationError } from './error.js'
+import { CollectorError } from '../error.js'
 
 export const hasErrorCode = (error: unknown, code: string) =>
   (error as NodeJS.ErrnoException)?.code === code
@@ -29,7 +29,7 @@ export const hasErrorCode = (error: unknown, code: string) =>
 async function assertRealDirectory(directory: string): Promise<void> {
   const stats = await lstat(directory)
   if (stats.isSymbolicLink() || !stats.isDirectory()) {
-    throw new PublicationError('SYMBOLIC_LINK', directory)
+    throw new CollectorError('SYMBOLIC_LINK', directory)
   }
 }
 
@@ -39,7 +39,7 @@ export async function resolveChannelDirectory(
   create: boolean,
 ): Promise<string> {
   if (!channelSchema.safeParse(channel).success) {
-    throw new PublicationError('INVALID_CHANNEL', channel)
+    throw new CollectorError('INVALID_CHANNEL', channel)
   }
   if (create) {
     await mkdir(root, { recursive: true, mode: 0o700 })
@@ -56,7 +56,7 @@ export async function resolveChannelDirectory(
     }
     await assertRealDirectory(directory).catch((error: unknown) => {
       if (hasErrorCode(error, 'ENOENT')) {
-        throw new PublicationError('NOT_FOUND', directory)
+        throw new CollectorError('NOT_FOUND', directory)
       }
       throw error
     })
@@ -64,21 +64,24 @@ export async function resolveChannelDirectory(
   return channelDirectory
 }
 
-export async function readLimitedFile(filePath: string): Promise<Buffer> {
+export async function readLimitedFile(
+  filePath: string,
+  maxBytes: number = MAX_DOCUMENT_BYTES,
+): Promise<Buffer> {
   const file = await open(
     filePath,
     constants.O_RDONLY | constants.O_NOFOLLOW,
   ).catch((error: unknown) => {
     if (hasErrorCode(error, 'ELOOP')) {
-      throw new PublicationError('SYMBOLIC_LINK', filePath)
+      throw new CollectorError('SYMBOLIC_LINK', filePath)
     }
     throw error
   })
   try {
     if (!(await file.stat()).isFile()) {
-      throw new PublicationError('SYMBOLIC_LINK', filePath)
+      throw new CollectorError('SYMBOLIC_LINK', filePath)
     }
-    const buffer = Buffer.alloc(MAX_DOCUMENT_BYTES + 1)
+    const buffer = Buffer.alloc(maxBytes + 1)
     let size = 0
     for (;;) {
       const { bytesRead } = await file.read(
@@ -90,8 +93,8 @@ export async function readLimitedFile(filePath: string): Promise<Buffer> {
       size += bytesRead
       if (bytesRead === 0 || size === buffer.length) break
     }
-    if (size > MAX_DOCUMENT_BYTES) {
-      throw new PublicationError('DOCUMENT_TOO_LARGE', filePath)
+    if (size > maxBytes) {
+      throw new CollectorError('DOCUMENT_TOO_LARGE', filePath)
     }
     return buffer.subarray(0, size)
   } finally {
@@ -155,7 +158,7 @@ export async function withChannelLock<T>(
   const lockPath = path.join(channelDirectory, LOCK_FILE)
   const lock = await open(lockPath, 'wx', 0o600).catch((error: unknown) => {
     if (hasErrorCode(error, 'EEXIST')) {
-      throw new PublicationError('CHANNEL_LOCKED', lockPath)
+      throw new CollectorError('CHANNEL_LOCKED', lockPath)
     }
     throw error
   })

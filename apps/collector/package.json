@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@eleicoes/validation": "workspace:*"
+    "@eleicoes/validation": "workspace:*",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@types/node": "24.19.2",
