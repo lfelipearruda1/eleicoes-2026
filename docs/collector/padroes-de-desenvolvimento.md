@@ -2,7 +2,7 @@
 
 [Voltar ao coletor](README.md) · [Padrões comuns](../padroes/README.md)
 
-O coletor consulta a origem, valida, normaliza e publica. Não atende o navegador. O comportamento operacional já está em [README.md](README.md). Este arquivo diz como organizar o código quando ele for escrito. Hoje `src/index.ts` só registra que a integração com o TSE não existe.
+O coletor consulta a origem, valida, normaliza e publica. Não atende o navegador. O comportamento operacional já está em [README.md](README.md). Este arquivo diz como organizar o código quando ele for escrito. Hoje `src/main.ts` compõe a CLI da publicação local; a coleta não existe.
 
 Não usar NestJS aqui. Não criar controller HTTP nem contêiner de injeção. Função de módulo e composição em `main.ts` bastam. Ver [clean-code-e-solid.md](../padroes/clean-code-e-solid.md).
 
@@ -28,6 +28,12 @@ Schema do contrato compartilhado fica em `packages/validation` quando passar a e
 
 **Verificação:** revisão de imports. `apps/web` não referencia `apps/collector`.
 
+Regras de escrita do coletor:
+
+- Menor quantidade de código que resolve. Sem camada de apresentação, presenter, rótulo ou formatação de saída: a CLI imprime o resultado em JSON.
+- Textos e valores fixos (mensagens de erro, nomes de arquivo, limites, ajuda) ficam juntos em `src/constants.ts`, não espalhados pelos módulos.
+- Pasta nova só quando houver código para ela. Hoje existem `main.ts`, `cli.ts`, `demo.ts`, `constants.ts` e `publication/` (`publish.ts`, `read.ts`, `storage.ts`, `error.ts`).
+
 ### O que cada parte faz
 
 | Parte             | Faz                                                                       | Não faz                                 |
@@ -51,7 +57,7 @@ Dependência externa é parâmetro, para o teste trocar cliente e publicador sem
 
 **Onde se aplica:** `apps/collector`.
 
-**Divergência registrada:** o `index.ts` atual chama `console.log` na carga. É o ponto de entrada mínimo, não um cliente. Código novo de coleta não consulta a rede no topo do módulo.
+`main.ts` só liga a saída do console ao router da CLI. Código novo de coleta não consulta a rede no topo do módulo.
 
 **Verificação:** teste que importa o módulo de decisão sem servidor. Ainda não há esse teste.
 

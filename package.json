@@ -10,6 +10,9 @@
   "scripts": {
     "dev:web": "pnpm --filter @eleicoes/web dev",
     "dev:collector": "pnpm --filter @eleicoes/collector dev",
+    "collector:publish": "pnpm --filter @eleicoes/collector... run build && node apps/collector/dist/main.js publish",
+    "collector:inspect": "pnpm --filter @eleicoes/collector... run build && node apps/collector/dist/main.js inspect",
+    "collector:demo": "pnpm --filter @eleicoes/collector... run build && node apps/collector/dist/main.js demo",
     "build": "pnpm -r --if-present run build",
     "typecheck": "pnpm -r --if-present run typecheck",
     "lint": "eslint .",

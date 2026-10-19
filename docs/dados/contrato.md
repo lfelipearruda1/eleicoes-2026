@@ -8,9 +8,10 @@ Este documento é a especificação que `@eleicoes/validation` implementa (PKG-0
 - a disponibilidade e o `sourceTime` opcional (parte da ET-02-T02, DA-18);
 - a forma de `dataVersion` (parte da ET-02-T08, DA-19);
 - a política de campos não previstos (parte da ET-02-T09, DA-20);
-- os horários do manifesto (recorte da DP-14, DA-21).
+- os horários do manifesto (recorte da DP-14, DA-21);
+- o **manifesto mínimo** do publicador local, com canal e `revision` (recorte da ET-02-T07 e da ET-02-T08, ação 2, DA-22).
 
-Números, candidaturas, andamento, divisão de arquivos e os demais campos do manifesto ainda não foram definidos. Este documento **não é o contrato completo**: a versão inicial completa é a entrega da ET-02-T13. Implementação: `packages/validation/src/contract/envelope.ts`.
+Números, candidaturas, andamento, divisão de arquivos e os demais campos do manifesto (vários arquivos por versão, retenção, TTL) ainda não foram definidos. Este documento **não é o contrato completo**: a versão inicial completa é a entrega da ET-02-T13. Implementação: `packages/validation/src/contract/` (`envelope.ts`, `manifest.ts` e `constants.ts`).
 
 ## Envelope comum de snapshot
 
@@ -86,7 +87,7 @@ DA-19.
 - Repetir a tentativa de publicar a mesma versão preserva o identificador. Uma verificação sem mudança não cria, por si só, versão nova. O conteúdo de uma versão publicada nunca muda mantendo o identificador.
 - O validador não gera valor. A geração e o protocolo de publicação ficam para ET-04 e ET-05. O pacote de validação não importa `node:crypto`, porque roda também no navegador.
 
-Ainda falta (ET-02-T08, ação 2): como o web reconhece uma versão **mais antiga** servida por outra cópia de cache (R-19, ET-02-V05). Como o UUID não ordena, essa regra precisa de outra informação do manifesto.
+A ordem entre manifestos vem do campo `revision` (DA-22), não de `dataVersion`. Ver [Manifesto](#manifesto-recorte-do-publicador-local).
 
 ### Campos não previstos: publicação × leitura
 
@@ -108,7 +109,7 @@ Os schemas atuais validam **só o objeto do envelope**. Não são o schema do sn
 
 ### Horários do manifesto (recorte da DP-14)
 
-DA-21. Esta é uma decisão documental. O manifesto, o heartbeat e a publicação **não** foram implementados. Os demais campos do manifesto são da ET-02-T07.
+DA-21. O manifesto mínimo e a publicação local foram implementados depois (DA-22). O heartbeat **não** existe: a publicação local nunca preenche `checkedAt`, porque ler um arquivo local não comprova consulta à origem.
 
 | Horário       | Onde                      | O que representa                                               |
 | ------------- | ------------------------- | -------------------------------------------------------------- |
@@ -160,7 +161,7 @@ Dado sintético, sem relação com a apuração real. É um envelope válido par
 
 ### Critérios de validação do envelope
 
-Cada linha tem teste em `packages/validation/src/contract/envelope.spec.ts`.
+Cada linha tem teste em `packages/validation/testes/units/envelope.spec.ts`.
 
 | #    | Entrada                                                                                                                                                                               | Resultado exigido                                                                           |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -187,11 +188,72 @@ Cada linha tem teste em `packages/validation/src/contract/envelope.spec.ts`.
 
 P-01 (disponibilidade e `sourceTime`), P-02 (forma de `dataVersion`) e P-03 (campos não previstos) foram resolvidas por DA-18, DA-19 e DA-20.
 
-| Ponto                                                                                                                        | Efeito                                                                                                | Onde se resolve        |
-| ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------- |
-| Classificação dos arquivos reais em `available`, `pending`, `not_applicable` e `unknown`, e a conversão do horário da origem | Normalização                                                                                          | ET-01, ET-03-T04 a T08 |
-| Regra de regressão de versão com `dataVersion` sem ordem                                                                     | Web não volta a versão antiga (R-19)                                                                  | ET-02-T08, ação 2      |
-| Sinal de atualização encerrada                                                                                               | Parar o polling                                                                                       | ET-02-T02, ação 4      |
-| Publicação dupla numa mudança incompatível                                                                                   | Transição de `contractVersion`                                                                        | ET-02-T09, ação 3      |
-| `source.generationId` e código da eleição da origem                                                                          | Rastreabilidade                                                                                       | DP-08, DP-04           |
-| Restrição "sem caminho de disco local" em `source.file`                                                                      | O schema não distingue caminho da origem de caminho de disco. Só a revisão do publicador garante isso | ET-05                  |
+| Ponto                                                                                                                        | Efeito                                                                                                                                             | Onde se resolve        |
+| ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| Classificação dos arquivos reais em `available`, `pending`, `not_applicable` e `unknown`, e a conversão do horário da origem | Normalização                                                                                                                                       | ET-01, ET-03-T04 a T08 |
+| Sinal de atualização encerrada                                                                                               | Parar o polling                                                                                                                                    | ET-02-T02, ação 4      |
+| Publicação dupla numa mudança incompatível                                                                                   | Transição de `contractVersion`                                                                                                                     | ET-02-T09, ação 3      |
+| `source.generationId` e código da eleição da origem                                                                          | Rastreabilidade                                                                                                                                    | DP-08, DP-04           |
+| Restrição "sem caminho de disco local" em `source.file`                                                                      | O schema não distingue caminho da origem de caminho de disco. O publicador local nunca usa `source.file` como caminho; a garantia vale só para ele | ET-05                  |
+
+Resolvida depois: regra de regressão com `dataVersion` sem ordem (R-19), por `revision` no manifesto (DA-22).
+
+## Manifesto (recorte do publicador local)
+
+DA-22. Implementação: `packages/validation/src/contract/manifest.ts` (sem `node:*`, roda no navegador). Este recorte cobre **um snapshot por versão** e só o envelope; não é o manifesto completo da ET-02-T07.
+
+| Campo                   | Tipo             | Obrigatório | Regra                                                                                                                                       |
+| ----------------------- | ---------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `contractVersion`       | inteiro          | Sim         | `1`. Outro valor é rejeitado na publicação e na leitura                                                                                     |
+| `channel`               | string           | Sim         | Chave interna do operador, não código oficial. `^[a-z0-9]+(-[a-z0-9]+)*$`, até 64 caracteres: nunca vira caminho arbitrário                 |
+| `revision`              | inteiro          | Sim         | Inteiro positivo seguro em JavaScript (≤ 2⁵³−1). Ordena os manifestos do canal                                                              |
+| `environment` … `scope` | como no envelope | Sim         | Os mesmos schemas e regras cruzadas do envelope (`environment`, `sourceEnvironment`, `round`, `office`, `scope`). Fixos depois da revisão 1 |
+| `current.dataVersion`   | string           | Sim         | Forma de [dataVersion](#dataversion)                                                                                                        |
+| `current.path`          | string           | Sim         | Exatamente `snapshots/<current.dataVersion>.json`, relativo ao diretório do canal. Sem URL, caminho absoluto ou `..`                        |
+| `current.publishedAt`   | string, horário  | Sim         | Regra geral 4. Instante em que a versão passou a ser a atual                                                                                |
+| `checkedAt`             | string, horário  | Não         | DA-21. Ausente no publicador local                                                                                                          |
+
+DA-20 vale também aqui: `publishManifestSchema` rejeita chave extra no topo e em `current`; `readManifestSchema` descarta.
+
+### Regras
+
+1. **Correspondência.** O snapshot referenciado precisa ter o mesmo `dataVersion`, `environment`, `sourceEnvironment`, `round`, `office` e `scope` do manifesto (`findSnapshotMismatches`). Divergência invalida o par.
+2. **Revisão.** A primeira publicação de um canal novo tem `revision` 1. Cada troca efetiva do manifesto soma 1, a partir do valor persistido. Repetir a versão atual não muda a revisão nem `publishedAt`. No limite de inteiro seguro, a publicação falha; a sequência nunca recomeça sozinha.
+3. **O que não ordena.** UUID, `publishedAt` e relógio não definem a ordem. A revisão ordena nossas publicações; não prova que a origem tem dado mais novo. Retificação oficial que reduz votos não é regressão do manifesto.
+4. **Canal.** Um canal é um fluxo com contexto fixo. Documento de outro contexto é recusado. Uma eleição futura usa outro canal: o publicador não tem como reconhecer o ano, então a chave é responsabilidade do operador.
+5. **checkedAt.** Uma futura atualização de `checkedAt` soma 1 a `revision`, sem mudar `current`. Não é copiado de uma versão para outra.
+
+### Decisão do consumidor
+
+`decideManifestUpdate(aceito, recebido)` é função pura:
+
+| Situação                             | Resultado      | Efeito                                                   |
+| ------------------------------------ | -------------- | -------------------------------------------------------- |
+| Nada aceito ainda                    | `newer`        | Candidato                                                |
+| Outro canal ou outro contexto        | `incomparable` | Não é a mesma sequência; não substitui                   |
+| `revision` menor                     | `stale`        | Ignorado                                                 |
+| `revision` igual, mesmo conteúdo     | `same`         | Nada muda                                                |
+| `revision` igual, conteúdo diferente | `conflict`     | Não substitui em silêncio                                |
+| `revision` maior                     | `newer`        | Candidato: só vira estado aceito com o snapshot validado |
+
+Manifesto recebido, snapshot carregado e estado aceito são três coisas distintas. Se o snapshot do manifesto novo falta ou é inválido, o consumidor mantém o último estado válido. Não é proteção criptográfica contra adulteração.
+
+### Exemplo sintético
+
+```json
+{
+  "contractVersion": 1,
+  "channel": "demo-local-presidente-br-2t",
+  "revision": 2,
+  "environment": "local",
+  "sourceEnvironment": "simulated",
+  "round": 2,
+  "office": "president",
+  "scope": "BR",
+  "current": {
+    "dataVersion": "0b7c9a52-3f1e-4d2a-9c4b-6e8f1a2b3c4d",
+    "path": "snapshots/0b7c9a52-3f1e-4d2a-9c4b-6e8f1a2b3c4d.json",
+    "publishedAt": "2026-10-25T21:05:00Z"
+  }
+}
+```

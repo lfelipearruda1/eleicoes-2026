@@ -2,7 +2,7 @@
 
 [Voltar aos testes](README.md) · [Padrões comuns](../padroes/README.md)
 
-A primeira suíte real é `packages/validation/src/contract/envelope.spec.ts`. `pnpm test` roda Vitest 5.0.4 sem `--passWithNoTests` e falha quando não encontra teste. Os blocos deste arquivo são documentação e não foram executados.
+A primeira suíte real é `packages/validation/testes/units/envelope.spec.ts`. `pnpm test` roda Vitest 5.0.4 sem `--passWithNoTests` e falha quando não encontra teste. Os blocos deste arquivo são documentação e não foram executados.
 
 A página de boas práticas de teste unitário da Microsoft, consultada em 14 de outubro de 2026, descreve Arrange, Act e Assert para projetos .NET. Usamos o padrão de estrutura, não as ferramentas, os atributos nem a arquitetura dessa plataforma. A mesma página diz que fake, stub e mock são usados de forma inconsistente na literatura. O glossário abaixo é o deste projeto.
 
@@ -18,7 +18,7 @@ A página de boas práticas de teste unitário da Microsoft, consultada em 14 de
 
 Um comportamento ou cenário por teste. Cenários independentes são testes separados. `it.each` parametriza casos independentes. Não colocar vários cenários num laço dentro de um único `it`. Mais de uma asserção é permitida quando verifica o mesmo comportamento. O valor esperado não é calculado pela mesma implementação que se está testando.
 
-**Onde se aplica:** Vitest, em arquivo `.spec.ts` ou `.spec.tsx` ao lado da unidade. `describe` nomeia a unidade. `it` descreve, em português, o comportamento e a condição.
+**Onde se aplica:** Vitest, em arquivo `.spec.ts` ou `.spec.tsx` dentro de `testes/units/` de cada workspace (`apps/api`, `apps/collector`, `apps/web`, `packages/validation`), fora de `src`. `describe` nomeia a unidade. `it` descreve, em português, o comportamento e a condição.
 
 **Exemplo de nome:** “deve preservar o manifesto anterior quando a publicação falhar”.
 

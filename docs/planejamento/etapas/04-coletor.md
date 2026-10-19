@@ -302,7 +302,7 @@ O web não importa nada disso. A normalização não é repetida no web.
   1. Servidor `node:http` local configurável por cenário.
   2. Cenários: sucesso → falha transitória → sucesso; bloqueio → espera → sucesso; respostas em ordem diferente; resposta inválida entre duas válidas.
   3. Medir a duração do ciclo para alimentar DP-16.
-- **Responsabilidade e caminhos:** `apps/collector/src/**/*.spec.ts` ou `apps/collector/test/` (proposto).
+- **Responsabilidade e caminhos:** `apps/collector/testes/units/`.
 - **Regras, falhas e bordas:** nenhum destes casos vai ao TSE.
 - **Saída:** suíte de integração e medição de duração.
 - **Validações:** ET-04-V12, ET-04-V13, ET-04-V20

@@ -33,7 +33,7 @@ Regras de forma do código novo. Elas não mudam os arquivos de configuração n
 | `end_of_line = lf`                        | `.editorconfig`    | LF.                                                                                                        |
 | `insert_final_newline = true`             | `.editorconfig`    | Linha final nos arquivos que o EditorConfig cobre. Em Markdown, `trim_trailing_whitespace` fica desligado. |
 
-O código já segue a ausência de ponto e vírgula e as aspas simples, como em `apps/web/src/App.tsx` e `apps/collector/src/index.ts`.
+O código já segue a ausência de ponto e vírgula e as aspas simples, como em `apps/web/src/App.tsx` e `apps/collector/src/main.ts`.
 
 **Verificação:** leitura de `.prettierrc.json` e `.editorconfig`. Não alterar esses arquivos para “alinhar” a uma preferência de fora.
 
@@ -120,15 +120,15 @@ O número é ilustrativo. O projeto ainda não adotou limite de tamanho; o valor
 
 **Regra:**
 
-| Artefato                                        | Nome                                                  |
-| ----------------------------------------------- | ----------------------------------------------------- |
-| Módulo de backend, função utilitária, adaptador | `kebab-case.ts`                                       |
-| Componente React                                | `PascalCase.tsx`                                      |
-| Hook                                            | `useNomeDoHook.ts`                                    |
-| Módulo Nest, se a API existir                   | sufixos `.module.ts`, `.controller.ts`, `.service.ts` |
-| Teste                                           | `.spec.ts` ou `.spec.tsx`, ao lado da unidade         |
+| Artefato                                        | Nome                                                       |
+| ----------------------------------------------- | ---------------------------------------------------------- |
+| Módulo de backend, função utilitária, adaptador | `kebab-case.ts`                                            |
+| Componente React                                | `PascalCase.tsx`                                           |
+| Hook                                            | `useNomeDoHook.ts`                                         |
+| Módulo Nest, se a API existir                   | sufixos `.module.ts`, `.controller.ts`, `.service.ts`      |
+| Teste                                           | `.spec.ts` ou `.spec.tsx`, em `testes/units/` do workspace |
 
-Ponto de entrada já usado permanece: `main.tsx`, `index.ts`, `vite.config.ts`. Não se renomeia `App.tsx`. O componente de entrada exporta função default, e `main.tsx` importa esse default. Componente novo de funcionalidade usa export nomeado. Mudar o `App` atual só por causa dessa preferência está fora desta etapa.
+Ponto de entrada já usado permanece: `main.tsx`, `main.ts` do coletor, `index.ts` dos pacotes, `vite.config.ts`. Não se renomeia `App.tsx`. O componente de entrada exporta função default, e `main.tsx` importa esse default. Componente novo de funcionalidade usa export nomeado. Mudar o `App` atual só por causa dessa preferência está fora desta etapa.
 
 **Justificativa:** O repositório já tem `App.tsx` em PascalCase e módulos `index.ts`. Testes ainda não existem. Vitest 5.0.4 está na raiz, sem `vitest.config` visto no repositório; a convenção `.spec` precisa ser compatível com o padrão do Vitest quando a suíte for criada. Confirmar o padrão de descoberta na versão instalada antes do primeiro teste, sem instalar outra ferramenta agora.
 

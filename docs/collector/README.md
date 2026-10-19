@@ -4,7 +4,7 @@
 
 O coletor é o único processo que consulta a origem oficial, transforma a resposta no contrato interno e publica snapshots. Ele não atende o navegador do visitante e não é um servidor público de leitura.
 
-**Implementado:** `apps/collector` é o pacote `@eleicoes/collector`. `src/index.ts` apenas registra que a integração com o TSE ainda não existe. O desenvolvimento usa `tsx`. Depois do build, `pnpm --filter @eleicoes/collector start` executa `dist/index.js` com Node.js. Não há cliente HTTP, schema, agendamento, Docker nem publicação.
+**Implementado:** `apps/collector` é o pacote `@eleicoes/collector`. `src/main.ts` compõe a CLI da publicação local. O desenvolvimento usa `tsx`. Depois do build, `pnpm --filter @eleicoes/collector start` executa `dist/main.js` com Node.js. Não há coleta, cliente HTTP, agendamento nem Docker.
 
 **Planejado:** as responsabilidades e as etapas abaixo. Os rótulos de estado estão em [contexto.md](../contexto.md). O contrato conceitual está em [dados/README.md](../dados/README.md). A execução em nuvem está em [infraestrutura/README.md](../infraestrutura/README.md). A organização do código novo está em [padroes-de-desenvolvimento.md](padroes-de-desenvolvimento.md), sem NestJS e sem mudar as regras desta página.
 
@@ -66,7 +66,7 @@ O frontend deve mostrar a atualidade dos dados, não o instante em que o navegad
 
 ## Publicação
 
-**Proposta, não contrato implementado.** O nome `latest.json` pode ser usado como manifesto. Nada no repositório grava esse arquivo hoje.
+O publicador **local** está implementado (ver [Publicação local](#publicação-local)). O manifesto chama-se `manifest.json`, por canal. A publicação no R2 não existe.
 
 A ordem da publicação:
 
@@ -79,6 +79,35 @@ A ordem da publicação:
 7. Registrar erro à parte. Erro não ocupa o lugar de um resultado eleitoral.
 
 O manifesto é o único ponteiro móvel. Os arquivos de uma versão publicada não mudam. Cache longo combina com arquivo imutável; o manifesto pede outra política. Os tempos estão pendentes e não são os mesmos para os dois tipos, como explica [infraestrutura/README.md](../infraestrutura/README.md).
+
+### Publicação local
+
+Implementação: `apps/collector/src/publication/` (`publish.ts`, `read.ts`, `storage.ts`, `error.ts`), CLI em `src/cli.ts`, textos e limites em `src/constants.ts`. Contrato: [Manifesto](../dados/contrato.md#manifesto-recorte-do-publicador-local) (DA-22). Recorte: o documento é só o envelope, sem payload eleitoral, com `environment` `local`.
+
+Comandos, na raiz, depois de `nvm use`. Cada um compila o coletor e roda o JavaScript de `dist`:
+
+```sh
+pnpm collector:demo --out .publicacao-local
+pnpm collector:publish --out .publicacao-local --channel <canal> --input <arquivo.json>
+pnpm collector:inspect --out .publicacao-local --channel <canal>
+node apps/collector/dist/main.js --help
+```
+
+Sem argumentos, o coletor só mostra a ajuda. `demo` cria um diretório novo `eleicoes-demo-*` a cada execução e nunca apaga os anteriores. `.publicacao-local/` está no `.gitignore`. Códigos de saída: 0 sucesso, 1 falha da operação, 2 uso incorreto. O resultado sai em JSON. Erro sai como `CÓDIGO: mensagem`, por exemplo `CHANNEL_LOCKED: …`.
+
+Layout: `<out>/<canal>/manifest.json`, `<out>/<canal>/snapshots/<dataVersion>.json`, bloqueio `<out>/<canal>/.publish.lock`.
+
+Garantias implementadas e testadas:
+
+- Snapshot gravado em temporário no mesmo diretório e ligado ao nome final com `link()`, que falha se o nome existe: nunca sobrescreve, leitor nunca vê arquivo parcial.
+- O snapshot é relido e validado antes de o manifesto mudar. O manifesto é trocado por último com `rename()` de um temporário.
+- Falha antes da troca deixa o manifesto anterior intacto. O snapshot órfão não é promovido: republicá-lo é recusado (`historical_version`), assim como reativar uma versão histórica.
+- Mesmo `dataVersion` com mesmo conteúdo (comparado depois da serialização do próprio publicador) é idempotente; com outro conteúdo, falha.
+- Manifesto ilegível ou fora do contrato é erro. Canal sem manifesto mas com snapshots também: não reinicia.
+- Exclusão entre processos: criação exclusiva de `.publish.lock`. Liberado nas falhas tratadas; se sobrar depois de interrupção abrupta, a publicação falha com o caminho do bloqueio e ele **não** é removido automaticamente.
+- Canal validado pelo formato; diretórios abaixo de `--out` não podem ser links simbólicos; arquivos abertos com `O_NOFOLLOW`; leitura limitada a 1 MiB (limite local destes comandos, não meta dos snapshots de produção). `source.file` nunca é usado como caminho.
+
+Não garantido: durabilidade em queda de energia (não há `fsync` do diretório) e exclusão contra processo que não usa o bloqueio.
 
 ## Um publicador
 

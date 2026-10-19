@@ -226,7 +226,7 @@ A tela não normaliza, não calcula percentual, não ordena candidatos de outro 
   2. Testes de componente por papel e nome acessível (WEB-007).
   3. Teste de texto com marcação exibido como texto (SEC-004).
   4. Teste de que o painel nacional lê só o arquivo Brasil.
-- **Responsabilidade e caminhos:** `*.spec.tsx` ao lado das unidades (TEST-001).
+- **Responsabilidade e caminhos:** `*.spec.tsx` em `apps/web/testes/units/` (TEST-001).
 - **Regras, falhas e bordas:** sem rede real; timers controlados (TEST-002).
 - **Saída:** suíte.
 - **Validações:** ET-06-V02 a ET-06-V10, ET-06-V13 a ET-06-V15

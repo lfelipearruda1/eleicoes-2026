@@ -7,7 +7,7 @@
     "moduleResolution": "NodeNext",
     "types": ["node"],
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "declaration": true,
     "sourceMap": true,
     "verbatimModuleSyntax": true,
@@ -15,5 +15,5 @@
     "moduleDetection": "force",
     "customConditions": ["source"]
   },
-  "include": ["src"]
+  "include": ["src", "testes"]
 }

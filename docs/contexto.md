@@ -112,18 +112,18 @@ Três mecanismos parecidos precisam permanecer distintos:
 
 O workspace está em `pnpm-workspace.yaml` e inclui `apps/*` e `packages/*`. Nenhum pacote depende de outro nesta etapa. `pnpm build` percorre os builds existentes na ordem do workspace.
 
-| Caminho                  | Pacote                    | O que há hoje                                                       |
-| ------------------------ | ------------------------- | ------------------------------------------------------------------- |
-| `apps/web`               | `@eleicoes/web`           | React, Vite e Tailwind. A tela exibe o título do ambiente inicial   |
-| `apps/collector`         | `@eleicoes/collector`     | `src/index.ts` registra que a integração com o TSE ainda não existe |
-| `apps/api`               | nenhum                    | Pasta reservada                                                     |
-| `packages/types`         | `@eleicoes/types`         | Export vazio                                                        |
-| `packages/election-data` | `@eleicoes/election-data` | Export vazio                                                        |
-| `packages/validation`    | `@eleicoes/validation`    | Zod instalado, sem schemas                                          |
-| `docs/`                  | —                         | Esta documentação                                                   |
-| `tests/load/`            | —                         | Reservada para k6                                                   |
-| `infra/cloudflare/`      | —                         | Reservada, sem configuração                                         |
-| `.github/workflows/`     | —                         | Reservada, sem workflows                                            |
+| Caminho                  | Pacote                    | O que há hoje                                                     |
+| ------------------------ | ------------------------- | ----------------------------------------------------------------- |
+| `apps/web`               | `@eleicoes/web`           | React, Vite e Tailwind. A tela exibe o título do ambiente inicial |
+| `apps/collector`         | `@eleicoes/collector`     | `src/main.ts` compõe a CLI da publicação local; não há coleta     |
+| `apps/api`               | nenhum                    | Pasta reservada                                                   |
+| `packages/types`         | `@eleicoes/types`         | Export vazio                                                      |
+| `packages/election-data` | `@eleicoes/election-data` | Export vazio                                                      |
+| `packages/validation`    | `@eleicoes/validation`    | Zod instalado, sem schemas                                        |
+| `docs/`                  | —                         | Esta documentação                                                 |
+| `tests/load/`            | —                         | Reservada para k6                                                 |
+| `infra/cloudflare/`      | —                         | Reservada, sem configuração                                       |
+| `.github/workflows/`     | —                         | Reservada, sem workflows                                          |
 
 Comandos já definidos na raiz: `pnpm dev:web`, `pnpm dev:collector`, `pnpm build`, `pnpm typecheck`, `pnpm lint`, `pnpm format`, `pnpm format:check` e `pnpm test`.
 

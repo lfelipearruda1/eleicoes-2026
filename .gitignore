@@ -18,3 +18,5 @@ temp/
 
 .DS_Store
 *.local
+
+.publicacao-local/
