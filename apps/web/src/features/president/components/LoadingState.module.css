@@ -1,0 +1,25 @@
+@reference '../../../index.css';
+
+.loading {
+  @apply flex flex-col gap-5;
+}
+
+.text {
+  @apply text-[14px] text-muted;
+}
+
+.pill {
+  @apply h-11 rounded-full bg-surface;
+}
+
+.wide {
+  @apply w-[70%];
+}
+
+.medium {
+  @apply w-[60%];
+}
+
+.bar {
+  @apply h-2 w-full rounded-full bg-surface;
+}

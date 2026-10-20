@@ -50,6 +50,9 @@ const syntheticResult = (overrides: Record<string, unknown> = {}) => ({
   idg: '1',
   dt: '25/10/2026',
   ht: '17:00:00',
+  dv: 's',
+  tf: 'n',
+  and: 'a',
   carg: [
     {
       cd: '1',
@@ -60,7 +63,7 @@ const syntheticResult = (overrides: Record<string, unknown> = {}) => ({
     },
   ],
   s: { ts: '100', st: '0', pst: '0,00' },
-  v: { tv: '0', vv: '0' },
+  v: { tv: '0', vvc: '0', vv: '0' },
   ...overrides,
 })
 
@@ -347,7 +350,7 @@ describe('EA20: parser do resultado presidencial', () => {
 
     const summary = parsePresidentialResult(document)
 
-    expect(summary.totalization).toBeUndefined()
+    expect(summary.totalizedAt).toBeUndefined()
   })
 
   it('deve recusar data de totalização sem horário', () => {
@@ -360,7 +363,7 @@ describe('EA20: parser do resultado presidencial', () => {
 
   it('deve preservar contagens maiores que o inteiro seguro sem perda', () => {
     const big = '9007199254740993'
-    const document = syntheticResult({ v: { tv: big, vv: big } })
+    const document = syntheticResult({ v: { tv: big, vvc: big, vv: big } })
 
     const summary = parsePresidentialResult(document)
 
@@ -452,6 +455,26 @@ describe('runTseOnce', () => {
       validation: 'valid',
       sampleOrigin: 'previous-capture',
     })
+  })
+
+  it('deve registrar nos metadados qual cópia anterior o 304 reaproveitou', async () => {
+    const first = await runOnce(
+      fakeTransport(
+        tseResponder(() => json(syntheticResult(), { etag: '"r-1"' })),
+      ).transport,
+    )
+    const second = fakeTransport((_url, headers) =>
+      headers['If-None-Match'] ? new Response(null, { status: 304 }) : json({}),
+    )
+
+    const run = await runOnce(second.transport)
+
+    const metadata = await readJson(
+      path.join(run.runDirectory, TSE_CAPTURE_FILES.metadata),
+    )
+    expect(metadata.requests[1].reusedCapture).toBe(
+      `${path.basename(first.runDirectory)}/${TSE_CAPTURE_FILES.result}`,
+    )
   })
 
   it('deve falhar com 304 quando não há cópia anterior', async () => {

@@ -4,9 +4,10 @@ export const SNAPSHOTS_DIR = 'snapshots'
 export const LOCK_FILE = '.publish.lock'
 export const TEMP_FILE_PREFIX = '.tmp-'
 
-export const DEMO_CHANNEL = 'demo-local-presidente-br-2t'
+export const DEMO_CHANNEL_PREFIX = 'demo-'
+export const DEMO_CHANNEL = 'demo-sintetico-presidente-br-2t'
 export const DEMO_NOTICE =
-  'Demonstração local do protocolo de publicação. Sem resultados eleitorais.'
+  'Demonstração com capturas sintéticas. Não é resultado eleitoral de 2026.'
 
 export const EXIT_CODE = { success: 0, failure: 1, usage: 2 } as const
 
@@ -14,7 +15,8 @@ export const HELP = `Uso: collector <comando> [opções]
 
   publish     --out <pasta> --channel <canal> --input <arquivo.json>
   inspect     --out <pasta> --channel <canal>
-  demo        [--out <pasta>]
+  president-publish  --capture <pasta da captura> --output <pasta> --channel <canal>
+  president-demo     [--output <pasta>]
   tse-once    --source official --round <1|2> --output <pasta> [--election <código>]
   tse-replay  --input <arquivo EA20> --output <pasta>`
 
@@ -127,6 +129,12 @@ export const ERROR_MESSAGES = {
     `o resultado (EA20) não tem o formato esperado nos campos: ${fields}`,
   TSE_RESULT_MISMATCH: (detail: string) =>
     `o resultado recebido não corresponde ao solicitado: ${detail}`,
+  INVALID_CAPTURE: (detail: string) =>
+    `captura sem proveniência suficiente: ${detail}`,
+  TSE_RESULT_CONTRADICTION: (detail: string) =>
+    `indicadores do resultado (EA20) contraditórios: ${detail}; entrada não publicada`,
+  CHANNEL_SOURCE_MISMATCH: (detail: string) =>
+    `canal incompatível com a origem: ${detail}`,
   REVISION_LIMIT: (revision: string) =>
     `revisão ${revision} chegou ao limite de inteiro seguro; use um canal novo`,
 } as const

@@ -2,7 +2,7 @@
 
 [Voltar à web](README.md) · [Padrões comuns](../padroes/README.md)
 
-A interface lê snapshots publicados. Não consulta o TSE e não chama o EC2. React 19.3.1, Vite 8.3.4 e Tailwind CSS 4.3.3 já estão em `apps/web`. A tela atual é o título do ambiente inicial. Mapa, painel e polling estão planejados em [README.md](README.md).
+A interface lê snapshots publicados. Não consulta o TSE e não chama o EC2. React 19.3.1, Vite 8.3.4 e Tailwind CSS 4.3.3 já estão em `apps/web`. O painel presidencial nacional, com polling local, está em `src/features/president/`. Mapa e UFs estão planejados em [README.md](README.md).
 
 Não copiar controller, provider e módulo do Nest para o React. A API é outro processo, e continua opcional.
 
@@ -135,11 +135,11 @@ Manter acessibilidade: foco, teclado e uma lista textual além do mapa. Cor não
 
 ## Teste de interface
 
-### WEB-007. Testing Library é proposta, não dependência
+### WEB-007. Testing Library nos testes de componente
 
-**Nível:** Pendente de instalação. Obrigatório como critério quando o teste de componente for escrito.
+**Nível:** Obrigatório.
 
-**Regra:** A ferramenta complementar prevista é Testing Library, pelos princípios consultados em 14 de outubro de 2026: o teste se parece com o uso, mexe em nó do DOM e não em instância do componente. Não instalar nesta etapa. Não há suíte hoje.
+**Regra:** `@testing-library/react` 16.3.3, `@testing-library/dom` 10.4.2 e `jsdom` 30.1.3 são dependências de desenvolvimento do web (19/10/2026). O arquivo de teste que precisa de DOM declara `// @vitest-environment jsdom` e chama `cleanup` no `afterEach`, porque a suíte não usa globais. Princípios consultados em 14 de outubro de 2026: o teste se parece com o uso, mexe em nó do DOM e não em instância do componente.
 
 Priorizar papel, nome acessível e interação. Não afirmar comportamento lendo estado interno do hook. Snapshot extenso de markup não é o teste único de uma tela.
 

@@ -120,6 +120,7 @@ export async function runTseOnce(options: TseOnceOptions) {
       if (!previous || !previousBody) {
         throw new CollectorError('NOT_MODIFIED_WITHOUT_COPY', url.href)
       }
+      request.reusedCapture = previous.capture
       return {
         body: previousBody,
         origin: 'previous-capture' as SampleOrigin,

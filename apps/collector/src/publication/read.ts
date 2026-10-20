@@ -3,11 +3,11 @@ import path from 'node:path'
 import {
   decideManifestUpdate,
   findSnapshotMismatches,
-  readEnvelopeSchema,
   readManifestSchema,
+  readPresidentialSnapshotSchema,
   type Manifest,
   type ManifestUpdateDecision,
-  type SnapshotEnvelope,
+  type PresidentialSnapshot,
 } from '@eleicoes/validation'
 
 import { MANIFEST_FILE } from '../constants.js'
@@ -49,9 +49,12 @@ export async function readManifest(
 export async function loadSnapshot(
   channelDirectory: string,
   manifest: Manifest,
-): Promise<SnapshotEnvelope> {
+): Promise<PresidentialSnapshot> {
   const snapshotPath = path.join(channelDirectory, manifest.current.path)
-  const snapshot = await readValidJson(snapshotPath, readEnvelopeSchema)
+  const snapshot = await readValidJson(
+    snapshotPath,
+    readPresidentialSnapshotSchema,
+  )
   if (snapshot === undefined) {
     throw new CollectorError('NOT_FOUND', snapshotPath)
   }
@@ -77,7 +80,7 @@ export async function readPublication(root: string, channel: string) {
 
 export interface AcceptedState {
   manifest: Manifest
-  snapshot: SnapshotEnvelope
+  snapshot: PresidentialSnapshot
 }
 
 export type RefreshOutcome =

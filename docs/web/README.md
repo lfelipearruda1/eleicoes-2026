@@ -4,7 +4,40 @@
 
 O frontend é a aplicação que o visitante abre. Ela exibe os painéis e lê os snapshots publicados. Não consulta o TSE e não fala com o EC2 do coletor.
 
-**Implementado:** `@eleicoes/web`, com React 19.3.1, React DOM 19.3.1, Vite 8.3.4, TypeScript e Tailwind CSS 4.3.3. `index.html` declara `lang="pt-BR"`. A tela atual centraliza o texto "Eleições 2026 — ambiente inicial". Não há mapa, rota, painel, cliente de dados nem biblioteca de estado além do React.
+**Implementado (19/10/2026):** `@eleicoes/web`, com React 19.3.1, React DOM 19.3.1, Vite 8.3.4, TypeScript e Tailwind CSS 4.3.3. A tela é o painel **Presidente — Brasil** de um canal local: lê o manifesto e o snapshot por HTTP, valida com `readManifestSchema` e `readPresidentialSnapshotSchema`, mostra `pending` e `available` e se atualiza sem recarregar. Não há mapa, UF, governador, rota nem biblioteca de estado além do React. Evidência: [ET-06.md](../planejamento/evidencias/ET-06.md).
+
+## Referência visual vigente
+
+O protótipo `Eleicoes-2026 v2.dc.html` (pasta "Protótipos Eleições 2026", fornecida pelo usuário, fora do repositório) é a referência de layout, cores e comportamento: fundo `#0a0a0a`, mapa do Brasil à esquerda, painel do resultado à direita, alternância Mapa/Lista, seletor de UF e rota por hash (`#/uf/SP`). Ele substitui o `DESIGN-mobbin.md` usado antes. A geometria do mapa veio de `data/br-map.js` do mesmo protótipo (`apps/web/src/features/map/brazil-map.json`); a fonte cartográfica original continua sem registro.
+
+Implementação:
+
+- **Estilos:** um CSS Module por componente (`*.module.css`), escrito com `@apply` do Tailwind 4 e `@reference` a `src/index.css`, que concentra os tokens do protótipo no `@theme`. Paleta, sombras e fontes padrão do Tailwind são removidas. Nenhum atributo `style` no JSX; larguras de barras e posição do tooltip são atributos SVG.
+- **Ícones:** `lucide-react` 1.59.0 (seta, chevron do seletor, indicadores de estado). **Fonte:** Inter variável, auto-hospedada por `@fontsource-variable/inter` 5.3.0, como a Inter do protótipo, sem Google Fonts.
+
+Diferenças em relação ao protótipo, por falta de dado no contrato:
+
+- **Mapa e lista:** não há resultado por UF. As 27 UFs aparecem como "Indisponível" (hachura do protótipo); a lista mostra "Indisp."; abrir uma UF mostra "Dados indisponíveis nesta demonstração." para presidente e governador.
+- **Cores:** vermelho e azul do protótipo vão para a 1ª e a 2ª candidatura na ordem do contrato (`candidateId`); demais em cinza. Não dependem do nome.
+- **Círculo da candidatura:** sem a palavra "Foto", porque o contrato não tem fotos. Quem tem mais votos recebe o anel cheio do protótipo; não há selo de eleito.
+- **Diferença em p.p.:** subtração exata dos percentuais publicados, descrita como "nos votos a candidaturas concorrentes" (a base do contrato), não "votos válidos".
+- **Horário "Dados da apuração":** hora e data da origem como recebidas (`totalizedAt` ou `generatedAt`), sem conversão de fuso.
+- **Rodapé:** o seletor "Cenário do protótipo" não existe; no lugar fica o aviso de proveniência ("Demonstração — dados sintéticos, sem valor oficial."). "Última verificação" é a última leitura do manifesto pelo navegador.
+- **Tooltip:** desenhado dentro do SVG, ancorado no centro da UF, em vez de seguir o ponteiro.
+- **"Verificando atualizações."** aparece só no "Tentar novamente"; o polling de 5 s não muda o indicador.
+
+## Execução local
+
+```sh
+nvm use   # Node 24.22.0
+pnpm collector:president:publish --capture apps/collector/fixtures/president-synthetic/01-nao-iniciada \
+  --output .local/publications --channel demo-sintetico-presidente-br-2t
+pnpm dev:web   # http://127.0.0.1:5173/
+```
+
+Uma ponte do servidor de desenvolvimento (`apps/web/vite/publications.ts`) serve **só** `/publications/manifest.json` e `/publications/snapshots/<uuid v4>.json` do canal configurado, lidos do disco a cada requisição: `GET`/`HEAD`, sem listagem, sem link simbólico, até 1 MiB, `Cache-Control: no-store`. Variáveis lidas só pelo servidor (sem prefixo `VITE_`): `ELEICOES_PUBLICATIONS_DIR` (padrão `.local/publications`) e `ELEICOES_CHANNEL` (padrão `demo-sintetico-presidente-br-2t`). O servidor escuta em `127.0.0.1`, e `server.fs.allow` restringe o `/@fs/` do Vite a `apps/web`, `packages` e `node_modules`, com `.local/` negado. A ponte não existe no `vite build` nem no `vite preview`.
+
+Publicar outra fixture (`02-aguardando-liberacao`, `03-parcial`, `04-parcial-atualizada`) muda a tela em até ~5 s, sem recarregar. O polling de 5 s após o fim da tentativa anterior é escolha da demonstração local, não intervalo de produção; pausa com a aba oculta e retoma ao voltar.
 
 **Decisão adotada:** manter essa base. SVG e GeoJSON são a abordagem inicial do mapa. A hospedagem planejada é Cloudflare Workers Static Assets. Não escolher agora outra biblioteca de estado, de roteamento ou de mapas.
 
@@ -60,7 +93,7 @@ A indicação de atualização usa os horários do contrato: origem, coleta e pu
 - O mapa e uma lista textual das unidades oferecem a mesma escolha. A lista é o caminho para teclado e leitor de tela.
 - A visão Brasil e a unidade selecionada permanecem utilizáveis em tela estreita. O mapa pode ceder espaço; a escolha da unidade, não.
 
-Esses comportamentos estão planejados. A tela atual não os implementa.
+O painel presidencial nacional implementa os itens sem mapa. Mapa, lista de UFs e governador continuam planejados.
 
 ## Polling
 

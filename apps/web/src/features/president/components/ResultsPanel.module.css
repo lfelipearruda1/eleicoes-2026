@@ -1,0 +1,21 @@
+@reference '../../../index.css';
+
+.panel {
+  @apply static order-1 flex min-w-0 flex-[1_1_360px] flex-col gap-10 wide:sticky wide:top-[140px] wide:order-2;
+}
+
+.heading {
+  @apply flex flex-col gap-3;
+}
+
+.eyebrow {
+  @apply text-[14px] text-muted;
+}
+
+.title {
+  @apply m-0 truncate text-[clamp(32px,3vw,40px)] leading-[1.1] font-heading;
+}
+
+.hint {
+  @apply m-0 text-[14px] leading-[1.43] text-muted [text-wrap:pretty];
+}

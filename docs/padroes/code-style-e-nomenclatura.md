@@ -55,15 +55,15 @@ A página de opções do Prettier não foi aberta em 14 de outubro de 2026. Não
 
 **Nível:** Obrigatório.
 
-**Regra:** Funções, variáveis, tipos, componentes, arquivos de código e mensagens de teste automatizado que nomeiam comportamento usam inglês nos identificadores. Documentação, comentários de intenção e a descrição do `it` usam português. O `it` está especificado em [testes/unitarios-aaa.md](../testes/unitarios-aaa.md).
+**Regra:** Funções, variáveis, tipos, componentes, arquivos de código e mensagens de teste automatizado que nomeiam comportamento usam inglês nos identificadores. Documentação e a descrição do `it` usam português. O `it` está especificado em [testes/unitarios-aaa.md](../testes/unitarios-aaa.md).
 
 **Justificativa:** A stack e as bibliotecas estão em inglês. Quem lê o produto lê português. Misturar os dois no mesmo identificador dificulta busca e revisão.
 
 **Onde se aplica:** código em `apps/` e `packages/`. Textos visíveis ao visitante continuam em português, porque são conteúdo, não identificador.
 
-**Exemplo adequado:** `function isSnapshotFresh` no código e “o snapshot passou do prazo” no comentário ou no documento.
+**Exemplo adequado:** `function isSnapshotFresh` no código e “o snapshot passou do prazo” no documento.
 
-**Antipadrão:** `function snapshotEstaFresco` ou um comentário em inglês que só repete o nome da função.
+**Antipadrão:** `function snapshotEstaFresco`.
 
 **Verificação:** revisão. Não há regra de lint para o idioma.
 
@@ -314,15 +314,15 @@ function decidePublicationNested(
 
 **Nível:** Obrigatório para comentário e código morto. Recomendado para o tamanho.
 
-**Regra:** Não há limite arbitrário de linhas que defina função limpa. Função longa se divide quando mistura motivos de mudança, não quando atravessa um número. Comentário explica intenção, restrição ou decisão. Não repete a sintaxe. Não se deixa código morto nem bloco grande comentado.
+**Regra:** Não há limite arbitrário de linhas que defina função limpa. Função longa se divide quando mistura motivos de mudança, não quando atravessa um número. Código não tem comentário: intenção, restrição e decisão ficam no nome ou em `docs/`. As únicas exceções são diretivas de ferramenta, listadas em `.claude/rules/sem-comentarios.md`. Não se deixa código morto.
 
 **Justificativa:** Um teto de linhas empurra extração sem responsabilidade nova, o contrário de [clean-code-e-solid.md](clean-code-e-solid.md).
 
 **Onde se aplica:** código novo.
 
-**Exemplo adequado:** um comentário que diga por que um redirecionamento não é seguido, apontando a decisão do coletor.
+**Exemplo adequado:** a razão de um redirecionamento não ser seguido registrada na decisão do coletor em `docs/`, e o código usando um nome que a reflita.
 
-**Antipadrão:** `// incrementa i` acima de `i += 1`, ou uma função antiga inteira comentada “por garantia”.
+**Antipadrão:** qualquer `//` ou `/* */` explicativo, ou uma função antiga inteira comentada “por garantia”.
 
 **Verificação:** revisão. `noUnusedLocals` e `noUnusedParameters` já estão em `tsconfig.base.json` e pegam parte do código morto, não um bloco comentado.
 

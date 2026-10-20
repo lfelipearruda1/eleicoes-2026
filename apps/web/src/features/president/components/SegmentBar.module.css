@@ -1,0 +1,41 @@
+@reference '../../../index.css';
+
+.bar {
+  @apply relative block w-full overflow-hidden rounded-full bg-track;
+}
+
+.regular {
+  @apply h-2;
+}
+
+.thin {
+  @apply h-1.5;
+}
+
+.candidate1 {
+  @apply fill-candidate-1;
+}
+
+.candidate2 {
+  @apply fill-candidate-2;
+}
+
+.other {
+  @apply fill-dim;
+}
+
+.candidate1.dim {
+  @apply fill-candidate-1-dim;
+}
+
+.candidate2.dim {
+  @apply fill-candidate-2-dim;
+}
+
+.other.dim {
+  @apply fill-surface;
+}
+
+.midline {
+  @apply stroke-page [stroke-width:2];
+}

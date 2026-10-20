@@ -2,10 +2,11 @@ import path from 'node:path'
 
 import {
   findSnapshotMismatches,
-  publishEnvelopeSchema,
   publishManifestSchema,
+  publishPresidentialSnapshotSchema,
   snapshotPathFor,
   type Manifest,
+  type PresidentialSnapshot,
 } from '@eleicoes/validation'
 
 import { MANIFEST_FILE } from '../constants.js'
@@ -29,6 +30,11 @@ export interface PublishRequest {
   beforeManifestSwap?: () => Promise<void>
 }
 
+export type PublishDocumentRequest = Omit<PublishRequest, 'inputPath'> & {
+  document: unknown
+  isUnchanged?: (current: PresidentialSnapshot) => boolean
+}
+
 export interface PublishResult {
   status: 'published' | 'unchanged'
   channelDirectory: string
@@ -37,20 +43,22 @@ export interface PublishResult {
 
 const serialize = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`
 
-async function readInput(inputPath: string) {
+async function readInput(inputPath: string): Promise<unknown> {
   const content = await readLimitedFile(inputPath).catch((error: unknown) => {
     if (hasErrorCode(error, 'ENOENT')) {
       throw new CollectorError('NOT_FOUND', inputPath)
     }
     throw error
   })
-  let document: unknown
   try {
-    document = JSON.parse(content.toString('utf8'))
+    return JSON.parse(content.toString('utf8'))
   } catch (error) {
     throw new CollectorError('INVALID_JSON', inputPath, error)
   }
-  const parsed = publishEnvelopeSchema.safeParse(document)
+}
+
+function validateDocument(document: unknown): PresidentialSnapshot {
+  const parsed = publishPresidentialSnapshotSchema.safeParse(document)
   if (!parsed.success) {
     const fields = parsed.error.issues.map((issue) => issue.path.join('.'))
     throw new CollectorError(
@@ -64,10 +72,17 @@ async function readInput(inputPath: string) {
   return parsed.data
 }
 
-export async function publishSnapshot(
-  request: PublishRequest,
+export async function publishSnapshot({
+  inputPath,
+  ...request
+}: PublishRequest): Promise<PublishResult> {
+  return publishDocument({ ...request, document: await readInput(inputPath) })
+}
+
+export async function publishDocument(
+  request: PublishDocumentRequest,
 ): Promise<PublishResult> {
-  const snapshot = await readInput(request.inputPath)
+  const snapshot = validateDocument(request.document)
   const channelDirectory = await resolveChannelDirectory(
     request.root,
     request.channel,
@@ -89,6 +104,12 @@ export async function publishSnapshot(
       : []
     if (contextMismatches.length > 0) {
       throw new CollectorError('CHANNEL_MISMATCH', contextMismatches.join(', '))
+    }
+    if (
+      previous &&
+      request.isUnchanged?.(await loadSnapshot(channelDirectory, previous))
+    ) {
+      return { status: 'unchanged', channelDirectory, manifest: previous }
     }
 
     const content = serialize(snapshot)

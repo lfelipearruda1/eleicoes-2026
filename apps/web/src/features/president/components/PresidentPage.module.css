@@ -1,0 +1,9 @@
+@reference '../../../index.css';
+
+.root {
+  @apply flex min-h-screen flex-col items-center bg-page text-text;
+}
+
+.main {
+  @apply flex w-full max-w-[1440px] flex-1 flex-wrap items-start gap-x-14 gap-y-8 px-[clamp(16px,3vw,48px)] pt-6 pb-20;
+}

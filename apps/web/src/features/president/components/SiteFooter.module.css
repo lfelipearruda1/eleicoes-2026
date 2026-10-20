@@ -1,0 +1,5 @@
+@reference '../../../index.css';
+
+.footer {
+  @apply flex w-full max-w-[1440px] flex-wrap justify-between gap-x-6 gap-y-2 px-[clamp(16px,3vw,48px)] pt-6 pb-8 text-[12px] leading-[1.33] text-muted;
+}

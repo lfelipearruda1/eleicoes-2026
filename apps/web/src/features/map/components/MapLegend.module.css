@@ -1,0 +1,29 @@
+@reference '../../../index.css';
+
+.legend {
+  @apply m-0 flex list-none flex-wrap gap-x-4 gap-y-1.5 p-0 text-[14px] leading-[1.43] text-muted;
+}
+
+.item {
+  @apply flex items-center gap-2;
+}
+
+.swatch {
+  @apply size-2.5 flex-none rounded-full;
+}
+
+.candidate1 {
+  @apply bg-candidate-1;
+}
+
+.candidate2 {
+  @apply bg-candidate-2;
+}
+
+.other {
+  @apply bg-dim;
+}
+
+.unavailable {
+  @apply bg-[repeating-linear-gradient(45deg,var(--color-surface)_0_2px,var(--color-dim)_2px_3.5px)];
+}

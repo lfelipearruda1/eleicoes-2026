@@ -44,4 +44,9 @@ export const RULE_MESSAGES = {
     'produção só publica dado do ambiente oficial (DA-13)',
   governorWithNationalScope: 'governador não tem abrangência Brasil',
   snapshotPathMismatch: 'current.path precisa ser snapshots/<dataVersion>.json',
+  availableWithoutRelease: 'available exige votação liberada pela origem',
+  availableNotStarted: 'available exige totalização iniciada',
+  pendingReasonMismatch: 'pendingReason não corresponde aos indicadores',
+  sectionsOverTotal: 'seções totalizadas passam do total',
+  duplicateCandidate: 'candidatura repetida',
 } as const

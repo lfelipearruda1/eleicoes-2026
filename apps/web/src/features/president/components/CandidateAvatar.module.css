@@ -1,0 +1,37 @@
+@reference '../../../index.css';
+
+.ring {
+  @apply relative size-[52px] flex-none rounded-full border-2 border-solid bg-surface;
+}
+
+.ahead {
+  @apply border-0 p-0.5;
+}
+
+.inner {
+  @apply absolute inset-0.5 rounded-full bg-surface;
+}
+
+.candidate1 {
+  @apply border-candidate-1;
+}
+
+.candidate2 {
+  @apply border-candidate-2;
+}
+
+.other {
+  @apply border-dim;
+}
+
+.ahead.candidate1 {
+  @apply bg-candidate-1;
+}
+
+.ahead.candidate2 {
+  @apply bg-candidate-2;
+}
+
+.ahead.other {
+  @apply bg-dim;
+}

@@ -12,7 +12,7 @@ export const dataVersionSchema = z.string().regex(CANONICAL_UUID_V4_PATTERN)
 
 export const publicationContextShape = {
   environment: z.enum(['local', 'staging', 'production']),
-  sourceEnvironment: z.enum(['official', 'simulated']),
+  sourceEnvironment: z.enum(['official', 'simulated', 'synthetic']),
   round: z.literal([1, 2]),
   office: z.enum(['president', 'governor']),
   scope: z.enum(['BR', ...BRAZILIAN_STATE_CODES]),
@@ -49,7 +49,7 @@ export function checkContextRules(
   }
 }
 
-const sourceShape = {
+export const sourceShape = {
   file: z
     .string()
     .min(1)
@@ -57,7 +57,7 @@ const sourceShape = {
     .refine((value) => !value.includes('?'), RULE_MESSAGES.sourceFileWithQuery),
 }
 
-const envelopeShape = {
+export const envelopeShape = {
   contractVersion: z.literal(1),
   dataVersion: dataVersionSchema,
   ...publicationContextShape,

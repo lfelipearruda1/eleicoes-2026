@@ -61,24 +61,34 @@ describe('runCli', () => {
     expect(exitCode).toBe(EXIT_CODE.usage)
   })
 
-  it('deve executar a demonstração A, repetição, B e recusa de A', async () => {
-    const exitCode = await run(['demo', '--out', workDirectory])
+  it('deve executar a demonstração presidencial só com fixtures do repositório', async () => {
+    const exitCode = await run(['president-demo', '--output', workDirectory])
 
     const report = JSON.parse(printed[0])
     expect(exitCode).toBe(EXIT_CODE.success)
     expect(report.notice).toBe(DEMO_NOTICE)
-    expect(report.publishA).toMatchObject({ status: 'published', revision: 1 })
-    expect(report.repeatA).toMatchObject({ status: 'unchanged', revision: 1 })
-    expect(report.publishB).toMatchObject({ status: 'published', revision: 2 })
-    expect(report.reactivateA).toEqual({ rejected: 'VERSION_NOT_CURRENT' })
-    expect(report.readAfterReactivation.dataVersion).toBe(
-      report.publishB.dataVersion,
-    )
-    expect(report.history).toHaveLength(2)
+    expect(report.steps).toMatchObject([
+      { status: 'published', revision: 1, availability: 'pending' },
+      { status: 'published', revision: 2, availability: 'pending' },
+      { status: 'published', revision: 3, availability: 'available' },
+      { status: 'unchanged', revision: 3 },
+      { status: 'published', revision: 4, availability: 'available' },
+      { rejected: 'INVALID_TSE_RESULT' },
+    ])
+    expect(report.final.manifest.revision).toBe(4)
+    expect(report.final.snapshot.candidates).toHaveLength(2)
+    expect(report.history).toHaveLength(4)
+  })
+
+  it('deve recusar president-publish sem as opções obrigatórias', async () => {
+    const exitCode = await run(['president-publish', '--output', workDirectory])
+
+    expect(exitCode).toBe(EXIT_CODE.usage)
+    expect(errors.join()).toContain('--capture, --channel')
   })
 
   it('deve inspecionar o canal publicado pela demonstração', async () => {
-    await run(['demo', '--out', workDirectory])
+    await run(['president-demo', '--output', workDirectory])
     const { root } = JSON.parse(printed[0])
     printed = []
 
@@ -91,6 +101,6 @@ describe('runCli', () => {
     ])
 
     expect(exitCode).toBe(EXIT_CODE.success)
-    expect(JSON.parse(printed[0]).manifest.revision).toBe(2)
+    expect(JSON.parse(printed[0]).manifest.revision).toBe(4)
   })
 })

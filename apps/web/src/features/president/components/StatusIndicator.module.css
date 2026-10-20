@@ -1,0 +1,17 @@
+@reference '../../../index.css';
+
+.status {
+  @apply flex items-center gap-2 text-[12px] leading-[1.33] text-muted;
+}
+
+.icon {
+  @apply size-2.5 flex-none text-muted;
+}
+
+.spin {
+  @apply animate-spin text-text;
+}
+
+.full {
+  @apply fill-text text-text;
+}

@@ -1,8 +1,9 @@
 import { parseArgs } from 'node:util'
 
 import { EXIT_CODE, HELP, USAGE_ERRORS } from './constants.js'
-import { runDemo } from './demo.js'
 import { CollectorError } from './error.js'
+import { runPresidentialDemo } from './president/demo.js'
+import { publishPresidentialCapture } from './president/publish.js'
 import { publishSnapshot } from './publication/publish.js'
 import { readPublication } from './publication/read.js'
 import { listSnapshots } from './publication/storage.js'
@@ -10,7 +11,14 @@ import { runTseOnce, runTseReplay } from './tse/run.js'
 
 type Options = Partial<
   Record<
-    'out' | 'channel' | 'input' | 'source' | 'round' | 'election' | 'output',
+    | 'out'
+    | 'channel'
+    | 'input'
+    | 'source'
+    | 'round'
+    | 'election'
+    | 'output'
+    | 'capture',
     string
   >
 >
@@ -42,6 +50,7 @@ function parseCommandLine(argv: string[]) {
         round: { type: 'string' },
         election: { type: 'string' },
         output: { type: 'string' },
+        capture: { type: 'string' },
         help: { type: 'boolean', short: 'h' },
       },
     })
@@ -68,7 +77,16 @@ const commands = {
       history: await listSnapshots(publication.channelDirectory),
     }
   },
-  demo: (options: Options) => runDemo(options.out),
+  'president-publish': async (options: Options) => {
+    const { capture, output, channel } = requireOptions(
+      options,
+      'capture',
+      'output',
+      'channel',
+    )
+    return publishPresidentialCapture({ capture, output, channel })
+  },
+  'president-demo': (options: Options) => runPresidentialDemo(options.output),
   'tse-once': async (options: Options) => {
     const { source, round, output } = requireOptions(
       options,

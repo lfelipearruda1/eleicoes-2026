@@ -1,1 +1,72 @@
 @import 'tailwindcss';
+
+@theme {
+  --color-*: initial;
+  --color-page: #0a0a0a;
+  --color-surface: #161616;
+  --color-track: #1c1c1c;
+  --color-line: #3a3a3a;
+  --color-dim: #5c5c5c;
+  --color-muted: #8f8f8f;
+  --color-text: #f5f5f5;
+  --color-candidate-1: #e5484d;
+  --color-candidate-1-dim: #2a1415;
+  --color-candidate-2: #3e7bfa;
+  --color-candidate-2-dim: #141c2e;
+
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+
+  --font-*: initial;
+  --font-sans:
+    'Inter Variable', Inter, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+
+  --font-weight-*: initial;
+  --font-weight-body: 450;
+  --font-weight-semibold: 600;
+  --font-weight-heading: 650;
+
+  --breakpoint-*: initial;
+  --breakpoint-md: 768px;
+  --breakpoint-wide: 1000px;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    background: var(--color-page);
+    color: var(--color-text);
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-body);
+    font-size: 16px;
+    line-height: 1.38;
+    font-variant-numeric: tabular-nums;
+  }
+
+  button,
+  select {
+    font-family: inherit;
+  }
+
+  a {
+    color: var(--color-text);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+}

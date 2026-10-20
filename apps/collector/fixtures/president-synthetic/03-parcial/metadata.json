@@ -1,0 +1,9 @@
+{
+  "source": "synthetic",
+  "notice": "Captura sintética para demonstração local. Não representa resultado eleitoral real de 2026.",
+  "office": "president",
+  "round": 2,
+  "scope": "br",
+  "election": { "election": "9002" },
+  "collectedAt": "2026-10-25T21:00:05Z"
+}

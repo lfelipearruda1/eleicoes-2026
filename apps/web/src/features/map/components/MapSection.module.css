@@ -1,0 +1,17 @@
+@reference '../../../index.css';
+
+.section {
+  @apply order-2 flex min-w-0 flex-[1.7_1_560px] flex-col gap-4 wide:order-1;
+}
+
+.toolbar {
+  @apply flex flex-wrap items-center justify-between gap-3;
+}
+
+.mapWrap {
+  @apply relative;
+}
+
+.hint {
+  @apply m-0 text-[12px] leading-[1.33] text-muted;
+}

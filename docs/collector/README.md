@@ -82,18 +82,19 @@ O manifesto é o único ponteiro móvel. Os arquivos de uma versão publicada n�
 
 ### Publicação local
 
-Implementação: `apps/collector/src/publication/` (`publish.ts`, `read.ts`, `storage.ts`, `error.ts`), CLI em `src/cli.ts`, textos e limites em `src/constants.ts`. Contrato: [Manifesto](../dados/contrato.md#manifesto-recorte-do-publicador-local) (DA-22). Recorte: o documento é só o envelope, sem payload eleitoral, com `environment` `local`.
+Implementação: `apps/collector/src/publication/` (`publish.ts`, `read.ts`, `storage.ts`, `error.ts`), CLI em `src/cli.ts`, textos e limites em `src/constants.ts`. Contrato: [Manifesto](../dados/contrato.md#manifesto-recorte-do-publicador-local) (DA-22). Recorte: o documento é o snapshot presidencial completo ([contrato](../dados/contrato.md#snapshot-presidencial-recorte-mínimo-19102026)), com `environment` `local`.
 
 Comandos, na raiz, depois de `nvm use`. Cada um compila o coletor e roda o JavaScript de `dist`:
 
 ```sh
-pnpm collector:demo --out .publicacao-local
+pnpm collector:president:demo [--output <pasta>]
+pnpm collector:president:publish --capture <pasta da captura> --output .local/publications --channel <canal>
 pnpm collector:publish --out .publicacao-local --channel <canal> --input <arquivo.json>
 pnpm collector:inspect --out .publicacao-local --channel <canal>
 node apps/collector/dist/main.js --help
 ```
 
-Sem argumentos, o coletor só mostra a ajuda. `demo` cria um diretório novo `eleicoes-demo-*` a cada execução e nunca apaga os anteriores. `.publicacao-local/` está no `.gitignore`. Códigos de saída: 0 sucesso, 1 falha da operação, 2 uso incorreto. O resultado sai em JSON. Erro sai como `CÓDIGO: mensagem`, por exemplo `CHANNEL_LOCKED: …`.
+Sem argumentos, o coletor só mostra a ajuda. `president-demo` cria um diretório novo `eleicoes-demo-*` a cada execução e nunca apaga os anteriores. `.publicacao-local/` está no `.gitignore`. Códigos de saída: 0 sucesso, 1 falha da operação, 2 uso incorreto. O resultado sai em JSON. Erro sai como `CÓDIGO: mensagem`, por exemplo `CHANNEL_LOCKED: …`.
 
 Layout: `<out>/<canal>/manifest.json`, `<out>/<canal>/snapshots/<dataVersion>.json`, bloqueio `<out>/<canal>/.publish.lock`.
 
@@ -109,6 +110,27 @@ Garantias implementadas e testadas:
 
 Não garantido: durabilidade em queda de energia (não há `fsync` do diretório) e exclusão contra processo que não usa o bloqueio.
 
+### Captura presidencial → snapshot publicado
+
+Implementação: `apps/collector/src/president/` (`normalize.ts` puro, `publish.ts` orquestra, `demo.ts`). Um comando por execução, sem rede:
+
+```sh
+pnpm collector:president:publish \
+  --capture .local/tse/official/2026-10-19T12-56-06-722Z-1e9ccfd5 \
+  --output .local/publications --channel local-oficial-presidente-br-2t
+```
+
+1. Lê `metadata.json` da captura e valida a proveniência. Oficial: `validation` `valid`, eleição e a requisição cuja URL é a do resultado presidencial Brasil dessa eleição. Com 200 usa `result.json` da pasta. Com 304 usa a cópia indicada em `reusedCapture`, na mesma pasta de origem (gravado por `tse-once` a partir desta versão; capturas antigas com 304 são recusadas). Sintética: `source` `synthetic`, `collectedAt` declarado e aviso. Replay, captura rejeitada ou metadados insuficientes: `INVALID_CAPTURE`.
+2. Reprocessa o resultado com o parser do EA20 e confere eleição e turno com os metadados.
+3. Normaliza (`normalizePresidentialResult`: sem rede, disco, relógio ou UUID) e decide `available`/`pending`.
+4. Captura sintética só em canal `demo-*`; oficial só fora dele (`CHANNEL_SOURCE_MISMATCH`).
+5. Publica pelo publicador local. Dentro do bloqueio, compara o conteúdo com a versão atual sem `dataVersion` e `collectedAt`: igual → `unchanged`, sem UUID nem revisão novos. Diferente (inclusive com votos menores) → versão nova.
+6. Relê manifesto e snapshot com o schema de leitura e imprime status, revisão, `dataVersion` e o snapshot lido.
+
+`sourceEnvironment` vem da captura, não de argumento. `source.file` é o caminho do arquivo relativo à base do ambiente (`ele2026/6258/dados/br/br-c0001-e006258-u.json`) e não é usado como caminho local. `checkedAt` continua ausente.
+
+`president-demo` usa as capturas sintéticas versionadas em `apps/collector/fixtures/president-synthetic/` (não iniciada, aguardando liberação, parcial, parcial repetida, parcial atualizada, inválida) num canal `demo-sintetico-presidente-br-2t` dentro de uma pasta `eleicoes-demo-*` nova (padrão: diretório temporário do sistema).
+
 ## Consulta ao TSE
 
 Implementação: `apps/collector/src/tse/`. `http.ts` cuida do transporte: GET, timeout de 15 s até o fim do corpo, limite de 5 MiB, sem redirect, sem retry, só HTTPS no host exato da origem. `ea11.ts` lê a configuração, escolhe a eleição e monta a URL. `ea20.ts` faz o parser do resultado. `capture.ts` grava as capturas e `run.ts` orquestra. Os valores ficam em `src/constants.ts`.
@@ -123,7 +145,7 @@ pnpm collector:tse:replay --input <arquivo EA20> --output .local/tse
 - **Pastas:** cada execução cria `<output>/<origem>/<id>/` sem sobrescrever nada, com `config.json` e `result.json` (bytes recebidos), `metadata.json` (URL, status, ETag/Last-Modified, validação, origem da amostra) e `summary.json` (recorte extraído). Resposta inválida vira `result.rejected.json`.
 - **Validadores:** `<output>/<origem>/last-valid.json` guarda, por URL exata, a última cópia válida e o validador HTTP dela. Só cópias validadas entram. Um 304 reaproveita essa cópia, e um 304 sem cópia é erro.
 - **Replay:** `tse-replay` reprocessa um arquivo sem rede, com o mesmo parser.
-- **Escopo:** o resumo é um artefato interno de integração, não um snapshot público. Não passa pelo publicador.
+- **Escopo:** o resumo é um artefato interno de integração, não um snapshot. A publicação parte da pasta da captura (`president-publish`), não do `summary.json`.
 
 ## Um publicador
 

@@ -1,0 +1,39 @@
+@reference '../../../index.css';
+
+.table {
+  @apply flex flex-col;
+}
+
+.header,
+.row {
+  @apply grid grid-flow-col grid-cols-[32px_minmax(0,1fr)] auto-cols-[64px] items-center gap-3 md:grid-cols-[40px_minmax(0,1fr)_120px] md:auto-cols-[72px];
+}
+
+.header {
+  @apply px-3 pb-2.5 text-[12px] text-muted;
+}
+
+.row {
+  @apply min-h-[52px] w-full cursor-pointer rounded-none border-0 border-t border-solid border-track bg-transparent px-3 py-2 text-left text-[14px] text-text;
+  @apply hover:bg-surface focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-text;
+}
+
+.rowSelected {
+  @apply bg-surface;
+}
+
+.code {
+  @apply text-muted;
+}
+
+.name {
+  @apply truncate;
+}
+
+.barCell {
+  @apply hidden md:block;
+}
+
+.value {
+  @apply truncate text-right;
+}

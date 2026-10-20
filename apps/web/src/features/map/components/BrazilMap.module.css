@@ -1,0 +1,83 @@
+@reference '../../../index.css';
+
+.map {
+  @apply block h-auto w-full md:h-[min(76vh,820px)];
+}
+
+.unavailableBase {
+  @apply fill-surface;
+}
+
+.unavailableStripe {
+  @apply fill-line;
+}
+
+.uf {
+  @apply cursor-pointer stroke-page outline-none [stroke-linejoin:round] [stroke-width:1.6] transition-opacity duration-200;
+}
+
+.ufDimmed {
+  @apply opacity-45;
+}
+
+.outlineHover {
+  @apply pointer-events-none fill-none stroke-text [stroke-linejoin:round] [stroke-width:2];
+}
+
+.outlineSelectedBack {
+  @apply pointer-events-none fill-none stroke-page [stroke-linejoin:round] [stroke-width:8];
+}
+
+.outlineSelected {
+  @apply pointer-events-none fill-none stroke-text [stroke-linejoin:round] [stroke-width:3.5];
+}
+
+.outlineFocus {
+  @apply pointer-events-none fill-none stroke-text [stroke-dasharray:7_5] [stroke-linejoin:round] [stroke-width:2.5];
+}
+
+.label {
+  @apply pointer-events-none fill-muted text-[19px] font-semibold md:text-[19px];
+  dominant-baseline: central;
+  text-anchor: middle;
+}
+
+.labelDimmed {
+  @apply opacity-50;
+}
+
+.callout {
+  @apply cursor-pointer;
+}
+
+.calloutLine {
+  @apply stroke-line [stroke-width:1.2];
+}
+
+.calloutPill {
+  @apply fill-surface;
+}
+
+.calloutText {
+  @apply fill-text text-[15.2px] font-semibold;
+  dominant-baseline: central;
+  text-anchor: middle;
+}
+
+.selectedPill {
+  @apply fill-text;
+}
+
+.selectedText {
+  @apply fill-page font-heading;
+}
+
+@media (width < 768px) {
+  .label {
+    font-size: 26px;
+  }
+
+  .calloutText {
+    font-size: 20.8px;
+  }
+}

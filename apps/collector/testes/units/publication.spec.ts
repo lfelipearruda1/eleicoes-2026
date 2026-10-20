@@ -13,7 +13,7 @@ import {
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import type { SnapshotEnvelope } from '@eleicoes/validation'
+import type { PresidentialSnapshot } from '@eleicoes/validation'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import {
@@ -47,21 +47,38 @@ afterEach(async () => {
   await rm(workDirectory, { recursive: true, force: true })
 })
 
-const envelope = (
-  overrides: Partial<SnapshotEnvelope> = {},
-): SnapshotEnvelope => ({
-  contractVersion: 1,
-  dataVersion: randomUUID(),
-  environment: 'local',
-  sourceEnvironment: 'simulated',
-  round: 2,
-  office: 'president',
-  scope: 'BR',
-  availability: 'unknown',
-  collectedAt: '2026-10-25T21:04:19Z',
-  source: { file: 'sintetico/exemplo.json' },
-  ...overrides,
-})
+const snapshotFixture = (
+  overrides: Record<string, unknown> = {},
+): PresidentialSnapshot =>
+  ({
+    contractVersion: 1,
+    dataVersion: randomUUID(),
+    environment: 'local',
+    sourceEnvironment: 'synthetic',
+    round: 2,
+    office: 'president',
+    scope: 'BR',
+    availability: 'pending',
+    pendingReason: 'totalization_not_started',
+    collectedAt: '2026-10-25T21:04:19Z',
+    source: { file: 'sintetico/exemplo.json' },
+    votesReleased: true,
+    totalization: { status: 'not_started', finalIndicator: false },
+    sections: { total: '10', totalized: '0', totalizedPercentage: '0.00' },
+    origin: {
+      electionCode: '9002',
+      generationId: '1',
+      generatedAt: { date: '25/10/2026', time: '17:00:00' },
+    },
+    candidates: [
+      {
+        candidateId: '900000000001',
+        number: '91',
+        ballotName: 'CANDIDATURA SINTÉTICA A',
+      },
+    ],
+    ...overrides,
+  }) as PresidentialSnapshot
 
 const channelDirectory = () => path.join(root, CHANNEL)
 const manifestPath = () => path.join(channelDirectory(), MANIFEST_FILE)
@@ -110,7 +127,7 @@ async function errorOf(promise: Promise<unknown>): Promise<CollectorError> {
 
 describe('publishSnapshot', () => {
   it('deve criar a revisão 1 apontando para o snapshot', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
 
     const result = await publish(first)
 
@@ -122,9 +139,9 @@ describe('publishSnapshot', () => {
   })
 
   it('deve incrementar a revisão e preservar o histórico', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
     await publish(first)
-    const second = envelope()
+    const second = snapshotFixture()
 
     const result = await publish(second)
 
@@ -137,7 +154,7 @@ describe('publishSnapshot', () => {
   })
 
   it('deve ser idempotente ao repetir a versão atual', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
     await publish(first)
     const before = await readManifestText()
 
@@ -150,7 +167,7 @@ describe('publishSnapshot', () => {
   })
 
   it('deve tratar outra formatação e ordem de chaves como repetição', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
     await publish(first)
     const reordered = Object.fromEntries(Object.entries(first).reverse())
 
@@ -160,7 +177,7 @@ describe('publishSnapshot', () => {
   })
 
   it('deve falhar com mesmo dataVersion e conteúdo diferente', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
     await publish(first)
     const before = await readManifestText()
 
@@ -174,9 +191,9 @@ describe('publishSnapshot', () => {
   })
 
   it('deve recusar reativar uma versão histórica', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
     await publish(first)
-    await publish(envelope())
+    await publish(snapshotFixture())
 
     const error = await publishError(first)
 
@@ -184,11 +201,11 @@ describe('publishSnapshot', () => {
   })
 
   it('deve preservar o manifesto anterior quando a publicação falha antes da troca', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
     await publish(first)
     const before = await readManifestText()
 
-    await errorOf(publish(envelope(), { beforeManifestSwap: failure }))
+    await errorOf(publish(snapshotFixture(), { beforeManifestSwap: failure }))
 
     expect(await readManifestText()).toBe(before)
     const { snapshot } = await readPublication(root, CHANNEL)
@@ -196,17 +213,17 @@ describe('publishSnapshot', () => {
   })
 
   it('deve liberar o bloqueio depois de uma falha', async () => {
-    await publish(envelope())
-    await errorOf(publish(envelope(), { beforeManifestSwap: failure }))
+    await publish(snapshotFixture())
+    await errorOf(publish(snapshotFixture(), { beforeManifestSwap: failure }))
 
-    const result = await publish(envelope())
+    const result = await publish(snapshotFixture())
 
     expect(result.manifest.revision).toBe(2)
   })
 
   it('deve não promover o snapshot órfão de uma publicação interrompida', async () => {
-    await publish(envelope())
-    const orphan = envelope()
+    await publish(snapshotFixture())
+    const orphan = snapshotFixture()
     await errorOf(publish(orphan, { beforeManifestSwap: failure }))
 
     const error = await publishError(orphan)
@@ -215,60 +232,56 @@ describe('publishSnapshot', () => {
   })
 
   it('deve recusar manifesto corrompido sem reinicializar o canal', async () => {
-    await publish(envelope())
+    await publish(snapshotFixture())
     await writeFile(manifestPath(), '{"revision": ')
 
-    const error = await publishError(envelope())
+    const error = await publishError(snapshotFixture())
 
     expect(error.code).toBe('CORRUPTED_FILE')
     expect(await readManifestText()).toBe('{"revision": ')
   })
 
   it('deve recusar canal sem manifesto que já tem snapshots', async () => {
-    await publish(envelope())
+    await publish(snapshotFixture())
     await unlink(manifestPath())
 
-    const error = await publishError(envelope())
+    const error = await publishError(snapshotFixture())
 
     expect(error.code).toBe('MANIFEST_MISSING')
   })
 
   it('deve continuar a revisão a partir do estado persistido', async () => {
-    await publish(envelope())
+    await publish(snapshotFixture())
     const manifest = JSON.parse(await readManifestText())
     await writeFile(
       manifestPath(),
       JSON.stringify({ ...manifest, revision: 41 }),
     )
 
-    const result = await publish(envelope())
+    const result = await publish(snapshotFixture())
 
     expect(result.manifest.revision).toBe(42)
   })
 
   it('deve recusar incrementar além do maior inteiro seguro', async () => {
-    await publish(envelope())
+    await publish(snapshotFixture())
     const manifest = JSON.parse(await readManifestText())
     await writeFile(
       manifestPath(),
       JSON.stringify({ ...manifest, revision: Number.MAX_SAFE_INTEGER }),
     )
 
-    const error = await publishError(envelope())
+    const error = await publishError(snapshotFixture())
 
     expect(error.code).toBe('REVISION_LIMIT')
   })
 
-  it.each([
-    { scope: 'SP' },
-    { round: 1 },
-    { sourceEnvironment: 'official' },
-  ] as const)(
+  it.each([{ scope: 'SP' }, { round: 1 }, { sourceEnvironment: 'official' }])(
     'deve recusar documento de outro contexto: %o',
     async (change) => {
-      await publish(envelope())
+      await publish(snapshotFixture())
 
-      const error = await publishError(envelope(change))
+      const error = await publishError(snapshotFixture(change))
 
       expect(error.code).toBe('CHANNEL_MISMATCH')
     },
@@ -277,12 +290,12 @@ describe('publishSnapshot', () => {
   it.each([
     {
       label: 'ambiente diferente de local',
-      document: envelope({ environment: 'staging' }),
+      document: snapshotFixture({ environment: 'staging' }),
       code: 'UNSUPPORTED_ENVIRONMENT',
     },
     {
       label: 'chave fora do contrato',
-      document: { ...envelope(), payload: {} },
+      document: { ...snapshotFixture(), payload: {} },
       code: 'INVALID_DOCUMENT',
     },
     { label: 'JSON inválido', document: '{', code: 'INVALID_JSON' },
@@ -298,7 +311,7 @@ describe('publishSnapshot', () => {
   })
 
   it('deve recusar canal que tenta ser caminho', async () => {
-    const inputPath = await writeInput(envelope())
+    const inputPath = await writeInput(snapshotFixture())
 
     const error = await errorOf(
       publishSnapshot({ root, channel: '../fora', inputPath }),
@@ -314,17 +327,17 @@ describe('publishSnapshot', () => {
     await mkdir(root)
     await symlink(elsewhere, channelDirectory())
 
-    const error = await publishError(envelope())
+    const error = await publishError(snapshotFixture())
 
     expect(error.code).toBe('SYMBOLIC_LINK')
     expect(await readdir(elsewhere)).toEqual([])
   })
 
   it('deve recusar publicação concorrente no mesmo canal', async () => {
-    await publish(envelope())
+    await publish(snapshotFixture())
     const holding = Promise.withResolvers<void>()
     const inside = Promise.withResolvers<void>()
-    const first = publish(envelope(), {
+    const first = publish(snapshotFixture(), {
       beforeManifestSwap: async () => {
         inside.resolve()
         await holding.promise
@@ -332,7 +345,7 @@ describe('publishSnapshot', () => {
     })
     await inside.promise
 
-    const error = await publishError(envelope())
+    const error = await publishError(snapshotFixture())
 
     holding.resolve()
     expect(error.code).toBe('CHANNEL_LOCKED')
@@ -340,11 +353,11 @@ describe('publishSnapshot', () => {
   })
 
   it('deve recusar bloqueio deixado por interrupção, sem removê-lo', async () => {
-    await publish(envelope())
+    await publish(snapshotFixture())
     const lockPath = path.join(channelDirectory(), LOCK_FILE)
     await writeFile(lockPath, '')
 
-    const error = await publishError(envelope())
+    const error = await publishError(snapshotFixture())
 
     expect(error.code).toBe('CHANNEL_LOCKED')
     expect((await stat(lockPath)).isFile()).toBe(true)
@@ -353,7 +366,7 @@ describe('publishSnapshot', () => {
 
 describe('readPublication', () => {
   it('deve ler a versão atual validada pelo manifesto', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
     await publish(first)
 
     const result = await readPublication(root, CHANNEL)
@@ -362,7 +375,7 @@ describe('readPublication', () => {
   })
 
   it('deve recusar manifesto cujo caminho sai do diretório do canal', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
     await publish(first)
     const manifest = JSON.parse(await readManifestText())
     manifest.current.path = `../../${first.dataVersion}.json`
@@ -374,7 +387,7 @@ describe('readPublication', () => {
   })
 
   it('deve falhar quando o snapshot referenciado não existe', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
     await publish(first)
     await unlink(snapshotPath(first.dataVersion))
 
@@ -384,7 +397,7 @@ describe('readPublication', () => {
   })
 
   it('deve falhar quando o snapshot referenciado é inválido', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
     await publish(first)
     await writeFile(snapshotPath(first.dataVersion), '[]')
 
@@ -394,7 +407,7 @@ describe('readPublication', () => {
   })
 
   it('deve recusar snapshot que é link simbólico', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
     await publish(first)
     const outside = path.join(workDirectory, 'fora.json')
     await writeFile(outside, await readFile(snapshotPath(first.dataVersion)))
@@ -412,7 +425,7 @@ describe('refreshAcceptedState', () => {
     (await refreshAcceptedState(root, CHANNEL, undefined)).state
 
   it('deve aceitar o primeiro manifesto com snapshot válido', async () => {
-    const first = envelope()
+    const first = snapshotFixture()
     await publish(first)
 
     const result = await refreshAcceptedState(root, CHANNEL, undefined)
@@ -422,9 +435,9 @@ describe('refreshAcceptedState', () => {
   })
 
   it('deve ignorar revisão antiga e manter o estado aceito', async () => {
-    await publish(envelope())
+    await publish(snapshotFixture())
     const oldManifest = await readManifestText()
-    await publish(envelope())
+    await publish(snapshotFixture())
     const accepted = await accept()
     await writeFile(manifestPath(), oldManifest)
 
@@ -435,7 +448,7 @@ describe('refreshAcceptedState', () => {
   })
 
   it('deve apontar conflito com mesma revisão e conteúdo divergente', async () => {
-    await publish(envelope())
+    await publish(snapshotFixture())
     const accepted = await accept()
     const manifest = JSON.parse(await readManifestText())
     manifest.current.publishedAt = '2026-10-25T23:59:59Z'
@@ -448,9 +461,9 @@ describe('refreshAcceptedState', () => {
   })
 
   it('deve manter o último estado válido quando o snapshot novo não existe', async () => {
-    await publish(envelope())
+    await publish(snapshotFixture())
     const accepted = await accept()
-    const second = envelope()
+    const second = snapshotFixture()
     await publish(second)
     await unlink(snapshotPath(second.dataVersion))
 
@@ -461,7 +474,7 @@ describe('refreshAcceptedState', () => {
   })
 
   it('deve manter o último estado válido quando o manifesto está corrompido', async () => {
-    await publish(envelope())
+    await publish(snapshotFixture())
     const accepted = await accept()
     await writeFile(manifestPath(), 'não é json')
 

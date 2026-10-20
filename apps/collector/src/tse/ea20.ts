@@ -7,6 +7,13 @@ const countSchema = z.string().regex(/^\d+$/)
 const percentSchema = z.string().regex(/^\d{1,3},\d{2}$/)
 const dateSchema = z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/)
 const timeSchema = z.string().regex(/^\d{2}:\d{2}:\d{2}$/)
+const flagSchema = z.enum(['s', 'n'])
+
+const TOTALIZATION_STATUS = {
+  n: 'not_started',
+  a: 'in_progress',
+  f: 'finished',
+} as const
 
 const candidateSchema = z.object({
   n: countSchema,
@@ -25,6 +32,9 @@ const resultSchema = z.object({
   idg: countSchema,
   dt: dateSchema.or(z.literal('')),
   ht: timeSchema.or(z.literal('')),
+  dv: flagSchema,
+  tf: flagSchema,
+  and: z.enum(['n', 'a', 'f']),
   carg: z.array(
     z.object({
       cd: z.string(),
@@ -36,7 +46,7 @@ const resultSchema = z.object({
     }),
   ),
   s: z.object({ ts: countSchema, st: countSchema, pst: percentSchema }),
-  v: z.object({ tv: countSchema, vv: countSchema }),
+  v: z.object({ tv: countSchema, vvc: countSchema, vv: countSchema }),
 })
 
 export interface ExpectedResult {
@@ -87,15 +97,22 @@ export function parsePresidentialResult(
     round: Number(result.t),
     scope: result.cdabr,
     office: office.cd,
+    votesReleased: result.dv === 's',
+    totalizationStatus: TOTALIZATION_STATUS[result.and],
+    finalIndicator: result.tf === 's',
     generation: { id: result.idg, date: result.dg, time: result.hg },
-    totalization:
+    totalizedAt:
       result.dt === '' ? undefined : { date: result.dt, time: result.ht },
     sections: {
       total: result.s.ts,
       totalized: result.s.st,
       totalizedPercent: result.s.pst,
     },
-    votes: { total: result.v.tv, valid: result.v.vv },
+    votes: {
+      total: result.v.tv,
+      valid: result.v.vv,
+      contestant: result.v.vvc,
+    },
     candidates: office.agr
       .flatMap((group) => group.par.flatMap((party) => party.cand))
       .map((candidate) => ({
@@ -103,7 +120,7 @@ export function parsePresidentialResult(
         number: candidate.n,
         ballotName: candidate.nmu,
         votes: candidate.vap,
-        validVotesPercent: candidate.pvap,
+        contestantVotesPercent: candidate.pvap,
       })),
   }
 }

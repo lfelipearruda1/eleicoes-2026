@@ -1,0 +1,26 @@
+@reference '../../../index.css';
+
+.tooltip {
+  @apply pointer-events-none hidden md:inline;
+}
+
+.box {
+  @apply fill-surface;
+}
+
+.name {
+  @apply fill-text text-[21px] font-heading;
+}
+
+.code {
+  @apply fill-muted text-[16px];
+  text-anchor: end;
+}
+
+.dot {
+  @apply fill-dim;
+}
+
+.line {
+  @apply fill-muted text-[18.5px];
+}

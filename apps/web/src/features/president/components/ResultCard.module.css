@@ -1,0 +1,45 @@
+@reference '../../../index.css';
+
+.card {
+  @apply flex flex-col gap-5;
+}
+
+.separated {
+  @apply border-0 border-t border-solid border-track pt-8;
+}
+
+.title {
+  @apply m-0 text-[20px] leading-[1.3] font-semibold;
+}
+
+.message {
+  @apply m-0 text-[16px] text-muted [text-wrap:pretty];
+}
+
+.rows {
+  @apply m-0 flex list-none flex-col gap-4 p-0;
+}
+
+.row {
+  @apply flex items-center gap-3.5;
+}
+
+.info {
+  @apply flex min-w-0 flex-1 flex-col gap-0.5;
+}
+
+.name {
+  @apply truncate text-[17px] font-semibold;
+}
+
+.votes {
+  @apply text-[14px] whitespace-nowrap text-muted;
+}
+
+.percentage {
+  @apply flex-none text-[32px] leading-none font-heading;
+}
+
+.note {
+  @apply m-0 text-[14px] leading-[1.43] text-muted;
+}
