@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   channelSource,
+  LOCAL_POLL_INTERVAL_MS,
   LOCAL_STALE_AFTER_MS,
   readResultsConfig,
   resolveInChannel,
@@ -18,6 +19,7 @@ const build = (overrides: Partial<ResultsEnv> = {}): ResultsEnv => ({
   VITE_RESULTS_BASE_URL: 'https://resultados.exemplo.invalid/publicacoes',
   VITE_RESULTS_CHANNEL: CHANNEL,
   VITE_RESULTS_STALE_AFTER_MS: '300000',
+  VITE_RESULTS_POLL_INTERVAL_MS: '20000',
   VITE_RESULTS_LOOPBACK_HOSTS: '127.0.0.1, [::1]',
   VITE_RESULTS_BLOCKED_DOMAINS: 'tse.jus.br',
   ...overrides,
@@ -47,6 +49,7 @@ describe('readResultsConfig', () => {
       'http://127.0.0.1:5173/publications/demo-sintetico-presidente-br-2t/',
     )
     expect(config.staleAfterMs).toBe(LOCAL_STALE_AFTER_MS)
+    expect(config.pollIntervalMs).toBe(LOCAL_POLL_INTERVAL_MS)
   })
 
   it('deve tratar base só com espaços como ausente em desenvolvimento', () => {
@@ -66,6 +69,7 @@ describe('readResultsConfig', () => {
     expect(problems(config)).toEqual([
       'VITE_RESULTS_BASE_URL não foi definida neste build.',
       'VITE_RESULTS_STALE_AFTER_MS não foi definida neste build.',
+      'VITE_RESULTS_POLL_INTERVAL_MS não foi definida neste build.',
     ])
   })
 
@@ -88,6 +92,7 @@ describe('readResultsConfig', () => {
       `https://resultados.exemplo.invalid/publicacoes/${CHANNEL}/`,
     )
     expect(config.staleAfterMs).toBe(300_000)
+    expect(config.pollIntervalMs).toBe(20_000)
   })
 
   it('deve produzir a mesma raiz com barra final na base', () => {
@@ -247,6 +252,19 @@ describe('readResultsConfig', () => {
       'VITE_RESULTS_STALE_AFTER_MS precisa ser um inteiro positivo de milissegundos.',
     ])
   })
+
+  it.each(['0', '-1', '1.5', '1e3'])(
+    'deve recusar o intervalo de polling %j no build',
+    (value) => {
+      const env = build({ VITE_RESULTS_POLL_INTERVAL_MS: value })
+
+      const config = readResultsConfig(env, PUBLIC_PAGE)
+
+      expect(problems(config)).toEqual([
+        'VITE_RESULTS_POLL_INTERVAL_MS precisa ser um inteiro positivo de milissegundos.',
+      ])
+    },
+  )
 
   it('deve aceitar o limiar explícito em desenvolvimento', () => {
     const env = { DEV: true, VITE_RESULTS_STALE_AFTER_MS: ' 15000 ' }

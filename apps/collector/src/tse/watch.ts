@@ -6,13 +6,14 @@ import {
   DEMO_CHANNEL_PREFIX,
   TSE_NATIONAL_SCOPE,
   TSE_OFFICE_CODES,
+  TSE_SOURCES,
   TSE_WATCH_DEFAULTS,
 } from '../constants.js'
 import { CollectorError } from '../error.js'
 import { publishResultCapture } from '../president/publish.js'
 import { channelFor } from './channels.js'
 import { publishUfSummary } from './summary.js'
-import type { parseElectionConfig, ResultTarget } from './ea11.js'
+import type { parseElectionConfig, ResultTarget, SourceName } from './ea11.js'
 import type { Transport } from './http.js'
 import {
   collectTarget,
@@ -162,16 +163,31 @@ async function runCycle(context: CycleContext, cycle: number) {
 const codeOf = (error: unknown) =>
   error instanceof CollectorError ? error.code : 'UNEXPECTED'
 
-export async function watchTse(options: WatchOptions) {
-  const source = parseSource(options.source)
-  const round = parseRound(options.round)
-  const prefix = options.channelPrefix ?? TSE_WATCH_DEFAULTS.channelPrefix
+export function channelPrefixFor(
+  source: SourceName,
+  requested: string | undefined,
+): string {
+  const prefix = requested ?? TSE_SOURCES[source].channelPrefix
   if (prefix.startsWith(DEMO_CHANNEL_PREFIX)) {
     throw new CollectorError(
       'INVALID_ARGUMENTS',
-      `a coleta oficial não publica em canal com o prefixo "${DEMO_CHANNEL_PREFIX}"`,
+      `a coleta do TSE não publica em canal com o prefixo "${DEMO_CHANNEL_PREFIX}"`,
     )
   }
+  const officialPrefix = TSE_SOURCES.official.channelPrefix
+  if (source !== 'official' && prefix.startsWith(officialPrefix)) {
+    throw new CollectorError(
+      'INVALID_ARGUMENTS',
+      `a fonte ${source} não publica em canal com o prefixo "${officialPrefix}"`,
+    )
+  }
+  return prefix
+}
+
+export async function watchTse(options: WatchOptions) {
+  const source = parseSource(options.source)
+  const round = parseRound(options.round)
+  const prefix = channelPrefixFor(source, options.channelPrefix)
   channelFor(prefix, { office: 'president', scope: TSE_NATIONAL_SCOPE }, round)
   const intervalMs = options.intervalMs ?? TSE_WATCH_DEFAULTS.intervalMs
   const blockPauseMs = options.blockPauseMs ?? TSE_WATCH_DEFAULTS.blockPauseMs

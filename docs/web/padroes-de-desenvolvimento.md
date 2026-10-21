@@ -123,7 +123,7 @@ Os estados de tela e o restante do polling estão em [README.md](README.md). Int
 
 **Nível:** Obrigatório.
 
-**Regra:** Nenhum segredo no bundle. Variável `VITE_*` é pública. Credencial não usa esse prefixo. As únicas `VITE_*` atuais são `VITE_RESULTS_BASE_URL`, `VITE_RESULTS_CHANNEL` e `VITE_RESULTS_STALE_AFTER_MS`, todas públicas por natureza ([README.md](README.md#origem-dos-resultados-no-build)).
+**Regra:** Nenhum segredo no bundle. Variável `VITE_*` é pública. Credencial não usa esse prefixo. As únicas `VITE_*` atuais são `VITE_RESULTS_BASE_URL`, `VITE_RESULTS_CHANNEL`, `VITE_RESULTS_STALE_AFTER_MS` e `VITE_RESULTS_POLL_INTERVAL_MS`, todas públicas por natureza ([README.md](README.md#origem-dos-resultados-no-build)).
 
 Evitar HTML bruto e os atalhos que furam o escape do React. O cheat sheet de XSS da OWASP, consultado em 14 de outubro de 2026, cita `dangerouslySetInnerHTML` sem sanitizar e URL não validada entre as falhas que o framework não cobre sozinho. A mesma página diz que o React 19 bloqueia URLs `javascript:` em `src` e `href`, e que isso não substitui a validação da aplicação. Nome e texto vindos do snapshot são dados, renderizados como texto. Link dinâmico só aponta para destino permitido; na primeira versão o destino esperado é o nosso domínio de resultados ou um caminho interno. Validar antes de usar.
 

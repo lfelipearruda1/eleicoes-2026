@@ -154,8 +154,10 @@ Implementação: `apps/collector/src/tse/watch.ts`. Desde 20/10/2026.
 
 ```sh
 pnpm collector:tse:watch --source official --round 2 --output .local/tse --publications .local/publications \
-  [--channel-prefix oficial] [--interval-ms 30000] [--once]
+  [--channel-prefix <prefixo>] [--interval-ms 30000] [--once]
 ```
+
+- **Prefixo do canal:** sem `--channel-prefix`, vem da fonte: `oficial` para `official`, `simulado` para `simulated`. Fonte que não seja `official` não publica em prefixo começado por `oficial`, e nenhuma fonte do TSE publica em `demo-`. Assim, oficial e simulado nunca dividem a mesma URL pública.
 
 - **Ciclo:** baixa o EA11 (condicional) e monta os alvos a partir dele: presidente em `br` e nas 27 UFs, quando o turno tem eleição federal; governador nas UFs que o EA11 lista para o turno. Cada alvo é buscado em sequência, com 1 s entre inícios, captura própria e publicação no canal `<prefixo>-<presidente|governador>-<abrangência>-<turno>t` (ex.: `oficial-governador-df-2t`). No 2º turno de 2026 são 31 requisições por ciclo.
 - **Agendamento:** o próximo ciclo só começa depois que o anterior termina e espera `--interval-ms` (padrão 30 s). Sem `setInterval`.

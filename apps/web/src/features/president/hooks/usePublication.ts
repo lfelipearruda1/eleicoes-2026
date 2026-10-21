@@ -9,9 +9,8 @@ import {
   type RejectionReason,
   type SnapshotSchema,
 } from '../publication.ts'
-import type { ChannelSource } from '../resultsConfig.ts'
+import { LOCAL_POLL_INTERVAL_MS, type ChannelSource } from '../resultsConfig.ts'
 
-export const LOCAL_POLL_INTERVAL_MS = 5_000
 export const FRESHNESS_RECHECK_MAX_MS = 60_000
 
 export type FailureReason = RejectionReason | 'unreachable'

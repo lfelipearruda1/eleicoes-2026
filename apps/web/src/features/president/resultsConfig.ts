@@ -3,6 +3,7 @@ import type { ResultSnapshot } from '@eleicoes/validation'
 export const DEV_BRIDGE_PATH = '/publications/'
 export const DEV_NATIONAL_CHANNEL = 'demo-sintetico-presidente-br-2t'
 export const LOCAL_STALE_AFTER_MS = 120_000
+export const LOCAL_POLL_INTERVAL_MS = 5_000
 
 const NATIONAL_CHANNEL = /^([a-z0-9]+(?:-[a-z0-9]+)*)-presidente-br-([12])t$/
 const CHANNEL_OFFICE = { president: 'presidente', governor: 'governador' }
@@ -12,6 +13,7 @@ export interface ResultsEnv {
   VITE_RESULTS_BASE_URL?: string
   VITE_RESULTS_CHANNEL?: string
   VITE_RESULTS_STALE_AFTER_MS?: string
+  VITE_RESULTS_POLL_INTERVAL_MS?: string
   VITE_RESULTS_LOOPBACK_HOSTS?: string
   VITE_RESULTS_BLOCKED_DOMAINS?: string
 }
@@ -30,7 +32,12 @@ export interface ChannelSource {
 }
 
 export type ResultsConfig =
-  | { status: 'ready'; endpoint: ResultsEndpoint; staleAfterMs: number }
+  | {
+      status: 'ready'
+      endpoint: ResultsEndpoint
+      staleAfterMs: number
+      pollIntervalMs: number
+    }
   | { status: 'invalid'; problems: string[] }
 
 const POSITIVE_INTEGER = /^[1-9][0-9]*$/
@@ -160,16 +167,21 @@ export function channelSource(
   }
 }
 
-function readStaleAfter(env: ResultsEnv): number | string {
-  const raw = present(env.VITE_RESULTS_STALE_AFTER_MS)
+type MillisecondsVariable =
+  'VITE_RESULTS_STALE_AFTER_MS' | 'VITE_RESULTS_POLL_INTERVAL_MS'
+
+function readMilliseconds(
+  env: ResultsEnv,
+  name: MillisecondsVariable,
+  localValue: number,
+): number | string {
+  const raw = present(env[name])
   if (!raw) {
-    return env.DEV
-      ? LOCAL_STALE_AFTER_MS
-      : 'VITE_RESULTS_STALE_AFTER_MS não foi definida neste build.'
+    return env.DEV ? localValue : `${name} não foi definida neste build.`
   }
   const value = Number(raw)
   if (!POSITIVE_INTEGER.test(raw) || !Number.isSafeInteger(value)) {
-    return 'VITE_RESULTS_STALE_AFTER_MS precisa ser um inteiro positivo de milissegundos.'
+    return `${name} precisa ser um inteiro positivo de milissegundos.`
   }
   return value
 }
@@ -179,15 +191,30 @@ export function readResultsConfig(
   pageUrl: string,
 ): ResultsConfig {
   const endpoint = readEndpoint(env, new URL(pageUrl))
-  const staleAfterMs = readStaleAfter(env)
+  const staleAfterMs = readMilliseconds(
+    env,
+    'VITE_RESULTS_STALE_AFTER_MS',
+    LOCAL_STALE_AFTER_MS,
+  )
+  const pollIntervalMs = readMilliseconds(
+    env,
+    'VITE_RESULTS_POLL_INTERVAL_MS',
+    LOCAL_POLL_INTERVAL_MS,
+  )
   const problems = [
     ...(Array.isArray(endpoint) ? endpoint : []),
-    ...(typeof staleAfterMs === 'string' ? [staleAfterMs] : []),
+    ...[staleAfterMs, pollIntervalMs].filter(
+      (item): item is string => typeof item === 'string',
+    ),
   ]
-  if (Array.isArray(endpoint) || typeof staleAfterMs === 'string') {
+  if (
+    Array.isArray(endpoint) ||
+    typeof staleAfterMs === 'string' ||
+    typeof pollIntervalMs === 'string'
+  ) {
     return { status: 'invalid', problems }
   }
-  return { status: 'ready', endpoint, staleAfterMs }
+  return { status: 'ready', endpoint, staleAfterMs, pollIntervalMs }
 }
 
 export function summarySource(endpoint: ResultsEndpoint): ChannelSource {

@@ -4,10 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   FRESHNESS_RECHECK_MAX_MS,
-  LOCAL_POLL_INTERVAL_MS,
   usePublication,
 } from '../../src/features/president/hooks/usePublication.ts'
-import { channelSource } from '../../src/features/president/resultsConfig.ts'
+import {
+  channelSource,
+  LOCAL_POLL_INTERVAL_MS,
+} from '../../src/features/president/resultsConfig.ts'
 import {
   availableSnapshot,
   DATA_VERSION_B,

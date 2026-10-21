@@ -30,12 +30,14 @@ import { StatusIndicator } from './StatusIndicator.tsx'
 interface PresidentPageProps {
   endpoint: ResultsEndpoint
   staleAfterMs: number
+  pollIntervalMs?: number
   fetcher?: typeof fetch
 }
 
 export function PresidentPage({
   endpoint,
   staleAfterMs,
+  pollIntervalMs,
   fetcher,
 }: PresidentPageProps) {
   const { selected, select } = useUfRoute()
@@ -52,22 +54,26 @@ export function PresidentPage({
   const national = usePublication({
     source: sources.national,
     staleAfterMs,
+    intervalMs: pollIntervalMs,
     fetcher,
   })
   const ufSummary = usePublication({
     source: sources.summary,
     staleAfterMs,
+    intervalMs: pollIntervalMs,
     fetcher,
     schema: readUfSummarySchema,
   })
   const ufPresident = usePublication({
     source: sources.president || undefined,
     staleAfterMs,
+    intervalMs: pollIntervalMs,
     fetcher,
   })
   const ufGovernor = usePublication({
     source: sources.governor || undefined,
     staleAfterMs,
+    intervalMs: pollIntervalMs,
     fetcher,
     stopWhenMissing: true,
   })

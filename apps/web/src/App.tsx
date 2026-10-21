@@ -12,6 +12,7 @@ export default function App() {
     <PresidentPage
       endpoint={config.endpoint}
       staleAfterMs={config.staleAfterMs}
+      pollIntervalMs={config.pollIntervalMs}
     />
   )
 }

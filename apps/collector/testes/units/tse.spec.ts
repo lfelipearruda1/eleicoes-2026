@@ -307,6 +307,20 @@ describe('EA11: seleção da eleição', () => {
     expect(error.code).toBe('TSE_LAYOUT_CHANGED')
   })
 
+  it.each(['Federal\n[ERRO] falso', 'Federal\u001b[31m', 'x'.repeat(201)])(
+    'deve recusar nome de eleição %j com caractere de controle ou longo demais',
+    (nm) => {
+      const config = syntheticConfig([
+        { ...syntheticElection('9002', '2'), nm },
+      ])
+
+      const error = thrownBy(() => parseElectionConfig(config))
+
+      expect(error.code).toBe('INVALID_TSE_CONFIG')
+      expect(error.message).toContain('pl.0.e.0.nm')
+    },
+  )
+
   it('deve montar as URLs de configuração e de resultado presidencial Brasil', () => {
     const selection = {
       cycle: 'ele2026',

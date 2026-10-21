@@ -14,6 +14,10 @@ import { isKnownScope, type Office } from './ea20.js'
 export type SourceName = keyof typeof TSE_SOURCES
 
 const digitsSchema = z.string().regex(/^\d{1,6}$/)
+const electionNameSchema = z
+  .string()
+  .max(200)
+  .regex(/^\P{Cc}*$/u)
 
 const configSchema = z.object({
   arq: z.array(z.object({ tp: z.string(), dir: z.string() })),
@@ -24,7 +28,7 @@ const configSchema = z.object({
       e: z.array(
         z.object({
           cd: digitsSchema,
-          nm: z.string(),
+          nm: electionNameSchema,
           t: z.string(),
           abr: z.array(
             z.object({

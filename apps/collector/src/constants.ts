@@ -20,7 +20,7 @@ export const HELP = `Uso: collector <comando> [opções]
   tse-once    --source official --round <1|2> --output <pasta> [--election <código>]
               [--office president|governor] [--scope br|<uf>]
   tse-watch   --source official --round <1|2> --output <pasta> --publications <pasta>
-              [--channel-prefix oficial] [--interval-ms 30000] [--once]
+              [--channel-prefix <oficial|simulado>] [--interval-ms 30000] [--once]
   summary-publish --publications <pasta> --prefix <prefixo> --round <1|2>
   tse-replay  --input <arquivo EA20> --output <pasta>`
 
@@ -29,11 +29,13 @@ export const TSE_SOURCES = {
     confirmed: true,
     host: 'resultados.tse.jus.br',
     environment: 'oficial',
+    channelPrefix: 'oficial',
   },
   simulated: {
     confirmed: false,
     host: 'resultados-sim.tse.jus.br',
     environment: 'simulado2026',
+    channelPrefix: 'simulado',
   },
 } as const
 
@@ -45,7 +47,6 @@ export const TSE_OFFICE_CODES = { president: '1', governor: '3' } as const
 export const TSE_NATIONAL_SCOPE = 'br'
 
 export const TSE_WATCH_DEFAULTS = {
-  channelPrefix: 'oficial',
   intervalMs: 30_000,
   blockPauseMs: 11 * 60_000,
   checkedAtMinIntervalMs: 60_000,

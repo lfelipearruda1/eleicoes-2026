@@ -9,7 +9,12 @@ import type { CollectorError } from '../../src/error.js'
 import { parseElectionConfig } from '../../src/tse/ea11.js'
 import type { Transport } from '../../src/tse/http.js'
 import { channelFor } from '../../src/tse/channels.js'
-import { listTargets, watchTse, type WatchEvent } from '../../src/tse/watch.js'
+import {
+  channelPrefixFor,
+  listTargets,
+  watchTse,
+  type WatchEvent,
+} from '../../src/tse/watch.js'
 
 const RESULT_PATH =
   /\/ele2026\/(\d+)\/dados\/([a-z]{2})\/[a-z]{2}-c(\d{4})-e\d{6}-u\.json$/
@@ -252,6 +257,21 @@ describe('watchTse', () => {
     expect((error as CollectorError).code).toBe('INVALID_ARGUMENTS')
     expect(calls).toEqual([])
   })
+
+  it('deve derivar o prefixo padrão da fonte', () => {
+    expect(channelPrefixFor('official', undefined)).toBe('oficial')
+    expect(channelPrefixFor('simulated', undefined)).toBe('simulado')
+    expect(channelPrefixFor('official', 'ensaio')).toBe('ensaio')
+  })
+
+  it.each(['oficial', 'oficial-ensaio'])(
+    'deve recusar o prefixo %j para a fonte simulada',
+    (prefix) => {
+      expect(() => channelPrefixFor('simulated', prefix)).toThrow(
+        expect.objectContaining({ code: 'INVALID_ARGUMENTS' }),
+      )
+    },
+  )
 
   it('deve registrar verificação sem versão nova quando a origem responde 304', async () => {
     const { transport } = fakeTse()

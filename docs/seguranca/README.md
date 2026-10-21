@@ -20,6 +20,17 @@ O navegador baixa o site e os snapshots. Não há conta de visitante na primeira
 
 Proteção de borda, WAF, limite de requisição e mitigação de negação de serviço ficam a cargo dos produtos da Cloudflare compatíveis com o domínio e com o plano. O plano está pendente, então o conjunto exato de regras também está. A documentação de cache do R2 diz que essas proteções não existem no host `r2.dev`. A primeira exposição pública, mesmo de homologação, já precisa do domínio próprio e de proteção básica. Não se espera a véspera da eleição para ligar o mínimo.
 
+Requisitos mínimos da borda antes da primeira exposição pública, inclusive homologação. **Estado:** planejado; não há bucket nem zona para configurar.
+
+| Objeto                          | `Cache-Control` gravado no upload     | Motivo                                                                                                                     |
+| ------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `<canal>/snapshots/<uuid>.json` | `public, max-age=31536000, immutable` | Arquivo de versão não muda. Toda repetição sai da CDN e do cache do navegador.                                             |
+| `<canal>/manifest.json`         | `public, max-age=0, s-maxage=5`       | Ponteiro curto. Uma rajada de leituras é absorvida pela borda, que volta ao R2 no máximo a cada 5 s por ponto de presença. |
+
+- A borda ignora diretivas de cache do cliente. O web pede com `cache: 'no-store'`, e o navegador manda `Cache-Control: no-cache` junto; um script manda o que quiser. Se a CDN obedecer, o cache não protege nada. **Como verificar depois:** `curl -H 'Cache-Control: no-cache'` duas vezes no manifesto e conferir `cf-cache-status: HIT` na segunda.
+- Regra de limite de requisição por IP em `/<canal>/*`, só `GET` e `HEAD`; outros métodos recebem 405 na borda. O teto é ensaiado contra o caso de NAT descrito abaixo antes de ser ligado em modo de bloqueio.
+- O intervalo de polling do build fica entre 15 e 30 s (`VITE_RESULTS_POLL_INTERVAL_MS`). Os 5 s locais não vão para produção.
+
 Limite por IP tem um efeito colateral: visitantes legítimos atrás do mesmo endereço, como operadora com NAT ou uma rede institucional, podem ser bloqueados juntos. A regra precisa ser ensaiada com esse caso. Copiar o teto de 100 requisições por segundo do TSE para a nossa borda não é o desenho: aquele teto protege a origem oficial contra o coletor, não o nosso site contra o público.
 
 ## Coletor e origem oficial
@@ -61,7 +72,8 @@ Atualização de sistema e de imagem entra na operação contínua. Não há, ho
 
 - Um segredo por ambiente. Local não reutiliza a chave de produção.
 - Segredo não vai para Git. `.gitignore` já ignora `.env` e `.env.*`, com exceção de `.env.example`.
-- GitHub Actions, quando existir, usa o cofre do próprio GitHub, com permissão mínima para o workflow que publica. A pasta de workflows está vazia.
+- Varredura de segredo no CI: o job `segredos` de `.github/workflows/verificacao.yml` roda o gitleaks, versão fixa e checksum conferido, sobre todo o histórico em cada push e pull request, e falha se achar algo. **Como verificar hoje:** `gitleaks git --redact .` na raiz; a varredura de 21 de outubro de 2026 não encontrou nada em 16 commits. Segredo que chegou a um commit é rotacionado, não só apagado.
+- GitHub Actions, quando existir, usa o cofre do próprio GitHub, com permissão mínima para o workflow que publica.
 - Log de CI também não imprime segredo.
 - Dependências: a atualização é deliberada. Uma auditoria automática entra com a automação. Enquanto o workflow não existe, esse controle está por fazer, não feito.
 
