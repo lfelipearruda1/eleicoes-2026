@@ -48,7 +48,7 @@ const captureMetadataSchema = z.discriminatedUnion('source', [
         status: z.int().optional(),
         reusedCapture: z
           .string()
-          .regex(/^[\w-]+\/result\.json$/)
+          .regex(/^[\w-]+\/(config|result)\.json$/)
           .optional(),
       }),
     ),
@@ -99,7 +99,10 @@ function locateOfficialResult(
       sourceFile,
     }
   }
-  if (request.status === 304 && request.reusedCapture) {
+  if (
+    request.status === 304 &&
+    request.reusedCapture?.endsWith(`/${TSE_CAPTURE_FILES.result}`)
+  ) {
     return {
       resultPath: path.join(
         path.dirname(captureDirectory),
@@ -167,17 +170,16 @@ const electoralContent = (snapshot: ResultSnapshot) =>
     canonical({ ...snapshot, dataVersion: undefined, collectedAt: undefined }),
   )
 
-export interface PresidentialPublishRequest {
+export interface ResultPublishRequest {
   capture: string
   output: string
   channel: string
   now?: () => Date
   beforeManifestSwap?: () => Promise<void>
+  checkedAtMinIntervalMs?: number
 }
 
-export async function publishResultCapture(
-  request: PresidentialPublishRequest,
-) {
+export async function publishResultCapture(request: ResultPublishRequest) {
   const captureDirectory = path.resolve(request.capture)
   const { summary, context } = await readResultCapture(captureDirectory)
   const isSynthetic = context.sourceEnvironment === 'synthetic'
@@ -203,6 +205,7 @@ export async function publishResultCapture(
       context.sourceEnvironment === 'official'
         ? context.collectedAt
         : undefined,
+    checkedAtMinIntervalMs: request.checkedAtMinIntervalMs,
   })
   const publication = await readPublication(request.output, request.channel)
   return {

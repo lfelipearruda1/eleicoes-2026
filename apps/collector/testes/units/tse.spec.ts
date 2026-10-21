@@ -651,15 +651,23 @@ describe('runTseOnce', () => {
       configUrl('official').href,
       RESULT_URL,
     ])
+    const runs = await readdir(path.join(output, 'official'))
+    const configRun = runs.find(
+      (entry) =>
+        entry !== path.basename(run.runDirectory) &&
+        entry !== TSE_CAPTURE_FILES.lastValid,
+    )
     expect(run.validation).toBe('valid')
     expect((await readdir(run.runDirectory)).sort()).toEqual(
       [
-        TSE_CAPTURE_FILES.config,
         TSE_CAPTURE_FILES.metadata,
         TSE_CAPTURE_FILES.result,
         TSE_CAPTURE_FILES.summary,
       ].sort(),
     )
+    expect(
+      (await readdir(path.join(output, 'official', configRun ?? ''))).sort(),
+    ).toEqual([TSE_CAPTURE_FILES.config, TSE_CAPTURE_FILES.metadata].sort())
   })
 
   it('deve não enviar validador sem cópia anterior', async () => {
@@ -752,11 +760,16 @@ describe('runTseOnce', () => {
 
     const error = await errorOf(runOnce(invalid.transport))
 
-    const runs = await readdir(sourceDirectory)
-    const rejectedRun = runs.find(
+    const runs = (await readdir(sourceDirectory)).filter(
       (entry) =>
         entry !== path.basename(valid.runDirectory) &&
         entry !== TSE_CAPTURE_FILES.lastValid,
+    )
+    const listings = await Promise.all(
+      runs.map((entry) => readdir(path.join(sourceDirectory, entry))),
+    )
+    const rejectedRun = runs.find((_entry, index) =>
+      listings[index].includes(TSE_CAPTURE_FILES.rejected),
     )
     const rejectedDirectory = path.join(sourceDirectory, rejectedRun ?? '')
     expect(error.code).toBe('INVALID_TSE_RESULT')

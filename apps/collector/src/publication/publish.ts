@@ -34,6 +34,7 @@ export type PublishDocumentRequest = Omit<PublishRequest, 'inputPath'> & {
   document: unknown
   isUnchanged?: (current: ResultSnapshot) => boolean
   checkedAt?: string
+  checkedAtMinIntervalMs?: number
 }
 
 export interface PublishResult {
@@ -80,9 +81,11 @@ async function recordCheck(
   request: PublishDocumentRequest,
 ): Promise<PublishResult> {
   const latestCheck = previous.checkedAt ?? current.collectedAt
+  const minIntervalMs = request.checkedAtMinIntervalMs ?? 0
   if (
     request.checkedAt === undefined ||
-    Date.parse(request.checkedAt) <= Date.parse(latestCheck)
+    Date.parse(request.checkedAt) <= Date.parse(latestCheck) ||
+    Date.parse(request.checkedAt) - Date.parse(latestCheck) < minIntervalMs
   ) {
     return { status: 'unchanged', channelDirectory, manifest: previous }
   }

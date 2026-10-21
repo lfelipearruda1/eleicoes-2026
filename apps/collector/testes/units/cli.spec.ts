@@ -87,6 +87,44 @@ describe('runCli', () => {
     expect(errors.join()).toContain('--capture, --channel')
   })
 
+  it('deve recusar tse-watch sem a pasta de publicações, sem consultar a origem', async () => {
+    const exitCode = await run([
+      'tse-watch',
+      '--source',
+      'official',
+      '--round',
+      '2',
+      '--output',
+      workDirectory,
+    ])
+
+    expect(exitCode).toBe(EXIT_CODE.usage)
+    expect(errors.join('\n')).toContain('--publications')
+    expect(await readdir(workDirectory)).toEqual([])
+  })
+
+  it.each(['0', '-5', '1.5', '10s'])(
+    'deve recusar tse-watch com --interval-ms %j',
+    async (interval) => {
+      const exitCode = await run([
+        'tse-watch',
+        '--source',
+        'official',
+        '--round',
+        '2',
+        '--output',
+        workDirectory,
+        '--publications',
+        workDirectory,
+        '--interval-ms',
+        interval,
+      ])
+
+      expect(exitCode).toBe(EXIT_CODE.usage)
+      expect(await readdir(workDirectory)).toEqual([])
+    },
+  )
+
   it('deve inspecionar o canal publicado pela demonstração', async () => {
     await run(['president-demo', '--output', workDirectory])
     const { root } = JSON.parse(printed[0])

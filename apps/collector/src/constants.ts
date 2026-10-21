@@ -19,6 +19,8 @@ export const HELP = `Uso: collector <comando> [opções]
   president-demo     [--output <pasta>]
   tse-once    --source official --round <1|2> --output <pasta> [--election <código>]
               [--office president|governor] [--scope br|<uf>]
+  tse-watch   --source official --round <1|2> --output <pasta> --publications <pasta>
+              [--channel-prefix oficial] [--interval-ms 30000] [--once]
   tse-replay  --input <arquivo EA20> --output <pasta>`
 
 export const TSE_SOURCES = {
@@ -40,6 +42,13 @@ export const TSE_RESULT_DIRECTORY_TEMPLATE =
 export const TSE_RESULT_FILE_TYPE = 'u'
 export const TSE_OFFICE_CODES = { president: '1', governor: '3' } as const
 export const TSE_NATIONAL_SCOPE = 'br'
+
+export const TSE_WATCH_DEFAULTS = {
+  channelPrefix: 'oficial',
+  intervalMs: 30_000,
+  blockPauseMs: 11 * 60_000,
+  checkedAtMinIntervalMs: 60_000,
+} as const
 
 export const TSE_REQUEST_TIMEOUT_MS = 15_000
 export const TSE_MAX_RESPONSE_BYTES = 5 * 1024 * 1024

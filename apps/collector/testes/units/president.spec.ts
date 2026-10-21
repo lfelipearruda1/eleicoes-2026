@@ -561,6 +561,27 @@ describe('publishResultCapture', () => {
     expect(error.code).toBe('INVALID_CAPTURE')
   })
 
+  it('deve recusar 304 do resultado que aponta para a cópia da configuração', async () => {
+    const capture = await officialCapture([
+      {
+        url: OFFICIAL_URL,
+        requestedAt: '2026-10-25T21:05:00Z',
+        status: 304,
+        reusedCapture: 'run-1/config.json',
+      },
+    ])
+
+    const error = await errorOf(
+      publishResultCapture({
+        capture,
+        output,
+        channel: OFFICIAL_CHANNEL,
+      }),
+    )
+
+    expect(error.code).toBe('INVALID_CAPTURE')
+  })
+
   it('deve recusar referência de 304 que sai do diretório da origem', async () => {
     const capture = await officialCapture([
       {

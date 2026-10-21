@@ -148,6 +148,24 @@ pnpm collector:tse:replay --input <arquivo EA20> --output .local/tse
 - **Replay:** `tse-replay` reprocessa um arquivo sem rede, com o mesmo parser.
 - **Escopo:** o resumo é um artefato interno de integração, não um snapshot. A publicação parte da pasta da captura (`president-publish`), não do `summary.json`.
 
+## Coleta contínua (`tse-watch`)
+
+Implementação: `apps/collector/src/tse/watch.ts`. Desde 20/10/2026.
+
+```sh
+pnpm collector:tse:watch --source official --round 2 --output .local/tse --publications .local/publications \
+  [--channel-prefix oficial] [--interval-ms 30000] [--once]
+```
+
+- **Ciclo:** baixa o EA11 (condicional) e monta os alvos a partir dele: presidente em `br` e nas 27 UFs, quando o turno tem eleição federal; governador nas UFs que o EA11 lista para o turno. Cada alvo é buscado em sequência, com 1 s entre inícios, captura própria e publicação no canal `<prefixo>-<presidente|governador>-<abrangência>-<turno>t` (ex.: `oficial-governador-df-2t`). No 2º turno de 2026 são 31 requisições por ciclo.
+- **Agendamento:** o próximo ciclo só começa depois que o anterior termina e espera `--interval-ms` (padrão 30 s). Sem `setInterval`.
+- **Falhas:** 403/429 interrompe o ciclo e espera 11 min antes de qualquer nova consulta (o bloqueio do TSE é de 10 min e recomeça a cada tentativa). 404 desliga o alvo até o processo reiniciar, porque 404 repetido pode bloquear o IP. Resultado inválido, timeout ou falha de publicação ficam no alvo; o ciclo segue. EA11 com falha encerra o ciclo sem alvos.
+- **`checkedAt`:** captura oficial sem mudança só regrava o manifesto se o último `checkedAt` tiver 60 s ou mais (regra 8 do contrato).
+- **Parada:** `SIGINT`/`SIGTERM` interrompe a espera entre ciclos ou entre requisições; uma requisição em andamento termina dentro do timeout de 15 s e uma publicação em andamento termina antes de parar. Nada fica publicado pela metade.
+- **Log:** uma linha JSON por evento (`cycle_start`, `target`, `target_failed`, `target_disabled`, `cycle_end` com contagens, `wait`, `stopped`), sem corpo de resposta nem URL completa.
+- **Valores:** intervalo, pausa de bloqueio e intervalo de `checkedAt` são provisórios até DP-16. `--once` executa um ciclo e sai.
+- **Ver no web local:** `ELEICOES_CHANNEL=oficial-presidente-br-2t ELEICOES_PUBLICATIONS_DIR=$PWD/.local/publications pnpm dev:web`.
+
 ## Um publicador
 
 A primeira versão tem um único publicador ativo. Duas instâncias publicando ao mesmo tempo podem gravar versões entrelaçadas ou fazer o manifesto apontar para um conjunto incompleto.

@@ -8,6 +8,7 @@ import { publishSnapshot } from './publication/publish.js'
 import { readPublication } from './publication/read.js'
 import { listSnapshots } from './publication/storage.js'
 import { runTseOnce, runTseReplay } from './tse/run.js'
+import { watchTse } from './tse/watch.js'
 
 type Options = Partial<
   Record<
@@ -20,7 +21,10 @@ type Options = Partial<
     | 'output'
     | 'capture'
     | 'office'
-    | 'scope',
+    | 'scope'
+    | 'publications'
+    | 'channel-prefix'
+    | 'interval-ms',
     string
   >
 >
@@ -55,6 +59,10 @@ function parseCommandLine(argv: string[]) {
         capture: { type: 'string' },
         office: { type: 'string' },
         scope: { type: 'string' },
+        publications: { type: 'string' },
+        'channel-prefix': { type: 'string' },
+        'interval-ms': { type: 'string' },
+        once: { type: 'boolean' },
         help: { type: 'boolean', short: 'h' },
       },
     })
@@ -106,6 +114,52 @@ const commands = {
       office: options.office,
       scope: options.scope,
     })
+  },
+  'tse-watch': async (options: Options & { once?: boolean }) => {
+    const { source, round, output, publications } = requireOptions(
+      options,
+      'source',
+      'round',
+      'output',
+      'publications',
+    )
+    const intervalMs =
+      options['interval-ms'] === undefined
+        ? undefined
+        : Number(options['interval-ms'])
+    if (
+      intervalMs !== undefined &&
+      (!/^[1-9]\d*$/.test(options['interval-ms'] ?? '') ||
+        !Number.isSafeInteger(intervalMs))
+    ) {
+      throw new CollectorError(
+        'INVALID_ARGUMENTS',
+        '--interval-ms precisa ser um inteiro positivo',
+      )
+    }
+    const controller = new AbortController()
+    const stop = () => controller.abort()
+    process.once('SIGINT', stop)
+    process.once('SIGTERM', stop)
+    try {
+      return await watchTse({
+        source,
+        round,
+        output,
+        publications,
+        channelPrefix: options['channel-prefix'],
+        intervalMs,
+        maxCycles: options.once ? 1 : undefined,
+        signal: controller.signal,
+        log: (event) =>
+          console.log(
+            JSON.stringify({ at: new Date().toISOString(), ...event }),
+          ),
+      })
+    } finally {
+      process.off('SIGINT', stop)
+      process.off('SIGTERM', stop)
+    }
   },
   'tse-replay': async (options: Options) => {
     const { input, output } = requireOptions(options, 'input', 'output')

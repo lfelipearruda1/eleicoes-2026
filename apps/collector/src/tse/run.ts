@@ -23,6 +23,7 @@ import {
   parseTarget,
   resultFileUrl,
   selectElection,
+  type ResultTarget,
   type SourceName,
 } from './ea11.js'
 import { parseResult, type ResultSummary } from './ea20.js'
@@ -49,7 +50,7 @@ type SampleOrigin = 'live' | 'previous-capture' | 'replay'
 
 const toJson = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`
 
-function parseSource(source: string): SourceName {
+export function parseSource(source: string): SourceName {
   if (!Object.hasOwn(TSE_SOURCES, source)) {
     throw new CollectorError('UNKNOWN_SOURCE', source)
   }
@@ -59,7 +60,7 @@ function parseSource(source: string): SourceName {
   return source as SourceName
 }
 
-function parseRound(round: string): number {
+export function parseRound(round: string): number {
   if (round !== '1' && round !== '2') {
     throw new CollectorError('INVALID_ROUND', round)
   }
@@ -76,33 +77,34 @@ function describeResult(summary: ResultSummary) {
   }
 }
 
-export async function runTseOnce(options: TseOnceOptions) {
-  const source = parseSource(options.source)
-  const round = parseRound(options.round)
-  const target = parseTarget(
-    options.office ?? 'president',
-    options.scope ?? TSE_NATIONAL_SCOPE,
-  )
+export interface SessionOptions {
+  source: SourceName
+  output: string
+  transport?: Transport
+  now?: () => Date
+  minIntervalMs?: number
+  signal?: AbortSignal
+}
+
+export async function openTseSession(options: SessionOptions) {
+  const { source } = options
   const now = options.now ?? (() => new Date())
   const minIntervalMs = options.minIntervalMs ?? TSE_MIN_REQUEST_INTERVAL_MS
   const sourceDirectory = path.join(path.resolve(options.output), source)
-  const runDirectory = await createRunDirectory(sourceDirectory, now())
-  const runId = path.basename(runDirectory)
   const lastValid = await readLastValid(sourceDirectory)
-  const requests: Record<string, unknown>[] = []
-  const metadata: Record<string, unknown> = {
-    source,
-    sourceEnvironment: TSE_SOURCES[source].environment,
-    office: target.office,
-    round,
-    scope: target.scope,
-    requests,
-    validation: 'not-validated',
-  }
   let lastRequestStart = 0
 
-  const fetchCopy = async (url: URL, captureName: string) => {
-    await sleep(Math.max(0, lastRequestStart + minIntervalMs - Date.now()))
+  const fetchCopy = async (
+    url: URL,
+    runDirectory: string,
+    captureName: string,
+    request: Record<string, unknown>,
+  ) => {
+    await sleep(
+      Math.max(0, lastRequestStart + minIntervalMs - Date.now()),
+      undefined,
+      { signal: options.signal },
+    )
     lastRequestStart = Date.now()
     const previous = lastValid[url.href]
     const previousBody =
@@ -110,11 +112,7 @@ export async function runTseOnce(options: TseOnceOptions) {
     const validator: Validator | undefined = previousBody
       ? previous.validator
       : undefined
-    const request: Record<string, unknown> = {
-      url: url.href,
-      requestedAt: now().toISOString(),
-    }
-    requests.push(request)
+    Object.assign(request, { url: url.href, requestedAt: now().toISOString() })
     const response = await httpGet(url, {
       allowedHost: TSE_SOURCES[source].host,
       validator,
@@ -138,7 +136,7 @@ export async function runTseOnce(options: TseOnceOptions) {
     }
     Object.assign(request, response.validator)
     const entry = {
-      capture: `${runId}/${captureName}`,
+      capture: `${path.basename(runDirectory)}/${captureName}`,
       validator: response.validator,
     }
     return { body: response.body, origin: 'live' as SampleOrigin, entry }
@@ -147,6 +145,7 @@ export async function runTseOnce(options: TseOnceOptions) {
   const accept = async (
     url: URL,
     copy: Awaited<ReturnType<typeof fetchCopy>>,
+    runDirectory: string,
     captureName: string,
   ) => {
     if (copy.origin === 'live') {
@@ -156,40 +155,96 @@ export async function runTseOnce(options: TseOnceOptions) {
     await writeLastValid(sourceDirectory, lastValid)
   }
 
+  const newRunDirectory = () => createRunDirectory(sourceDirectory, now())
+
+  return { source, fetchCopy, accept, newRunDirectory }
+}
+
+export type TseSession = Awaited<ReturnType<typeof openTseSession>>
+
+export async function fetchElectionConfig(session: TseSession) {
+  const runDirectory = await session.newRunDirectory()
+  const url = configUrl(session.source)
+  const request: Record<string, unknown> = {}
+  const metadata = {
+    source: session.source,
+    sourceEnvironment: TSE_SOURCES[session.source].environment,
+    requests: [request],
+    validation: 'not-validated',
+  }
   try {
-    const electionConfigUrl = configUrl(source)
-    const config = await fetchCopy(electionConfigUrl, TSE_CAPTURE_FILES.config)
+    const copy = await session.fetchCopy(
+      url,
+      runDirectory,
+      TSE_CAPTURE_FILES.config,
+      request,
+    )
+    const config = parseElectionConfig(parseJsonBody(copy.body, url.href))
+    await session.accept(url, copy, runDirectory, TSE_CAPTURE_FILES.config)
+    metadata.validation = 'valid'
+    return { config, request }
+  } finally {
+    await writeCaptureFile(
+      runDirectory,
+      TSE_CAPTURE_FILES.metadata,
+      toJson(metadata),
+    )
+  }
+}
+
+export async function collectTarget(
+  session: TseSession,
+  configCopy: Awaited<ReturnType<typeof fetchElectionConfig>>,
+  round: number,
+  target: ResultTarget,
+  requestedElection?: string,
+) {
+  const runDirectory = await session.newRunDirectory()
+  const request: Record<string, unknown> = {}
+  const metadata: Record<string, unknown> = {
+    source: session.source,
+    sourceEnvironment: TSE_SOURCES[session.source].environment,
+    office: target.office,
+    round,
+    scope: target.scope,
+    requests: [configCopy.request, request],
+    validation: 'not-validated',
+  }
+  try {
     const selection = selectElection(
-      parseElectionConfig(parseJsonBody(config.body, electionConfigUrl.href)),
+      configCopy.config,
       round,
       target,
-      options.election,
+      requestedElection,
     )
-    await accept(electionConfigUrl, config, TSE_CAPTURE_FILES.config)
     metadata.election = selection
-
-    const resultUrl = resultFileUrl(source, selection, target)
-    const result = await fetchCopy(resultUrl, TSE_CAPTURE_FILES.result)
-    metadata.sampleOrigin = result.origin
+    const url = resultFileUrl(session.source, selection, target)
+    const copy = await session.fetchCopy(
+      url,
+      runDirectory,
+      TSE_CAPTURE_FILES.result,
+      request,
+    )
+    metadata.sampleOrigin = copy.origin
     let summary: ResultSummary
     try {
-      summary = parseResult(parseJsonBody(result.body, resultUrl.href), {
+      summary = parseResult(parseJsonBody(copy.body, url.href), {
         election: selection.election,
         round,
         ...target,
       })
     } catch (error) {
       metadata.validation = 'rejected'
-      if (result.origin === 'live') {
+      if (copy.origin === 'live') {
         await writeCaptureFile(
           runDirectory,
           TSE_CAPTURE_FILES.rejected,
-          result.body,
+          copy.body,
         )
       }
       throw error
     }
-    await accept(resultUrl, result, TSE_CAPTURE_FILES.result)
+    await session.accept(url, copy, runDirectory, TSE_CAPTURE_FILES.result)
     await writeCaptureFile(
       runDirectory,
       TSE_CAPTURE_FILES.summary,
@@ -199,9 +254,9 @@ export async function runTseOnce(options: TseOnceOptions) {
     return {
       runDirectory,
       validation: 'valid',
-      sampleOrigin: result.origin,
+      sampleOrigin: copy.origin,
       election: selection,
-      requests,
+      requests: metadata.requests,
       result: describeResult(summary),
     }
   } finally {
@@ -211,6 +266,18 @@ export async function runTseOnce(options: TseOnceOptions) {
       toJson(metadata),
     )
   }
+}
+
+export async function runTseOnce(options: TseOnceOptions) {
+  const source = parseSource(options.source)
+  const round = parseRound(options.round)
+  const target = parseTarget(
+    options.office ?? 'president',
+    options.scope ?? TSE_NATIONAL_SCOPE,
+  )
+  const session = await openTseSession({ ...options, source })
+  const configCopy = await fetchElectionConfig(session)
+  return collectTarget(session, configCopy, round, target, options.election)
 }
 
 export async function runTseReplay(options: {

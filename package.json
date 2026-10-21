@@ -16,6 +16,7 @@
     "collector:president:demo": "pnpm --filter @eleicoes/collector... run build && node apps/collector/dist/main.js president-demo",
     "collector:tse:once": "pnpm --filter @eleicoes/collector... run build && node apps/collector/dist/main.js tse-once",
     "collector:tse:replay": "pnpm --filter @eleicoes/collector... run build && node apps/collector/dist/main.js tse-replay",
+    "collector:tse:watch": "pnpm --filter @eleicoes/collector... run build && node apps/collector/dist/main.js tse-watch",
     "build": "pnpm -r --if-present run build",
     "typecheck": "pnpm -r --if-present run typecheck",
     "lint": "eslint .",
