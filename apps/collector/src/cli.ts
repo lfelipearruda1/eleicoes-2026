@@ -3,7 +3,7 @@ import { parseArgs } from 'node:util'
 import { EXIT_CODE, HELP, USAGE_ERRORS } from './constants.js'
 import { CollectorError } from './error.js'
 import { runPresidentialDemo } from './president/demo.js'
-import { publishPresidentialCapture } from './president/publish.js'
+import { publishResultCapture } from './president/publish.js'
 import { publishSnapshot } from './publication/publish.js'
 import { readPublication } from './publication/read.js'
 import { listSnapshots } from './publication/storage.js'
@@ -18,7 +18,9 @@ type Options = Partial<
     | 'round'
     | 'election'
     | 'output'
-    | 'capture',
+    | 'capture'
+    | 'office'
+    | 'scope',
     string
   >
 >
@@ -51,6 +53,8 @@ function parseCommandLine(argv: string[]) {
         election: { type: 'string' },
         output: { type: 'string' },
         capture: { type: 'string' },
+        office: { type: 'string' },
+        scope: { type: 'string' },
         help: { type: 'boolean', short: 'h' },
       },
     })
@@ -84,7 +88,7 @@ const commands = {
       'output',
       'channel',
     )
-    return publishPresidentialCapture({ capture, output, channel })
+    return publishResultCapture({ capture, output, channel })
   },
   'president-demo': (options: Options) => runPresidentialDemo(options.output),
   'tse-once': async (options: Options) => {
@@ -94,7 +98,14 @@ const commands = {
       'round',
       'output',
     )
-    return runTseOnce({ source, round, output, election: options.election })
+    return runTseOnce({
+      source,
+      round,
+      output,
+      election: options.election,
+      office: options.office,
+      scope: options.scope,
+    })
   },
   'tse-replay': async (options: Options) => {
     const { input, output } = requireOptions(options, 'input', 'output')

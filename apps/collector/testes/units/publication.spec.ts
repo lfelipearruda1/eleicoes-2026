@@ -13,7 +13,7 @@ import {
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import type { PresidentialSnapshot } from '@eleicoes/validation'
+import type { ResultSnapshot } from '@eleicoes/validation'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import {
@@ -49,7 +49,7 @@ afterEach(async () => {
 
 const snapshotFixture = (
   overrides: Record<string, unknown> = {},
-): PresidentialSnapshot =>
+): ResultSnapshot =>
   ({
     contractVersion: 1,
     dataVersion: randomUUID(),
@@ -78,7 +78,7 @@ const snapshotFixture = (
       },
     ],
     ...overrides,
-  }) as PresidentialSnapshot
+  }) as ResultSnapshot
 
 const channelDirectory = () => path.join(root, CHANNEL)
 const manifestPath = () => path.join(channelDirectory(), MANIFEST_FILE)

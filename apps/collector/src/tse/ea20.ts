@@ -1,7 +1,10 @@
+import { BRAZILIAN_STATE_CODES } from '@eleicoes/validation'
 import { z } from 'zod'
 
-import { TSE_NATIONAL_SCOPE, TSE_PRESIDENT_OFFICE_CODE } from '../constants.js'
+import { TSE_NATIONAL_SCOPE, TSE_OFFICE_CODES } from '../constants.js'
 import { CollectorError } from '../error.js'
+
+export type Office = keyof typeof TSE_OFFICE_CODES
 
 const countSchema = z.string().regex(/^\d+$/)
 const percentSchema = z.string().regex(/^\d{1,3},\d{2}$/)
@@ -15,12 +18,49 @@ const TOTALIZATION_STATUS = {
   f: 'finished',
 } as const
 
+const VOTE_DESTINATION = {
+  valido: 'valid',
+  'valido (legenda)': 'valid_party',
+  anulado: 'annulled',
+  'anulado sub judice': 'annulled_sub_judice',
+} as const
+
+const KNOWN_SCOPES = new Set<string>([
+  TSE_NATIONAL_SCOPE,
+  ...BRAZILIAN_STATE_CODES.map((code) => code.toLowerCase()),
+])
+
+export const isKnownScope = (scope: string) => KNOWN_SCOPES.has(scope)
+
+const destinationKey = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, ' ')
+
+const destinationSchema = z
+  .string()
+  .optional()
+  .transform((value, ctx) => {
+    if (value === undefined || value.trim() === '') return undefined
+    const destination =
+      VOTE_DESTINATION[destinationKey(value) as keyof typeof VOTE_DESTINATION]
+    if (!destination) {
+      ctx.addIssue({ code: 'custom', message: `dvt "${value}" desconhecido` })
+      return z.NEVER
+    }
+    return destination
+  })
+
 const candidateSchema = z.object({
   n: countSchema,
   sqcand: countSchema,
   nmu: z.string().min(1),
   vap: countSchema,
   pvap: percentSchema,
+  dvt: destinationSchema,
 })
 
 const resultSchema = z.object({
@@ -52,12 +92,16 @@ const resultSchema = z.object({
 export interface ExpectedResult {
   election: string
   round: number
+  office: Office
+  scope: string
 }
 
-export function parsePresidentialResult(
-  document: unknown,
-  expected?: ExpectedResult,
-) {
+const officeOf = (code: string) =>
+  (Object.keys(TSE_OFFICE_CODES) as Office[]).find(
+    (office) => TSE_OFFICE_CODES[office] === code,
+  )
+
+export function parseResult(document: unknown, expected?: ExpectedResult) {
   const parsed = resultSchema.safeParse(document)
   if (!parsed.success) {
     const fields = parsed.error.issues.map((issue) => issue.path.join('.'))
@@ -73,7 +117,8 @@ export function parsePresidentialResult(
   if (expected && result.t !== String(expected.round)) {
     throw new CollectorError('TSE_RESULT_MISMATCH', `turno ${result.t}`)
   }
-  if (result.cdabr !== TSE_NATIONAL_SCOPE) {
+  const scope = expected?.scope ?? result.cdabr
+  if (result.cdabr !== scope || !isKnownScope(scope)) {
     throw new CollectorError(
       'TSE_RESULT_MISMATCH',
       `abrangência ${result.cdabr}`,
@@ -82,21 +127,32 @@ export function parsePresidentialResult(
   if ((result.dt === '') !== (result.ht === '')) {
     throw new CollectorError('INVALID_TSE_RESULT', 'dt, ht')
   }
-  const office = result.carg.find(
-    (entry) => entry.cd === TSE_PRESIDENT_OFFICE_CODE,
-  )
-  if (!office) {
+  const knownOffices = result.carg.filter((entry) => officeOf(entry.cd))
+  const office = expected
+    ? result.carg.find(
+        (entry) => entry.cd === TSE_OFFICE_CODES[expected.office],
+      )
+    : knownOffices.length === 1
+      ? knownOffices[0]
+      : undefined
+  const officeName = office && officeOf(office.cd)
+  if (!office || !officeName) {
     throw new CollectorError(
       'TSE_RESULT_MISMATCH',
-      `cargo ${TSE_PRESIDENT_OFFICE_CODE} ausente`,
+      expected
+        ? `cargo ${TSE_OFFICE_CODES[expected.office]} ausente`
+        : 'cargo não identificado',
     )
+  }
+  if (officeName === 'governor' && scope === TSE_NATIONAL_SCOPE) {
+    throw new CollectorError('TSE_RESULT_MISMATCH', 'governador no Brasil')
   }
 
   return {
     election: result.ele,
     round: Number(result.t),
-    scope: result.cdabr,
-    office: office.cd,
+    scope,
+    office: officeName,
     votesReleased: result.dv === 's',
     totalizationStatus: TOTALIZATION_STATUS[result.and],
     finalIndicator: result.tf === 's',
@@ -121,8 +177,9 @@ export function parsePresidentialResult(
         ballotName: candidate.nmu,
         votes: candidate.vap,
         contestantVotesPercent: candidate.pvap,
+        voteDestination: candidate.dvt,
       })),
   }
 }
 
-export type PresidentialSummary = ReturnType<typeof parsePresidentialResult>
+export type ResultSummary = ReturnType<typeof parseResult>

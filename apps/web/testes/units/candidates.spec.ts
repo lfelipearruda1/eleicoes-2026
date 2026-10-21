@@ -125,3 +125,49 @@ describe('summarizeCandidates', () => {
     )
   })
 })
+
+describe('summarizeCandidates: situação dos votos (Res. 23.751, art. 265, § 2º)', () => {
+  const withDestinations = (a: string | undefined, b: string | undefined) => {
+    const snapshot = twoCandidates(['6000', '60.00'], ['4000', '40.00'])
+    if (snapshot.availability !== 'available') throw new Error('available')
+    const [first, second] = snapshot.candidates
+    return {
+      ...snapshot,
+      candidates: [
+        { ...first, ...(a && { voteDestination: a }) },
+        { ...second, ...(b && { voteDestination: b }) },
+      ],
+    } as typeof snapshot
+  }
+
+  it.each([
+    ['valid', '6.000 votos válidos'],
+    ['valid_party', '6.000 votos válidos (legenda)'],
+    ['annulled', '6.000 votos anulados'],
+    ['annulled_sub_judice', '6.000 votos anulados sub judice'],
+  ])('deve escrever a situação %s junto dos votos', (destination, text) => {
+    const summary = summarizeCandidates(withDestinations(destination, 'valid'))
+
+    expect(summary.rows[0].votes).toBe(text)
+  })
+
+  it('deve manter só a contagem quando a origem não informa a situação', () => {
+    const summary = summarizeCandidates(withDestinations(undefined, undefined))
+
+    expect(summary.rows.map((row) => row.votes)).toEqual([
+      '6.000 votos',
+      '4.000 votos',
+    ])
+  })
+
+  it.each(['annulled', 'annulled_sub_judice'])(
+    'deve não destacar como mais votada a candidatura com votos %s',
+    (destination) => {
+      const summary = summarizeCandidates(
+        withDestinations(destination, 'valid'),
+      )
+
+      expect(summary.rows.map((row) => row.isAhead)).toEqual([false, true])
+    },
+  )
+})

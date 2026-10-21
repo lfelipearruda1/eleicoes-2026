@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  publishPresidentialSnapshotSchema,
-  readPresidentialSnapshotSchema,
+  publishResultSnapshotSchema,
+  readResultSnapshotSchema,
 } from '../../src/index.js'
 
 const common = {
@@ -54,17 +54,17 @@ const pending = (overrides: Record<string, unknown> = {}) => ({
 })
 
 const publishPaths = (document: unknown) => {
-  const result = publishPresidentialSnapshotSchema.safeParse(document)
+  const result = publishResultSnapshotSchema.safeParse(document)
   return result.success
     ? []
     : result.error.issues.map((issue) => issue.path.join('.'))
 }
 
-describe('publishPresidentialSnapshotSchema', () => {
+describe('publishResultSnapshotSchema', () => {
   it('deve aceitar resultado disponível sem transformar os valores', () => {
     const document = available()
 
-    const result = publishPresidentialSnapshotSchema.parse(document)
+    const result = publishResultSnapshotSchema.parse(document)
 
     expect(result).toEqual(document)
   })
@@ -152,7 +152,7 @@ describe('publishPresidentialSnapshotSchema', () => {
       votes: { total: big, valid: big, contestant: big },
     })
 
-    const result = publishPresidentialSnapshotSchema.parse(document)
+    const result = publishResultSnapshotSchema.parse(document)
 
     expect(result.availability === 'available' && result.votes.total).toBe(big)
   })
@@ -237,14 +237,82 @@ describe('publishPresidentialSnapshotSchema', () => {
   })
 })
 
-describe('readPresidentialSnapshotSchema', () => {
+describe('publishResultSnapshotSchema: cargo, abrangência e situação dos votos', () => {
+  it('deve aceitar governador numa UF', () => {
+    const document = available({ office: 'governor', scope: 'DF' })
+
+    const paths = publishPaths(document)
+
+    expect(paths).toEqual([])
+  })
+
+  it('deve aceitar presidente numa UF', () => {
+    const document = available({ scope: 'SP' })
+
+    const paths = publishPaths(document)
+
+    expect(paths).toEqual([])
+  })
+
+  it('deve recusar governador com abrangência Brasil', () => {
+    const document = available({ office: 'governor', scope: 'BR' })
+
+    const paths = publishPaths(document)
+
+    expect(paths).toEqual(['scope'])
+  })
+
+  it.each(['valid', 'valid_party', 'annulled', 'annulled_sub_judice'])(
+    'deve aceitar a situação dos votos %s',
+    (voteDestination) => {
+      const document = available({
+        candidates: [{ ...candidate('1', '10000', '100.00'), voteDestination }],
+      })
+
+      const paths = publishPaths(document)
+
+      expect(paths).toEqual([])
+    },
+  )
+
+  it('deve recusar situação dos votos desconhecida', () => {
+    const document = available({
+      candidates: [
+        { ...candidate('1', '10000', '100.00'), voteDestination: 'cassado' },
+      ],
+    })
+
+    const paths = publishPaths(document)
+
+    expect(paths).toEqual(['candidates.0.voteDestination'])
+  })
+
+  it('deve recusar situação dos votos em candidatura de pending', () => {
+    const document = pending({
+      candidates: [
+        {
+          candidateId: '900000000001',
+          number: '91',
+          ballotName: 'A',
+          voteDestination: 'valid',
+        },
+      ],
+    })
+
+    const paths = publishPaths(document)
+
+    expect(paths).toEqual(['candidates.0'])
+  })
+})
+
+describe('readResultSnapshotSchema', () => {
   it('deve descartar chaves extras e manter o payload validado', () => {
     const document = available({
       winner: '900000000001',
       candidates: [{ ...candidate('1', '10000', '100.00'), photo: 'x.png' }],
     })
 
-    const result = readPresidentialSnapshotSchema.parse(document)
+    const result = readResultSnapshotSchema.parse(document)
 
     expect(result).not.toHaveProperty('winner')
     expect(result.candidates).toEqual([candidate('1', '10000', '100.00')])
@@ -253,7 +321,7 @@ describe('readPresidentialSnapshotSchema', () => {
   it('deve recusar contractVersion desconhecido na leitura', () => {
     const document = available({ contractVersion: 2 })
 
-    const result = readPresidentialSnapshotSchema.safeParse(document)
+    const result = readResultSnapshotSchema.safeParse(document)
 
     expect(result.success).toBe(false)
   })
@@ -261,7 +329,7 @@ describe('readPresidentialSnapshotSchema', () => {
   it('deve aplicar as regras cruzadas também na leitura', () => {
     const document = available({ votesReleased: false })
 
-    const result = readPresidentialSnapshotSchema.safeParse(document)
+    const result = readResultSnapshotSchema.safeParse(document)
 
     expect(result.success).toBe(false)
   })

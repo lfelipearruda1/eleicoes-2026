@@ -1,4 +1,4 @@
-import type { Manifest, PresidentialSnapshot } from '@eleicoes/validation'
+import type { Manifest, ResultSnapshot } from '@eleicoes/validation'
 
 import type { ResultsEndpoint } from '../../src/features/president/resultsConfig.ts'
 
@@ -32,7 +32,7 @@ const common = {
 
 export const availableSnapshot = (
   overrides: Record<string, unknown> = {},
-): PresidentialSnapshot =>
+): ResultSnapshot =>
   ({
     ...common,
     dataVersion: DATA_VERSION_A,
@@ -63,11 +63,11 @@ export const availableSnapshot = (
       },
     ],
     ...overrides,
-  }) as PresidentialSnapshot
+  }) as ResultSnapshot
 
 export const pendingSnapshot = (
   overrides: Record<string, unknown> = {},
-): PresidentialSnapshot =>
+): ResultSnapshot =>
   ({
     ...common,
     dataVersion: DATA_VERSION_A,
@@ -87,10 +87,10 @@ export const pendingSnapshot = (
       },
     ],
     ...overrides,
-  }) as PresidentialSnapshot
+  }) as ResultSnapshot
 
 export const manifestFor = (
-  snapshot: PresidentialSnapshot,
+  snapshot: ResultSnapshot,
   revision = 1,
   overrides: Record<string, unknown> = {},
 ): Manifest =>
@@ -124,7 +124,7 @@ export function fakeServer(files: Record<string, unknown> = {}) {
     if (body === undefined) return new Response('', { status: 404 })
     return new Response(typeof body === 'string' ? body : JSON.stringify(body))
   }) as typeof fetch
-  const publish = (manifest: Manifest, snapshot?: PresidentialSnapshot) => {
+  const publish = (manifest: Manifest, snapshot?: ResultSnapshot) => {
     files['/publications/manifest.json'] = manifest
     if (snapshot) {
       files[`/publications/snapshots/${snapshot.dataVersion}.json`] = snapshot

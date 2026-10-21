@@ -2,17 +2,17 @@ import {
   decideManifestUpdate,
   findSnapshotMismatches,
   readManifestSchema,
-  readPresidentialSnapshotSchema,
+  readResultSnapshotSchema,
   snapshotPathFor,
   type Manifest,
-  type PresidentialSnapshot,
+  type ResultSnapshot,
 } from '@eleicoes/validation'
 
 import { resolveInChannel, type ResultsEndpoint } from './resultsConfig.ts'
 
 export interface AcceptedPublication {
   manifest: Manifest
-  snapshot: PresidentialSnapshot
+  snapshot: ResultSnapshot
 }
 
 export type RejectionReason =
@@ -105,7 +105,7 @@ export async function readPublication(
   }
   const snapshot =
     snapshotResponse.status === 'ok'
-      ? readPresidentialSnapshotSchema.safeParse(snapshotResponse.body)
+      ? readResultSnapshotSchema.safeParse(snapshotResponse.body)
       : undefined
   if (!snapshot?.success) {
     return { outcome: 'rejected', reason: 'invalid_snapshot' }

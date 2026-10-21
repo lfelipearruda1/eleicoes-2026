@@ -7,7 +7,7 @@ import { DEMO_CHANNEL, DEMO_NOTICE } from '../constants.js'
 import { CollectorError } from '../error.js'
 import { readPublication } from '../publication/read.js'
 import { listSnapshots } from '../publication/storage.js'
-import { publishPresidentialCapture } from './publish.js'
+import { publishResultCapture } from './publish.js'
 
 export const DEMO_FIXTURES = fileURLToPath(
   new URL('../../fixtures/president-synthetic/', import.meta.url),
@@ -30,7 +30,7 @@ export async function runPresidentialDemo(baseDirectory = tmpdir()) {
   const steps = []
   for (const capture of DEMO_STEPS) {
     try {
-      const result = await publishPresidentialCapture({
+      const result = await publishResultCapture({
         capture: path.join(DEMO_FIXTURES, capture),
         output: root,
         channel: DEMO_CHANNEL,

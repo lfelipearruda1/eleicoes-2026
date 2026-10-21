@@ -1,10 +1,10 @@
-import type { PresidentialSnapshot } from '@eleicoes/validation'
+import type { ResultSnapshot } from '@eleicoes/validation'
 
 import type { StatusIcon } from './components/StatusIndicator.tsx'
 import { formatPercentage } from './format.ts'
 
 interface StatusInput {
-  snapshot: PresidentialSnapshot | undefined
+  snapshot: ResultSnapshot | undefined
   ufName: string | undefined
   isChecking: boolean
   hasFailure: boolean
@@ -18,7 +18,7 @@ export interface HeaderStatus {
   text: string
 }
 
-const sourceClock = (snapshot: PresidentialSnapshot) => {
+const sourceClock = (snapshot: ResultSnapshot) => {
   const clock = snapshot.origin.totalizedAt ?? snapshot.origin.generatedAt
   return { time: clock.time.slice(0, 5), date: clock.date }
 }
@@ -83,21 +83,16 @@ export function describeHeaderStatus(input: StatusInput): HeaderStatus {
 
 export const ROUND_LABEL = { 1: 'Primeiro turno', 2: 'Segundo turno' } as const
 
-export const PROVENANCE: Record<
-  PresidentialSnapshot['sourceEnvironment'],
-  string
-> = {
+export const PROVENANCE: Record<ResultSnapshot['sourceEnvironment'], string> = {
   synthetic: 'Demonstração — dados fictícios, sem valor oficial.',
   official:
     'Captura oficial do TSE reprocessada localmente; autenticidade não verificada.',
   simulated: 'Ambiente simulado do TSE, sem valor oficial.',
 }
 
-export const SOURCE_LABEL: Record<
-  PresidentialSnapshot['sourceEnvironment'],
-  string
-> = {
-  synthetic: 'dados sintéticos',
-  official: 'TSE',
-  simulated: 'TSE (simulado)',
-}
+export const SOURCE_LABEL: Record<ResultSnapshot['sourceEnvironment'], string> =
+  {
+    synthetic: 'dados sintéticos',
+    official: 'TSE',
+    simulated: 'TSE (simulado)',
+  }

@@ -16,6 +16,13 @@ export const PENDING_REASONS = [
   'totalization_not_started',
 ] as const
 
+export const VOTE_DESTINATIONS = [
+  'valid',
+  'valid_party',
+  'annulled',
+  'annulled_sub_judice',
+] as const
+
 export const TOTALIZATION_STATUSES = [
   'not_started',
   'in_progress',
@@ -31,7 +38,6 @@ function buildSchema(strict: boolean) {
   }
   const common = {
     ...envelopeShape,
-    office: z.literal('president'),
     source: object(sourceShape),
     votesReleased: z.boolean(),
     totalization: object({
@@ -71,6 +77,7 @@ function buildSchema(strict: boolean) {
             ...candidateIdentity,
             votes: countSchema,
             contestantVotesPercentage: percentageSchema,
+            voteDestination: z.enum(VOTE_DESTINATIONS).exactOptional(),
           }),
         ),
       }),
@@ -114,10 +121,8 @@ function buildSchema(strict: boolean) {
     })
 }
 
-export const publishPresidentialSnapshotSchema = buildSchema(true)
+export const publishResultSnapshotSchema = buildSchema(true)
 
-export const readPresidentialSnapshotSchema = buildSchema(false)
+export const readResultSnapshotSchema = buildSchema(false)
 
-export type PresidentialSnapshot = z.infer<
-  typeof publishPresidentialSnapshotSchema
->
+export type ResultSnapshot = z.infer<typeof publishResultSnapshotSchema>

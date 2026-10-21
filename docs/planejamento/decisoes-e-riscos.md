@@ -112,7 +112,7 @@ Cada pendência bloqueia apenas as tarefas listadas. Trabalho independente conti
 - **Condição para decidir:** ET-01-T09, com obrigações listadas e refletidas nos critérios de ET-07 e ET-14.
 - **Resolvida em 20/10/2026** (texto compilado salvo pelo usuário; [ET-01.md](evidencias/ET-01.md)). Deveres de quem divulga a partir dos arquivos:
   1. **Não alterar o conteúdo** dos dados distribuídos (art. 267, § 4º). O contrato já copia votos e percentuais sem recalcular; qualquer valor derivado na tela (como a diferença em p.p.) precisa ser identificável como cálculo nosso.
-  2. **Mostrar a situação dos votos de cada candidatura** (válidos, sub judice ou anulados) nos painéis (art. 265, § 2º). O contrato **não** traz isso hoje (`cand[].dvt` do EA20). Lacuna a fechar antes de exibir dado oficial ao público (ET-02/ET-03).
+  2. **Mostrar a situação dos votos de cada candidatura** (válidos, sub judice ou anulados) nos painéis (art. 265, § 2º). Atendido em 20/10/2026: `candidates[].voteDestination` no contrato (de `cand[].dvt`) e texto "N votos válidos/anulados/anulados sub judice" no painel; candidatura com votos anulados não recebe o destaque de mais votada.
   3. Presidente só a partir das 17h de Brasília (art. 265, § 1º), o que o `dv` do EA20 já sinaliza.
   4. Buscar os arquivos periodicamente conforme os padrões do TSE (art. 267, § 3º) e manter a própria infraestrutura de comunicação (§ 2º).
   5. Não cobrar mais caro por causa dos dados (art. 268). Sem efeito para um site gratuito.

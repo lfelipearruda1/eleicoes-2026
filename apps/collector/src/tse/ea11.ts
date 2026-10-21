@@ -3,12 +3,13 @@ import { z } from 'zod'
 import {
   TSE_CONFIG_PATH,
   TSE_NATIONAL_SCOPE,
-  TSE_PRESIDENT_OFFICE_CODE,
+  TSE_OFFICE_CODES,
   TSE_RESULT_DIRECTORY_TEMPLATE,
   TSE_RESULT_FILE_TYPE,
   TSE_SOURCES,
 } from '../constants.js'
 import { CollectorError } from '../error.js'
+import { isKnownScope, type Office } from './ea20.js'
 
 export type SourceName = keyof typeof TSE_SOURCES
 
@@ -36,6 +37,33 @@ const configSchema = z.object({
     }),
   ),
 })
+
+export interface ResultTarget {
+  office: Office
+  scope: string
+}
+
+export function parseTarget(office: string, scope: string): ResultTarget {
+  if (!Object.hasOwn(TSE_OFFICE_CODES, office)) {
+    throw new CollectorError(
+      'INVALID_ARGUMENTS',
+      `cargo "${office}" inválido: use president ou governor`,
+    )
+  }
+  if (!isKnownScope(scope)) {
+    throw new CollectorError(
+      'INVALID_ARGUMENTS',
+      `abrangência "${scope}" inválida: use br ou a sigla da UF em minúsculas`,
+    )
+  }
+  if (office === 'governor' && scope === TSE_NATIONAL_SCOPE) {
+    throw new CollectorError(
+      'INVALID_ARGUMENTS',
+      'governador exige a sigla de uma UF',
+    )
+  }
+  return { office: office as Office, scope }
+}
 
 export interface ElectionSelection {
   cycle: string
@@ -68,11 +96,14 @@ export function parseElectionConfig(document: unknown) {
   return parsed.data
 }
 
-export function selectPresidentialElection(
+export function selectElection(
   config: ReturnType<typeof parseElectionConfig>,
   round: number,
+  target: ResultTarget,
   requestedElection?: string,
 ): ElectionSelection {
+  const configScope =
+    target.office === 'president' ? TSE_NATIONAL_SCOPE : target.scope
   const matches = config.pl.flatMap((pleito) =>
     pleito.e
       .filter(
@@ -80,9 +111,9 @@ export function selectPresidentialElection(
           election.t === String(round) &&
           election.abr.some(
             (scope) =>
-              scope.cd === TSE_NATIONAL_SCOPE &&
+              scope.cd === configScope &&
               scope.cp.some(
-                (office) => office.cd === TSE_PRESIDENT_OFFICE_CODE,
+                (office) => office.cd === TSE_OFFICE_CODES[target.office],
               ),
           ),
       )
@@ -97,9 +128,10 @@ export function selectPresidentialElection(
     ? matches.filter((match) => match.election === requestedElection)
     : matches
   if (selected.length === 0) {
+    const contest = `${target.office} em ${configScope}, turno ${round}`
     const detail = requestedElection
-      ? `turno ${round}, eleição ${requestedElection}`
-      : `turno ${round}`
+      ? `${contest}, eleição ${requestedElection}`
+      : contest
     throw new CollectorError('ELECTION_NOT_FOUND', detail)
   }
   if (selected.length > 1) {
@@ -109,14 +141,15 @@ export function selectPresidentialElection(
   return selected[0]
 }
 
-export function presidentialResultUrl(
+export function resultFileUrl(
   source: SourceName,
   selection: ElectionSelection,
+  target: ResultTarget,
 ): URL {
+  const { office: officeName, scope } = parseTarget(target.office, target.scope)
   const { host, environment } = TSE_SOURCES[source]
-  const office = TSE_PRESIDENT_OFFICE_CODE.padStart(4, '0')
+  const office = TSE_OFFICE_CODES[officeName].padStart(4, '0')
   const election = selection.election.padStart(6, '0')
-  const scope = TSE_NATIONAL_SCOPE
   const file = `${scope}-c${office}-e${election}-${TSE_RESULT_FILE_TYPE}.json`
   return new URL(
     `https://${host}/${environment}/${selection.cycle}/${selection.election}/dados/${scope}/${file}`,

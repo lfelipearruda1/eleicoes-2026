@@ -2,20 +2,17 @@ import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import { readPresidentialSnapshotSchema } from '@eleicoes/validation'
+import { readResultSnapshotSchema } from '@eleicoes/validation'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { DEMO_CHANNEL, MANIFEST_FILE } from '../../src/constants.js'
 import type { CollectorError } from '../../src/error.js'
 import { DEMO_FIXTURES } from '../../src/president/demo.js'
-import { normalizePresidentialResult } from '../../src/president/normalize.js'
-import { publishPresidentialCapture } from '../../src/president/publish.js'
+import { normalizeResult } from '../../src/president/normalize.js'
+import { publishResultCapture } from '../../src/president/publish.js'
 import { readPublication } from '../../src/publication/read.js'
 import { listSnapshots } from '../../src/publication/storage.js'
-import {
-  parsePresidentialResult,
-  type PresidentialSummary,
-} from '../../src/tse/ea20.js'
+import { parseResult, type ResultSummary } from '../../src/tse/ea20.js'
 
 const OFFICIAL_CHANNEL = 'teste-oficial-presidente-br-2t'
 const OFFICIAL_URL =
@@ -57,10 +54,10 @@ const rawResult = (overrides: Record<string, unknown> = {}) => ({
 })
 
 const summaryOf = (overrides: Record<string, unknown> = {}) =>
-  parsePresidentialResult(rawResult(overrides))
+  parseResult(rawResult(overrides))
 
-const normalize = (summary: PresidentialSummary) =>
-  normalizePresidentialResult(summary, {
+const normalize = (summary: ResultSummary) =>
+  normalizeResult(summary, {
     dataVersion: DATA_VERSION,
     sourceEnvironment: 'synthetic',
     collectedAt: '2026-10-25T21:00:05Z',
@@ -85,7 +82,7 @@ async function errorOf(promise: Promise<unknown>): Promise<CollectorError> {
   throw new Error('a operação deveria falhar')
 }
 
-describe('normalizePresidentialResult', () => {
+describe('normalizeResult', () => {
   it('deve produzir pending sem votos quando a votação não foi liberada', () => {
     const summary = summaryOf({ dv: 'n' })
 
@@ -190,7 +187,7 @@ describe('normalizePresidentialResult', () => {
     const reordered = rawResult()
     reordered.carg[0].agr.reverse()
 
-    const first = normalize(parsePresidentialResult(reordered))
+    const first = normalize(parseResult(reordered))
 
     expect(first).toEqual(normalize(summaryOf()))
   })
@@ -208,7 +205,7 @@ describe('normalizePresidentialResult', () => {
 
     const snapshot = normalize(summary)
 
-    expect(readPresidentialSnapshotSchema.parse(snapshot)).toEqual(snapshot)
+    expect(readResultSnapshotSchema.parse(snapshot)).toEqual(snapshot)
   })
 })
 
@@ -227,13 +224,13 @@ describe('EA20: indicadores de disponibilidade', () => {
   ])('deve recusar $field desconhecido "$value"', ({ field, value }) => {
     const document = rawResult({ [field]: value })
 
-    const error = thrownBy(() => parsePresidentialResult(document))
+    const error = thrownBy(() => parseResult(document))
 
     expect(error.code).toBe('INVALID_TSE_RESULT')
   })
 })
 
-describe('publishPresidentialCapture', () => {
+describe('publishResultCapture', () => {
   let workDirectory: string
   let output: string
 
@@ -248,7 +245,7 @@ describe('publishPresidentialCapture', () => {
 
   const fixture = (name: string) => path.join(DEMO_FIXTURES, name)
   const publishFixture = (name: string, channel = DEMO_CHANNEL) =>
-    publishPresidentialCapture({ capture: fixture(name), output, channel })
+    publishResultCapture({ capture: fixture(name), output, channel })
   const manifestText = (channel = DEMO_CHANNEL) =>
     readFile(path.join(output, channel, MANIFEST_FILE), 'utf8')
 
@@ -322,7 +319,7 @@ describe('publishPresidentialCapture', () => {
       metadata.collectedAt = '2026-10-25T23:59:00Z'
     })
 
-    const result = await publishPresidentialCapture({
+    const result = await publishResultCapture({
       capture: recollected,
       output,
       channel: DEMO_CHANNEL,
@@ -359,7 +356,7 @@ describe('publishPresidentialCapture', () => {
     const before = await manifestText()
 
     await errorOf(
-      publishPresidentialCapture({
+      publishResultCapture({
         capture: fixture('04-parcial-atualizada'),
         output,
         channel: DEMO_CHANNEL,
@@ -390,7 +387,7 @@ describe('publishPresidentialCapture', () => {
     await writeFile(resultPath, JSON.stringify({ ...result, t: '1' }))
 
     const error = await errorOf(
-      publishPresidentialCapture({
+      publishResultCapture({
         capture: firstRound,
         output,
         channel: DEMO_CHANNEL,
@@ -406,7 +403,7 @@ describe('publishPresidentialCapture', () => {
     })
 
     const error = await errorOf(
-      publishPresidentialCapture({
+      publishResultCapture({
         capture: mismatched,
         output,
         channel: DEMO_CHANNEL,
@@ -423,7 +420,7 @@ describe('publishPresidentialCapture', () => {
     })
 
     const error = await errorOf(
-      publishPresidentialCapture({
+      publishResultCapture({
         capture: replay,
         output,
         channel: DEMO_CHANNEL,
@@ -431,6 +428,78 @@ describe('publishPresidentialCapture', () => {
     )
 
     expect(error.code).toBe('INVALID_CAPTURE')
+  })
+
+  it('deve publicar captura oficial de governador com a situação dos votos', async () => {
+    const sourceDirectory = path.join(workDirectory, 'tse', 'official')
+    const runDirectory = path.join(sourceDirectory, 'run-gov')
+    await mkdir(runDirectory, { recursive: true })
+    const governor = rawResult({
+      cdabr: 'df',
+      carg: [
+        {
+          cd: '3',
+          agr: [
+            {
+              par: [
+                {
+                  cand: [
+                    { ...candidate('1', '6000', '60,00'), dvt: 'Válido' },
+                    {
+                      ...candidate('2', '4000', '40,00'),
+                      dvt: 'Anulado sub judice',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    })
+    await writeFile(
+      path.join(runDirectory, 'result.json'),
+      JSON.stringify(governor),
+    )
+    await writeFile(
+      path.join(runDirectory, 'metadata.json'),
+      JSON.stringify({
+        source: 'official',
+        office: 'governor',
+        round: 2,
+        scope: 'df',
+        validation: 'valid',
+        election: {
+          cycle: 'ele2026',
+          pleito: '9900',
+          election: '9002',
+          name: 'Eleição sintética 9002',
+        },
+        requests: [
+          {
+            url: 'https://resultados.tse.jus.br/oficial/ele2026/9002/dados/df/df-c0003-e009002-u.json',
+            requestedAt: '2026-10-25T21:00:00Z',
+            status: 200,
+          },
+        ],
+      }),
+    )
+
+    const result = await publishResultCapture({
+      capture: runDirectory,
+      output,
+      channel: 'teste-oficial-governador-df-2t',
+    })
+
+    expect(result.snapshot).toMatchObject({
+      office: 'governor',
+      scope: 'DF',
+      source: { file: 'ele2026/9002/dados/df/df-c0003-e009002-u.json' },
+      candidates: [
+        { candidateId: '900000000001', voteDestination: 'valid' },
+        { candidateId: '900000000002', voteDestination: 'annulled_sub_judice' },
+      ],
+    })
   })
 
   it('deve identificar a captura oficial pela URL e pelo horário da consulta', async () => {
@@ -442,7 +511,7 @@ describe('publishPresidentialCapture', () => {
       },
     ])
 
-    const result = await publishPresidentialCapture({
+    const result = await publishResultCapture({
       capture,
       output,
       channel: OFFICIAL_CHANNEL,
@@ -467,7 +536,7 @@ describe('publishPresidentialCapture', () => {
     ])
     await rm(path.join(capture, 'result.json'))
 
-    const result = await publishPresidentialCapture({
+    const result = await publishResultCapture({
       capture,
       output,
       channel: OFFICIAL_CHANNEL,
@@ -482,7 +551,7 @@ describe('publishPresidentialCapture', () => {
     ])
 
     const error = await errorOf(
-      publishPresidentialCapture({
+      publishResultCapture({
         capture,
         output,
         channel: OFFICIAL_CHANNEL,
@@ -503,7 +572,7 @@ describe('publishPresidentialCapture', () => {
     ])
 
     const error = await errorOf(
-      publishPresidentialCapture({
+      publishResultCapture({
         capture,
         output,
         channel: OFFICIAL_CHANNEL,
@@ -533,7 +602,7 @@ describe('publishPresidentialCapture', () => {
         JSON.stringify({ ...metadata, requests: [request] }),
       )
       await writeFile(path.join(capture, 'result.json'), JSON.stringify(result))
-      return publishPresidentialCapture({
+      return publishResultCapture({
         capture,
         output,
         channel: OFFICIAL_CHANNEL,
@@ -544,7 +613,7 @@ describe('publishPresidentialCapture', () => {
 
     it('deve registrar a nova consulta oficial sem mudança como checkedAt na revisão seguinte', async () => {
       const capture = await officialCapture([officialRequest(FIRST_CHECK)])
-      const first = await publishPresidentialCapture({
+      const first = await publishResultCapture({
         capture,
         output,
         channel: OFFICIAL_CHANNEL,
@@ -571,7 +640,7 @@ describe('publishPresidentialCapture', () => {
 
     it('deve registrar a verificação respondida com 304', async () => {
       const capture = await officialCapture([officialRequest(FIRST_CHECK)])
-      await publishPresidentialCapture({
+      await publishResultCapture({
         capture,
         output,
         channel: OFFICIAL_CHANNEL,
@@ -592,7 +661,7 @@ describe('publishPresidentialCapture', () => {
 
     it('deve não regravar o manifesto com consulta igual ou mais antiga', async () => {
       const capture = await officialCapture([officialRequest(FIRST_CHECK)])
-      await publishPresidentialCapture({
+      await publishResultCapture({
         capture,
         output,
         channel: OFFICIAL_CHANNEL,
@@ -616,7 +685,7 @@ describe('publishPresidentialCapture', () => {
 
     it('deve não copiar checkedAt para uma versão nova', async () => {
       const capture = await officialCapture([officialRequest(FIRST_CHECK)])
-      await publishPresidentialCapture({
+      await publishResultCapture({
         capture,
         output,
         channel: OFFICIAL_CHANNEL,
@@ -636,7 +705,7 @@ describe('publishPresidentialCapture', () => {
 
     it('deve manter o manifesto quando a gravação da verificação falha', async () => {
       const capture = await officialCapture([officialRequest(FIRST_CHECK)])
-      await publishPresidentialCapture({
+      await publishResultCapture({
         capture,
         output,
         channel: OFFICIAL_CHANNEL,
@@ -653,7 +722,7 @@ describe('publishPresidentialCapture', () => {
       )
 
       await errorOf(
-        publishPresidentialCapture({
+        publishResultCapture({
           capture,
           output,
           channel: OFFICIAL_CHANNEL,
@@ -672,7 +741,7 @@ describe('publishPresidentialCapture', () => {
         metadata.collectedAt = '2026-10-25T23:59:00Z'
       })
 
-      const result = await publishPresidentialCapture({
+      const result = await publishResultCapture({
         capture: recollected,
         output,
         channel: DEMO_CHANNEL,

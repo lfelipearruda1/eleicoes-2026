@@ -18,6 +18,7 @@ export const HELP = `Uso: collector <comando> [opções]
   president-publish  --capture <pasta da captura> --output <pasta> --channel <canal>
   president-demo     [--output <pasta>]
   tse-once    --source official --round <1|2> --output <pasta> [--election <código>]
+              [--office president|governor] [--scope br|<uf>]
   tse-replay  --input <arquivo EA20> --output <pasta>`
 
 export const TSE_SOURCES = {
@@ -37,7 +38,7 @@ export const TSE_CONFIG_PATH = '/{environment}/comum/config/ele-c.json'
 export const TSE_RESULT_DIRECTORY_TEMPLATE =
   '<base>/<ambiente>/<ciclo>/<cd_eleicao>/dados/<uf>'
 export const TSE_RESULT_FILE_TYPE = 'u'
-export const TSE_PRESIDENT_OFFICE_CODE = '1'
+export const TSE_OFFICE_CODES = { president: '1', governor: '3' } as const
 export const TSE_NATIONAL_SCOPE = 'br'
 
 export const TSE_REQUEST_TIMEOUT_MS = 15_000
@@ -122,7 +123,7 @@ export const ERROR_MESSAGES = {
   TSE_LAYOUT_CHANGED: (detail: string) =>
     `o diretório de resultados da configuração mudou (${detail}); confirme a nova nomenclatura`,
   ELECTION_NOT_FOUND: (detail: string) =>
-    `a configuração não lista eleição presidencial de abrangência Brasil para ${detail}`,
+    `a configuração não lista eleição para ${detail}`,
   ELECTION_AMBIGUOUS: (options: string) =>
     `mais de uma eleição corresponde; escolha com --election: ${options}`,
   INVALID_TSE_RESULT: (fields: string) =>

@@ -1,3 +1,4 @@
+export { BRAZILIAN_STATE_CODES } from './contract/constants.js'
 export {
   dataVersionSchema,
   publishEnvelopeSchema,
@@ -16,8 +17,9 @@ export {
 } from './contract/manifest.js'
 export {
   PENDING_REASONS,
-  publishPresidentialSnapshotSchema,
-  readPresidentialSnapshotSchema,
+  publishResultSnapshotSchema,
+  readResultSnapshotSchema,
   TOTALIZATION_STATUSES,
-  type PresidentialSnapshot,
-} from './contract/president.js'
+  VOTE_DESTINATIONS,
+  type ResultSnapshot,
+} from './contract/result.js'

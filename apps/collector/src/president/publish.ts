@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 
-import type { PresidentialSnapshot } from '@eleicoes/validation'
+import type { ResultSnapshot } from '@eleicoes/validation'
 import { z } from 'zod'
 
 import {
@@ -14,15 +14,20 @@ import { CollectorError } from '../error.js'
 import { publishDocument } from '../publication/publish.js'
 import { readPublication } from '../publication/read.js'
 import { hasErrorCode, readLimitedFile } from '../publication/storage.js'
-import { presidentialResultUrl } from '../tse/ea11.js'
-import { parsePresidentialResult } from '../tse/ea20.js'
-import { normalizePresidentialResult } from './normalize.js'
+import { parseTarget, resultFileUrl } from '../tse/ea11.js'
+import { parseResult } from '../tse/ea20.js'
+import { normalizeResult } from './normalize.js'
 
 const digitsSchema = z.string().regex(/^\d{1,6}$/)
 const captureContextShape = {
-  office: z.literal('president'),
+  office: z.enum(['president', 'governor']),
   round: z.literal([1, 2]),
-  scope: z.literal('br'),
+  scope: z.string(),
+}
+
+const SYNTHETIC_FILE_OFFICE = {
+  president: 'presidente',
+  governor: 'governador',
 }
 
 const captureMetadataSchema = z.discriminatedUnion('source', [
@@ -79,7 +84,7 @@ function locateOfficialResult(
   captureDirectory: string,
   metadata: Extract<CaptureMetadata, { source: 'official' }>,
 ) {
-  const url = presidentialResultUrl('official', metadata.election)
+  const url = resultFileUrl('official', metadata.election, metadata)
   const request = metadata.requests.findLast((entry) => entry.url === url.href)
   if (!request) {
     throw new CollectorError('INVALID_CAPTURE', `sem requisição a ${url.href}`)
@@ -110,7 +115,7 @@ function locateOfficialResult(
   )
 }
 
-export async function readPresidentialCapture(captureDirectory: string) {
+export async function readResultCapture(captureDirectory: string) {
   const metadataPath = path.join(captureDirectory, TSE_CAPTURE_FILES.metadata)
   const parsed = captureMetadataSchema.safeParse(
     await readJsonFile(metadataPath),
@@ -123,18 +128,20 @@ export async function readPresidentialCapture(captureDirectory: string) {
     )
   }
   const metadata = parsed.data
+  const target = parseTarget(metadata.office, metadata.scope)
   const located =
     metadata.source === 'official'
       ? locateOfficialResult(captureDirectory, metadata)
       : {
           resultPath: path.join(captureDirectory, TSE_CAPTURE_FILES.result),
           collectedAt: metadata.collectedAt,
-          sourceFile: 'sintetico/presidente-br.json',
+          sourceFile: `sintetico/${SYNTHETIC_FILE_OFFICE[target.office]}-${target.scope}.json`,
         }
-  const summary = parsePresidentialResult(
-    await readJsonFile(located.resultPath),
-    { election: metadata.election.election, round: metadata.round },
-  )
+  const summary = parseResult(await readJsonFile(located.resultPath), {
+    election: metadata.election.election,
+    round: metadata.round,
+    ...target,
+  })
   return {
     summary,
     context: {
@@ -155,7 +162,7 @@ const canonical = (value: unknown): unknown => {
   )
 }
 
-const electoralContent = (snapshot: PresidentialSnapshot) =>
+const electoralContent = (snapshot: ResultSnapshot) =>
   JSON.stringify(
     canonical({ ...snapshot, dataVersion: undefined, collectedAt: undefined }),
   )
@@ -168,11 +175,11 @@ export interface PresidentialPublishRequest {
   beforeManifestSwap?: () => Promise<void>
 }
 
-export async function publishPresidentialCapture(
+export async function publishResultCapture(
   request: PresidentialPublishRequest,
 ) {
   const captureDirectory = path.resolve(request.capture)
-  const { summary, context } = await readPresidentialCapture(captureDirectory)
+  const { summary, context } = await readResultCapture(captureDirectory)
   const isSynthetic = context.sourceEnvironment === 'synthetic'
   if (isSynthetic !== request.channel.startsWith(DEMO_CHANNEL_PREFIX)) {
     throw new CollectorError(
@@ -180,7 +187,7 @@ export async function publishPresidentialCapture(
       `captura ${context.sourceEnvironment} exige canal ${isSynthetic ? 'com' : 'sem'} o prefixo "${DEMO_CHANNEL_PREFIX}"`,
     )
   }
-  const snapshot = normalizePresidentialResult(summary, {
+  const snapshot = normalizeResult(summary, {
     ...context,
     dataVersion: randomUUID(),
   })

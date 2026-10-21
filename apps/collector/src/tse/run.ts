@@ -20,11 +20,12 @@ import {
 import {
   configUrl,
   parseElectionConfig,
-  presidentialResultUrl,
-  selectPresidentialElection,
+  parseTarget,
+  resultFileUrl,
+  selectElection,
   type SourceName,
 } from './ea11.js'
-import { parsePresidentialResult, type PresidentialSummary } from './ea20.js'
+import { parseResult, type ResultSummary } from './ea20.js'
 import {
   httpGet,
   parseJsonBody,
@@ -37,6 +38,8 @@ export interface TseOnceOptions {
   round: string
   output: string
   election?: string
+  office?: string
+  scope?: string
   transport?: Transport
   now?: () => Date
   minIntervalMs?: number
@@ -63,8 +66,10 @@ function parseRound(round: string): number {
   return Number(round)
 }
 
-function describeResult(summary: PresidentialSummary) {
+function describeResult(summary: ResultSummary) {
   return {
+    office: summary.office,
+    scope: summary.scope,
     candidates: summary.candidates.length,
     sections: summary.sections,
     generation: summary.generation,
@@ -74,6 +79,10 @@ function describeResult(summary: PresidentialSummary) {
 export async function runTseOnce(options: TseOnceOptions) {
   const source = parseSource(options.source)
   const round = parseRound(options.round)
+  const target = parseTarget(
+    options.office ?? 'president',
+    options.scope ?? TSE_NATIONAL_SCOPE,
+  )
   const now = options.now ?? (() => new Date())
   const minIntervalMs = options.minIntervalMs ?? TSE_MIN_REQUEST_INTERVAL_MS
   const sourceDirectory = path.join(path.resolve(options.output), source)
@@ -84,9 +93,9 @@ export async function runTseOnce(options: TseOnceOptions) {
   const metadata: Record<string, unknown> = {
     source,
     sourceEnvironment: TSE_SOURCES[source].environment,
-    office: 'president',
+    office: target.office,
     round,
-    scope: TSE_NATIONAL_SCOPE,
+    scope: target.scope,
     requests,
     validation: 'not-validated',
   }
@@ -150,26 +159,25 @@ export async function runTseOnce(options: TseOnceOptions) {
   try {
     const electionConfigUrl = configUrl(source)
     const config = await fetchCopy(electionConfigUrl, TSE_CAPTURE_FILES.config)
-    const selection = selectPresidentialElection(
+    const selection = selectElection(
       parseElectionConfig(parseJsonBody(config.body, electionConfigUrl.href)),
       round,
+      target,
       options.election,
     )
     await accept(electionConfigUrl, config, TSE_CAPTURE_FILES.config)
     metadata.election = selection
 
-    const resultUrl = presidentialResultUrl(source, selection)
+    const resultUrl = resultFileUrl(source, selection, target)
     const result = await fetchCopy(resultUrl, TSE_CAPTURE_FILES.result)
     metadata.sampleOrigin = result.origin
-    let summary: PresidentialSummary
+    let summary: ResultSummary
     try {
-      summary = parsePresidentialResult(
-        parseJsonBody(result.body, resultUrl.href),
-        {
-          election: selection.election,
-          round,
-        },
-      )
+      summary = parseResult(parseJsonBody(result.body, resultUrl.href), {
+        election: selection.election,
+        round,
+        ...target,
+      })
     } catch (error) {
       metadata.validation = 'rejected'
       if (result.origin === 'live') {
@@ -230,7 +238,7 @@ export async function runTseReplay(options: {
     validation: 'rejected',
   }
   try {
-    const summary = parsePresidentialResult(parseJsonBody(content, inputPath))
+    const summary = parseResult(parseJsonBody(content, inputPath))
     await writeCaptureFile(
       runDirectory,
       TSE_CAPTURE_FILES.summary,

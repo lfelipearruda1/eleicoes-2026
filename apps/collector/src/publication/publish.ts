@@ -3,10 +3,10 @@ import path from 'node:path'
 import {
   findSnapshotMismatches,
   publishManifestSchema,
-  publishPresidentialSnapshotSchema,
+  publishResultSnapshotSchema,
   snapshotPathFor,
   type Manifest,
-  type PresidentialSnapshot,
+  type ResultSnapshot,
 } from '@eleicoes/validation'
 
 import { MANIFEST_FILE } from '../constants.js'
@@ -32,7 +32,7 @@ export interface PublishRequest {
 
 export type PublishDocumentRequest = Omit<PublishRequest, 'inputPath'> & {
   document: unknown
-  isUnchanged?: (current: PresidentialSnapshot) => boolean
+  isUnchanged?: (current: ResultSnapshot) => boolean
   checkedAt?: string
 }
 
@@ -58,8 +58,8 @@ async function readInput(inputPath: string): Promise<unknown> {
   }
 }
 
-function validateDocument(document: unknown): PresidentialSnapshot {
-  const parsed = publishPresidentialSnapshotSchema.safeParse(document)
+function validateDocument(document: unknown): ResultSnapshot {
+  const parsed = publishResultSnapshotSchema.safeParse(document)
   if (!parsed.success) {
     const fields = parsed.error.issues.map((issue) => issue.path.join('.'))
     throw new CollectorError(
@@ -76,7 +76,7 @@ function validateDocument(document: unknown): PresidentialSnapshot {
 async function recordCheck(
   channelDirectory: string,
   previous: Manifest,
-  current: PresidentialSnapshot,
+  current: ResultSnapshot,
   request: PublishDocumentRequest,
 ): Promise<PublishResult> {
   const latestCheck = previous.checkedAt ?? current.collectedAt

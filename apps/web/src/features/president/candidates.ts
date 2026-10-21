@@ -1,4 +1,4 @@
-import type { PresidentialSnapshot } from '@eleicoes/validation'
+import type { ResultSnapshot } from '@eleicoes/validation'
 
 import { formatCount, formatPercentage } from './format.ts'
 
@@ -27,22 +27,37 @@ export interface CandidateSummary {
   note: string
 }
 
+type AvailableSnapshot = Extract<ResultSnapshot, { availability: 'available' }>
+type VoteDestination = NonNullable<
+  AvailableSnapshot['candidates'][number]['voteDestination']
+>
+
+const VOTES_LABEL: Record<VoteDestination, string> = {
+  valid: 'votos válidos',
+  valid_party: 'votos válidos (legenda)',
+  annulled: 'votos anulados',
+  annulled_sub_judice: 'votos anulados sub judice',
+}
+
+const isAnnulled = (destination: VoteDestination | undefined) =>
+  destination === 'annulled' || destination === 'annulled_sub_judice'
+
 const toneAt = (index: number): CandidateTone =>
   index === 0 ? 'candidate1' : index === 1 ? 'candidate2' : 'other'
 
 const toHundredths = (value: string) => Number(value.replace('.', ''))
 const fromHundredths = (value: number) => (value / 100).toFixed(2)
 
-function aheadId(
-  snapshot: Extract<PresidentialSnapshot, { availability: 'available' }>,
-) {
-  const ordered = snapshot.candidates.toSorted((a, b) =>
-    BigInt(b.votes) > BigInt(a.votes)
-      ? 1
-      : BigInt(b.votes) < BigInt(a.votes)
-        ? -1
-        : 0,
-  )
+function aheadId(snapshot: AvailableSnapshot) {
+  const ordered = snapshot.candidates
+    .filter((candidate) => !isAnnulled(candidate.voteDestination))
+    .toSorted((a, b) =>
+      BigInt(b.votes) > BigInt(a.votes)
+        ? 1
+        : BigInt(b.votes) < BigInt(a.votes)
+          ? -1
+          : 0,
+    )
   const [first, second] = ordered
   if (!first || BigInt(first.votes) === 0n) return undefined
   if (second && BigInt(second.votes) === BigInt(first.votes)) return undefined
@@ -50,7 +65,7 @@ function aheadId(
 }
 
 export function summarizeCandidates(
-  snapshot: PresidentialSnapshot,
+  snapshot: ResultSnapshot,
 ): CandidateSummary {
   if (snapshot.availability === 'pending') {
     const share = snapshot.candidates.length
@@ -96,7 +111,11 @@ export function summarizeCandidates(
       ballotName: candidate.ballotName,
       tone: toneAt(index),
       percentage: formatPercentage(candidate.contestantVotesPercentage),
-      votes: `${formatCount(candidate.votes)} votos`,
+      votes: `${formatCount(candidate.votes)} ${
+        candidate.voteDestination
+          ? VOTES_LABEL[candidate.voteDestination]
+          : 'votos'
+      }`,
       isAhead: candidate.candidateId === ahead,
     })),
     segments,

@@ -1,7 +1,7 @@
-import type { PresidentialSnapshot } from '@eleicoes/validation'
+import type { ResultSnapshot } from '@eleicoes/validation'
 
 import { CollectorError } from '../error.js'
-import type { PresidentialSummary } from '../tse/ea20.js'
+import type { ResultSummary } from '../tse/ea20.js'
 
 export interface NormalizationContext {
   dataVersion: string
@@ -12,7 +12,7 @@ export interface NormalizationContext {
 
 const toPercentage = (value: string) => value.replace(',', '.')
 
-function checkContradictions(summary: PresidentialSummary): void {
+function checkContradictions(summary: ResultSummary): void {
   if (BigInt(summary.sections.totalized) > BigInt(summary.sections.total)) {
     throw new CollectorError('TSE_RESULT_CONTRADICTION', 's.st maior que s.ts')
   }
@@ -27,7 +27,7 @@ function checkContradictions(summary: PresidentialSummary): void {
   }
 }
 
-export function decidePendingReason(summary: PresidentialSummary) {
+export function decidePendingReason(summary: ResultSummary) {
   if (!summary.votesReleased) return 'votes_not_released' as const
   if (summary.totalizationStatus === 'not_started') {
     return 'totalization_not_started' as const
@@ -35,10 +35,10 @@ export function decidePendingReason(summary: PresidentialSummary) {
   return undefined
 }
 
-export function normalizePresidentialResult(
-  summary: PresidentialSummary,
+export function normalizeResult(
+  summary: ResultSummary,
   context: NormalizationContext,
-): PresidentialSnapshot {
+): ResultSnapshot {
   checkContradictions(summary)
   const candidates = summary.candidates.toSorted((a, b) =>
     a.candidateId < b.candidateId ? -1 : 1,
@@ -49,8 +49,8 @@ export function normalizePresidentialResult(
     environment: 'local' as const,
     sourceEnvironment: context.sourceEnvironment,
     round: summary.round as 1 | 2,
-    office: 'president' as const,
-    scope: 'BR' as const,
+    office: summary.office,
+    scope: summary.scope.toUpperCase() as ResultSnapshot['scope'],
     collectedAt: context.collectedAt,
     source: { file: context.sourceFile },
     votesReleased: summary.votesReleased,
@@ -96,6 +96,9 @@ export function normalizePresidentialResult(
       ballotName: candidate.ballotName,
       votes: candidate.votes,
       contestantVotesPercentage: toPercentage(candidate.contestantVotesPercent),
+      ...(candidate.voteDestination && {
+        voteDestination: candidate.voteDestination,
+      }),
     })),
   }
 }

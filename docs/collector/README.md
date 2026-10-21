@@ -120,9 +120,9 @@ pnpm collector:president:publish \
   --output .local/publications --channel local-oficial-presidente-br-2t
 ```
 
-1. Lê `metadata.json` da captura e valida a proveniência. Oficial: `validation` `valid`, eleição e a requisição cuja URL é a do resultado presidencial Brasil dessa eleição. Com 200 usa `result.json` da pasta. Com 304 usa a cópia indicada em `reusedCapture`, na mesma pasta de origem (gravado por `tse-once` a partir desta versão; capturas antigas com 304 são recusadas). Sintética: `source` `synthetic`, `collectedAt` declarado e aviso. Replay, captura rejeitada ou metadados insuficientes: `INVALID_CAPTURE`.
+1. Lê `metadata.json` da captura e valida a proveniência. Oficial: `validation` `valid`, eleição, cargo e abrangência da captura, e a requisição cuja URL é a do resultado desse cargo e abrangência. Com 200 usa `result.json` da pasta. Com 304 usa a cópia indicada em `reusedCapture`, na mesma pasta de origem (gravado por `tse-once` a partir desta versão; capturas antigas com 304 são recusadas). Sintética: `source` `synthetic`, `collectedAt` declarado e aviso. Replay, captura rejeitada ou metadados insuficientes: `INVALID_CAPTURE`.
 2. Reprocessa o resultado com o parser do EA20 e confere eleição e turno com os metadados.
-3. Normaliza (`normalizePresidentialResult`: sem rede, disco, relógio ou UUID) e decide `available`/`pending`.
+3. Normaliza (`normalizeResult`: sem rede, disco, relógio ou UUID) e decide `available`/`pending`.
 4. Captura sintética só em canal `demo-*`; oficial só fora dele (`CHANNEL_SOURCE_MISMATCH`).
 5. Publica pelo publicador local. Dentro do bloqueio, compara o conteúdo com a versão atual sem `dataVersion` e `collectedAt`: igual → `unchanged`, sem UUID nem revisão novos. Diferente (inclusive com votos menores) → versão nova.
 6. Relê manifesto e snapshot com o schema de leitura e imprime status, revisão, `dataVersion` e o snapshot lido.
@@ -136,11 +136,12 @@ pnpm collector:president:publish \
 Implementação: `apps/collector/src/tse/`. `http.ts` cuida do transporte: GET, timeout de 15 s até o fim do corpo, limite de 5 MiB, sem redirect, sem retry, só HTTPS no host exato da origem. `ea11.ts` lê a configuração, escolhe a eleição e monta a URL. `ea20.ts` faz o parser do resultado. `capture.ts` grava as capturas e `run.ts` orquestra. Os valores ficam em `src/constants.ts`.
 
 ```sh
-pnpm collector:tse:once --source official --round 2 --output .local/tse [--election <código>]
+pnpm collector:tse:once --source official --round 2 --output .local/tse [--election <código>] [--office president|governor] [--scope br|<uf>]
 pnpm collector:tse:replay --input <arquivo EA20> --output .local/tse
 ```
 
 - **Ordem:** uma execução faz duas requisições em sequência (configuração e resultado), com pelo menos 1 s entre os inícios.
+- **Cargo e abrangência:** padrão `president`/`br`. Presidente aceita `br` ou a sigla da UF (o arquivo de UF existe, mas a eleição é escolhida pela abrangência `br` do EA11). Governador exige UF listada no EA11 para o turno. Valores fora disso são recusados antes de montar a URL.
 - **Eleição:** a eleição vem da configuração. Se houver mais de uma compatível, o comando para e lista as opções para `--election`. Ele não troca de turno nem de origem. `--source simulated` é recusado enquanto o endereço do simulado não for confirmado.
 - **Pastas:** cada execução cria `<output>/<origem>/<id>/` sem sobrescrever nada, com `config.json` e `result.json` (bytes recebidos), `metadata.json` (URL, status, ETag/Last-Modified, validação, origem da amostra) e `summary.json` (recorte extraído). Resposta inválida vira `result.rejected.json`.
 - **Validadores:** `<output>/<origem>/last-valid.json` guarda, por URL exata, a última cópia válida e o validador HTTP dela. Só cópias validadas entram. Um 304 reaproveita essa cópia, e um 304 sem cópia é erro.

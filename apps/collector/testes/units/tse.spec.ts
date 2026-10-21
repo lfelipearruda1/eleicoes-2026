@@ -9,13 +9,15 @@ import type { CollectorError } from '../../src/error.js'
 import {
   configUrl,
   parseElectionConfig,
-  presidentialResultUrl,
-  selectPresidentialElection,
+  parseTarget,
+  resultFileUrl,
+  selectElection,
 } from '../../src/tse/ea11.js'
-import { parsePresidentialResult } from '../../src/tse/ea20.js'
+import { parseResult } from '../../src/tse/ea20.js'
 import { httpGet, type Transport } from '../../src/tse/http.js'
 import { runTseOnce, runTseReplay } from '../../src/tse/run.js'
 
+const PRESIDENT_BR = { office: 'president', scope: 'br' } as const
 const HOST = 'resultados.tse.jus.br'
 const RESULT_URL = `https://${HOST}/oficial/ele2026/9002/dados/br/br-c0001-e009002-u.json`
 
@@ -124,11 +126,116 @@ const runOnce = (transport: Transport, source = 'official') =>
 const readJson = async (file: string) =>
   JSON.parse(await readFile(file, 'utf8'))
 
+describe('EA11: governador e presidente por UF', () => {
+  const stateElection = {
+    cd: '9004',
+    nm: 'Eleição sintética estadual 9004',
+    t: '2',
+    abr: ['df', 'es'].map((uf) => ({ cd: uf, cp: [{ cd: '3' }] })),
+  }
+  const config = () =>
+    parseElectionConfig(
+      syntheticConfig([syntheticElection('9002', '2'), stateElection]),
+    )
+
+  it('deve selecionar a eleição estadual que lista governador na UF', () => {
+    const selection = selectElection(config(), 2, {
+      office: 'governor',
+      scope: 'df',
+    })
+
+    expect(selection.election).toBe('9004')
+  })
+
+  it('deve recusar governador numa UF sem disputa no turno', () => {
+    const error = thrownBy(() =>
+      selectElection(config(), 2, { office: 'governor', scope: 'sp' }),
+    )
+
+    expect(error.code).toBe('ELECTION_NOT_FOUND')
+  })
+
+  it('deve selecionar a eleição federal para presidente numa UF', () => {
+    const selection = selectElection(config(), 2, {
+      office: 'president',
+      scope: 'sp',
+    })
+
+    expect(selection.election).toBe('9002')
+  })
+
+  it.each([
+    [{ office: 'governor', scope: 'df' }, '9004', 'df/df-c0003-e009004-u.json'],
+    [
+      { office: 'president', scope: 'sp' },
+      '9002',
+      'sp/sp-c0001-e009002-u.json',
+    ],
+  ] as const)('deve montar a URL de %j', (target, election, file) => {
+    const selection = selectElection(config(), 2, target)
+
+    const url = resultFileUrl('official', selection, target)
+
+    expect(url.href).toBe(
+      `https://${HOST}/oficial/ele2026/${election}/dados/${file}`,
+    )
+  })
+
+  it.each([
+    ['senator', 'df'],
+    ['president', 'BR'],
+    ['president', 'xx'],
+    ['president', '../br'],
+    ['governor', 'br'],
+  ])('deve recusar o alvo %s/%s', (office, scope) => {
+    const error = thrownBy(() => parseTarget(office, scope))
+
+    expect(error.code).toBe('INVALID_ARGUMENTS')
+  })
+
+  it('deve consultar o arquivo de governador da UF e registrar o alvo', async () => {
+    const governor = syntheticResult({
+      ele: '9004',
+      cdabr: 'df',
+      carg: [
+        {
+          cd: '3',
+          agr: [{ par: [{ cand: [syntheticCandidate('900000000003', '0')] }] }],
+        },
+      ],
+    })
+    const { transport, calls } = fakeTransport((url) =>
+      url.endsWith('ele-c.json')
+        ? json(syntheticConfig([syntheticElection('9002', '2'), stateElection]))
+        : json(governor),
+    )
+
+    const run = await runTseOnce({
+      source: 'official',
+      round: '2',
+      office: 'governor',
+      scope: 'df',
+      output,
+      transport,
+      minIntervalMs: 0,
+    })
+
+    const metadata = await readJson(
+      path.join(run.runDirectory, TSE_CAPTURE_FILES.metadata),
+    )
+    expect(calls[1].url).toBe(
+      `https://${HOST}/oficial/ele2026/9004/dados/df/df-c0003-e009004-u.json`,
+    )
+    expect(metadata).toMatchObject({ office: 'governor', scope: 'df' })
+    expect(run.result).toMatchObject({ office: 'governor', scope: 'df' })
+  })
+})
+
 describe('EA11: seleção da eleição', () => {
   it('deve selecionar a eleição presidencial do turno pedido', () => {
     const config = parseElectionConfig(syntheticConfig())
 
-    const selection = selectPresidentialElection(config, 2)
+    const selection = selectElection(config, 2, PRESIDENT_BR)
 
     expect(selection).toEqual({
       cycle: 'ele2026',
@@ -143,7 +250,7 @@ describe('EA11: seleção da eleição', () => {
       syntheticConfig([syntheticElection('9001', '1')]),
     )
 
-    const error = thrownBy(() => selectPresidentialElection(config, 2))
+    const error = thrownBy(() => selectElection(config, 2, PRESIDENT_BR))
 
     expect(error.code).toBe('ELECTION_NOT_FOUND')
   })
@@ -156,7 +263,7 @@ describe('EA11: seleção da eleição', () => {
       ]),
     )
 
-    const error = thrownBy(() => selectPresidentialElection(config, 2))
+    const error = thrownBy(() => selectElection(config, 2, PRESIDENT_BR))
 
     expect(error.code).toBe('ELECTION_AMBIGUOUS')
     expect(error.message).toContain('9002')
@@ -171,7 +278,7 @@ describe('EA11: seleção da eleição', () => {
       ]),
     )
 
-    const selection = selectPresidentialElection(config, 2, '9003')
+    const selection = selectElection(config, 2, PRESIDENT_BR, '9003')
 
     expect(selection.election).toBe('9003')
   })
@@ -184,7 +291,7 @@ describe('EA11: seleção da eleição', () => {
       ]),
     )
 
-    const selection = selectPresidentialElection(config, 2)
+    const selection = selectElection(config, 2, PRESIDENT_BR)
 
     expect(selection.election).toBe('9002')
   })
@@ -208,7 +315,7 @@ describe('EA11: seleção da eleição', () => {
       name: '',
     }
 
-    const url = presidentialResultUrl('official', selection)
+    const url = resultFileUrl('official', selection, PRESIDENT_BR)
 
     expect(url.href).toBe(RESULT_URL)
     expect(configUrl('official').href).toBe(
@@ -326,9 +433,10 @@ describe('EA20: parser do resultado presidencial', () => {
   it('deve identificar candidaturas pelo identificador da origem, não pela posição', () => {
     const document = syntheticResult()
 
-    const summary = parsePresidentialResult(document, {
+    const summary = parseResult(document, {
       election: '9002',
       round: 2,
+      ...PRESIDENT_BR,
     })
 
     expect(
@@ -343,7 +451,7 @@ describe('EA20: parser do resultado presidencial', () => {
   ])('deve ler o andamento %j da especificação EA20 como %s', (and, status) => {
     const document = syntheticResult({ and })
 
-    const summary = parsePresidentialResult(document)
+    const summary = parseResult(document)
 
     expect(summary.totalizationStatus).toBe(status)
   })
@@ -351,7 +459,7 @@ describe('EA20: parser do resultado presidencial', () => {
   it('deve recusar andamento fora da especificação EA20', () => {
     const document = syntheticResult({ and: 'a' })
 
-    const error = thrownBy(() => parsePresidentialResult(document))
+    const error = thrownBy(() => parseResult(document))
 
     expect(error.code).toBe('INVALID_TSE_RESULT')
   })
@@ -359,7 +467,7 @@ describe('EA20: parser do resultado presidencial', () => {
   it('deve aceitar votos zerados como dado válido', () => {
     const document = syntheticResult()
 
-    const summary = parsePresidentialResult(document)
+    const summary = parseResult(document)
 
     expect(summary.candidates[0].votes).toBe('0')
     expect(summary.sections.totalized).toBe('0')
@@ -368,7 +476,7 @@ describe('EA20: parser do resultado presidencial', () => {
   it('deve aceitar resultado antes da totalização, sem data de totalização', () => {
     const document = syntheticResult({ dt: '', ht: '' })
 
-    const summary = parsePresidentialResult(document)
+    const summary = parseResult(document)
 
     expect(summary.totalizedAt).toBeUndefined()
   })
@@ -376,7 +484,7 @@ describe('EA20: parser do resultado presidencial', () => {
   it('deve recusar data de totalização sem horário', () => {
     const document = syntheticResult({ ht: '' })
 
-    const error = thrownBy(() => parsePresidentialResult(document))
+    const error = thrownBy(() => parseResult(document))
 
     expect(error.code).toBe('INVALID_TSE_RESULT')
   })
@@ -385,7 +493,7 @@ describe('EA20: parser do resultado presidencial', () => {
     const big = '9007199254740993'
     const document = syntheticResult({ v: { tv: big, vvc: big, vv: big } })
 
-    const summary = parsePresidentialResult(document)
+    const summary = parseResult(document)
 
     expect(summary.votes.valid).toBe(big)
   })
@@ -396,7 +504,7 @@ describe('EA20: parser do resultado presidencial', () => {
       const document = syntheticResult()
       document.carg[0].agr[0].par[0].cand[0].vap = vap
 
-      const error = thrownBy(() => parsePresidentialResult(document))
+      const error = thrownBy(() => parseResult(document))
 
       expect(error.code).toBe('INVALID_TSE_RESULT')
     },
@@ -406,7 +514,7 @@ describe('EA20: parser do resultado presidencial', () => {
     const document: Record<string, unknown> = syntheticResult()
     delete document.s
 
-    const error = thrownBy(() => parsePresidentialResult(document))
+    const error = thrownBy(() => parseResult(document))
 
     expect(error.code).toBe('INVALID_TSE_RESULT')
   })
@@ -415,10 +523,119 @@ describe('EA20: parser do resultado presidencial', () => {
     const document = syntheticResult({ t: '1' })
 
     const error = thrownBy(() =>
-      parsePresidentialResult(document, { election: '9002', round: 2 }),
+      parseResult(document, { election: '9002', round: 2, ...PRESIDENT_BR }),
     )
 
     expect(error.code).toBe('TSE_RESULT_MISMATCH')
+  })
+})
+
+describe('EA20: cargo, abrangência e situação dos votos', () => {
+  const governorResult = (overrides: Record<string, unknown> = {}) =>
+    syntheticResult({
+      cdabr: 'df',
+      carg: [
+        {
+          cd: '3',
+          agr: [{ par: [{ cand: [syntheticCandidate('900000000003', '0')] }] }],
+        },
+      ],
+      ...overrides,
+    })
+
+  const withDestination = (dvt: unknown) => {
+    const document = syntheticResult()
+    Object.assign(document.carg[0].agr[0].par[0].cand[0], { dvt })
+    return document
+  }
+
+  it('deve ler presidente numa UF quando é a abrangência pedida', () => {
+    const document = syntheticResult({ cdabr: 'sp' })
+
+    const summary = parseResult(document, {
+      election: '9002',
+      round: 2,
+      office: 'president',
+      scope: 'sp',
+    })
+
+    expect(summary).toMatchObject({ office: 'president', scope: 'sp' })
+  })
+
+  it('deve ler governador numa UF', () => {
+    const document = governorResult()
+
+    const summary = parseResult(document, {
+      election: '9002',
+      round: 2,
+      office: 'governor',
+      scope: 'df',
+    })
+
+    expect(summary).toMatchObject({ office: 'governor', scope: 'df' })
+    expect(summary.candidates.map((c) => c.candidateId)).toEqual([
+      '900000000003',
+    ])
+  })
+
+  it('deve deduzir cargo e abrangência no replay', () => {
+    const document = governorResult()
+
+    const summary = parseResult(document)
+
+    expect(summary).toMatchObject({ office: 'governor', scope: 'df' })
+  })
+
+  it.each([
+    ['outra UF', syntheticResult({ cdabr: 'rj' }), 'president', 'sp'],
+    [
+      'abrangência desconhecida',
+      syntheticResult({ cdabr: 'xx' }),
+      'president',
+      'xx',
+    ],
+    ['governador no Brasil', governorResult({ cdabr: 'br' }), 'governor', 'br'],
+    ['cargo ausente', syntheticResult(), 'governor', 'br'],
+  ] as const)('deve recusar %s', (_case, document, office, scope) => {
+    const error = thrownBy(() =>
+      parseResult(document, { election: '9002', round: 2, office, scope }),
+    )
+
+    expect(error.code).toBe('TSE_RESULT_MISMATCH')
+  })
+
+  it.each([
+    ['Válido', 'valid'],
+    ['Válido (legenda)', 'valid_party'],
+    ['Anulado', 'annulled'],
+    ['Anulado sub judice', 'annulled_sub_judice'],
+    ['ANULADO SUB JUDICE', 'annulled_sub_judice'],
+    ['  anulado  ', 'annulled'],
+  ])('deve ler a situação dos votos %j como %s', (dvt, destination) => {
+    const document = withDestination(dvt)
+
+    const summary = parseResult(document)
+
+    expect(summary.candidates[0].voteDestination).toBe(destination)
+  })
+
+  it.each([undefined, ''])(
+    'deve tratar situação %j como não informada',
+    (dvt) => {
+      const document = withDestination(dvt)
+
+      const summary = parseResult(document)
+
+      expect(summary.candidates[0].voteDestination).toBeUndefined()
+    },
+  )
+
+  it('deve recusar situação dos votos fora da especificação', () => {
+    const document = withDestination('Cassado')
+
+    const error = thrownBy(() => parseResult(document))
+
+    expect(error.code).toBe('INVALID_TSE_RESULT')
   })
 })
 

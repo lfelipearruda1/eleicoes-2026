@@ -4,7 +4,7 @@
 
 O frontend é a aplicação que o visitante abre. Ela exibe os painéis e lê os snapshots publicados. Não consulta o TSE e não fala com o EC2 do coletor.
 
-**Implementado (19/10/2026):** `@eleicoes/web`, com React 19.3.1, React DOM 19.3.1, Vite 8.3.4, TypeScript e Tailwind CSS 4.3.3. A tela é o painel **Presidente — Brasil** de um canal local: lê o manifesto e o snapshot por HTTP, valida com `readManifestSchema` e `readPresidentialSnapshotSchema`, mostra `pending` e `available` e se atualiza sem recarregar. Não há mapa, UF, governador, rota nem biblioteca de estado além do React. Evidência: [ET-06.md](../planejamento/evidencias/ET-06.md).
+**Implementado (19/10/2026):** `@eleicoes/web`, com React 19.3.1, React DOM 19.3.1, Vite 8.3.4, TypeScript e Tailwind CSS 4.3.3. A tela é o painel **Presidente — Brasil** de um canal local: lê o manifesto e o snapshot por HTTP, valida com `readManifestSchema` e `readResultSnapshotSchema`, mostra `pending` e `available` e se atualiza sem recarregar. Não há mapa, UF, governador, rota nem biblioteca de estado além do React. Evidência: [ET-06.md](../planejamento/evidencias/ET-06.md).
 
 ## Referência visual vigente
 
