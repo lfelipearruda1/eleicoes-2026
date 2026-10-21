@@ -20,6 +20,8 @@
     "build": "pnpm -r --if-present run build",
     "typecheck": "pnpm -r --if-present run typecheck",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:typed": "eslint --config eslint.typed.config.mjs .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run"

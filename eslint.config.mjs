@@ -6,6 +6,18 @@ import { reactRefresh } from 'eslint-plugin-react-refresh'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
+import quality from './eslint-rules/index.cjs'
+
+const productionSourceFiles = [
+  'apps/*/src/**/*.{ts,tsx}',
+  'packages/*/src/**/*.ts',
+]
+
+const testFiles = [
+  '**/*{.,-}{test,spec}.{js,jsx,ts,tsx,mjs,cjs,mts,cts}',
+  '**/testes/**/*.{ts,tsx}',
+]
+
 export default defineConfig(
   {
     ignores: [
@@ -47,6 +59,43 @@ export default defineConfig(
             'STYLE-009: use guard clause em vez de else / else if (docs/padroes/code-style-e-nomenclatura.md).',
         },
       ],
+    },
+  },
+  {
+    files: productionSourceFiles,
+    plugins: { quality },
+    rules: {
+      'quality/max-lines': ['error', { max: 350 }],
+      'quality/no-direct-console': [
+        'error',
+        {
+          logger:
+            'as funções print/printError injetadas em apps/collector/src/cli.ts',
+        },
+      ],
+    },
+  },
+  {
+    files: ['apps/collector/src/cli.ts'],
+    rules: {
+      'quality/no-direct-console': 'off',
+    },
+  },
+  {
+    files: testFiles,
+    plugins: { quality },
+    rules: {
+      'quality/max-lines': ['warn', { max: 350, includeTests: true }],
+    },
+  },
+  {
+    files: ['eslint-rules/**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: globals.node,
+    },
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
   prettier,

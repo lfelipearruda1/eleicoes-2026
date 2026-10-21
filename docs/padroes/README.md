@@ -115,6 +115,20 @@ Os três pacotes existem e exportam um módulo vazio. Nenhum `package.json` depe
 
 **Verificação:** a revisão confere se o diff do pacote e o diff do documento descrevem a mesma mudança.
 
+## Portões de qualidade no ESLint
+
+As regras `quality/*` ficam em `eslint-rules/`. Foram copiadas sem alteração do [vibe-coding-toolkit](https://github.com/soumatheusgomes/vibe-coding-toolkit/tree/main/templates/eslint) e não devem ser editadas aqui. Para atualizar, copie de novo os três `.cjs` da mesma revisão e meça outra vez.
+
+| Regra                       | Escopo                                                             | Nível   | Linha de base (21/10/2026) |
+| --------------------------- | ------------------------------------------------------------------ | ------- | -------------------------- |
+| `quality/max-lines` (350)   | `apps/*/src`, `packages/*/src`                                     | `error` | 0                          |
+| `quality/max-lines` (350)   | testes (`*.spec.*`, `*.test.*`, `testes/`)                         | `warn`  | 8 arquivos                 |
+| `quality/no-direct-console` | `apps/*/src`, `packages/*/src`, exceto `apps/collector/src/cli.ts` | `error` | 0                          |
+
+`quality/no-direct-data-access` não foi ligada, porque o projeto não tem cliente de banco. A migração termina quando os testes chegarem a zero e o bloco de testes voltar para `error`.
+
+O nível com tipos roda à parte em `pnpm lint:typed` (`eslint.typed.config.mjs`), com todas as regras em `warn`. Leva cerca de 4 s e usa uns 700 MB. Linha de base: 62 avisos de `quality/max-lines`, `no-unsafe-*` e `require-await`.
+
 ## Níveis usados nas regras
 
 | Nível       | Significado                                                         |
