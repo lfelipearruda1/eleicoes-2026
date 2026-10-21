@@ -16,6 +16,7 @@ import {
 import { parseResult } from '../../src/tse/ea20.js'
 import { httpGet, type Transport } from '../../src/tse/http.js'
 import { runTseOnce, runTseReplay } from '../../src/tse/run.js'
+import { itemAt } from './itemAt.js'
 
 const PRESIDENT_BR = { office: 'president', scope: 'br' } as const
 const HOST = 'resultados.tse.jus.br'
@@ -68,6 +69,9 @@ const syntheticResult = (overrides: Record<string, unknown> = {}) => ({
   v: { tv: '0', vvc: '0', vv: '0' },
   ...overrides,
 })
+
+const firstCandidate = (document: ReturnType<typeof syntheticResult>) =>
+  itemAt(itemAt(itemAt(itemAt(document.carg, 0).agr, 0).par, 0).cand, 0)
 
 const json = (body: unknown, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
@@ -223,7 +227,7 @@ describe('EA11: governador e presidente por UF', () => {
     const metadata = await readJson(
       path.join(run.runDirectory, TSE_CAPTURE_FILES.metadata),
     )
-    expect(calls[1].url).toBe(
+    expect(calls[1]?.url).toBe(
       `https://${HOST}/oficial/ele2026/9004/dados/df/df-c0003-e009004-u.json`,
     )
     expect(metadata).toMatchObject({ office: 'governor', scope: 'df' })
@@ -375,7 +379,7 @@ describe('httpGet', () => {
 
     await get(RESULT_URL, transport, { validator: { lastModified } })
 
-    expect(calls[0].headers).toEqual({ 'If-Modified-Since': lastModified })
+    expect(calls[0]?.headers).toEqual({ 'If-Modified-Since': lastModified })
   })
 
   it.each([
@@ -483,7 +487,7 @@ describe('EA20: parser do resultado presidencial', () => {
 
     const summary = parseResult(document)
 
-    expect(summary.candidates[0].votes).toBe('0')
+    expect(summary.candidates[0]?.votes).toBe('0')
     expect(summary.sections.totalized).toBe('0')
   })
 
@@ -516,7 +520,7 @@ describe('EA20: parser do resultado presidencial', () => {
     'deve recusar contagem malformada %j sem aceitação parcial',
     (vap) => {
       const document = syntheticResult()
-      document.carg[0].agr[0].par[0].cand[0].vap = vap
+      firstCandidate(document).vap = vap
 
       const error = thrownBy(() => parseResult(document))
 
@@ -559,7 +563,7 @@ describe('EA20: cargo, abrangência e situação dos votos', () => {
 
   const withDestination = (dvt: unknown) => {
     const document = syntheticResult()
-    Object.assign(document.carg[0].agr[0].par[0].cand[0], { dvt })
+    Object.assign(firstCandidate(document), { dvt })
     return document
   }
 
@@ -630,7 +634,7 @@ describe('EA20: cargo, abrangência e situação dos votos', () => {
 
     const summary = parseResult(document)
 
-    expect(summary.candidates[0].voteDestination).toBe(destination)
+    expect(summary.candidates[0]?.voteDestination).toBe(destination)
   })
 
   it.each([undefined, ''])(
@@ -640,7 +644,9 @@ describe('EA20: cargo, abrangência e situação dos votos', () => {
 
       const summary = parseResult(document)
 
-      expect(summary.candidates[0].voteDestination).toBeUndefined()
+      expect(summary.candidates[0]).toMatchObject({
+        voteDestination: undefined,
+      })
     },
   )
 
@@ -783,7 +789,7 @@ describe('runTseOnce', () => {
       runs.map((entry) => readdir(path.join(sourceDirectory, entry))),
     )
     const rejectedRun = runs.find((_entry, index) =>
-      listings[index].includes(TSE_CAPTURE_FILES.rejected),
+      listings[index]?.includes(TSE_CAPTURE_FILES.rejected),
     )
     const rejectedDirectory = path.join(sourceDirectory, rejectedRun ?? '')
     expect(error.code).toBe('INVALID_TSE_RESULT')

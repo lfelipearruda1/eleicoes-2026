@@ -8,8 +8,10 @@ export const REGIONS = {
   sul: 'Sul',
 } as const
 
+export type UfCode = keyof typeof brazilMap.uf
+
 export interface Uf {
-  code: string
+  code: UfCode
   name: string
   region: keyof typeof REGIONS
 }
@@ -44,10 +46,19 @@ export const UFS: readonly Uf[] = [
   { code: 'TO', name: 'Tocantins', region: 'norte' },
 ]
 
-export const findUf = (code: string | undefined) =>
-  UFS.find((uf) => uf.code === code)
+export type Scope = { kind: 'national' } | { kind: 'uf'; uf: Uf }
 
-export const CALLOUTS: Readonly<Record<string, readonly [number, number]>> = {
+export const NATIONAL_SCOPE: Scope = { kind: 'national' }
+
+export const isSelectedUf = (scope: Scope, code: string) =>
+  scope.kind === 'uf' && scope.uf.code === code
+
+export const scopeName = (scope: Scope) =>
+  scope.kind === 'uf' ? scope.uf.name : 'Brasil'
+
+export const CALLOUTS: Readonly<
+  Partial<Record<UfCode, readonly [number, number]>>
+> = {
   RN: [1012, 270],
   PB: [1020, 318],
   AL: [1006, 390],
@@ -58,5 +69,5 @@ export const CALLOUTS: Readonly<Record<string, readonly [number, number]>> = {
 }
 
 export const MAP_GEOMETRY: Readonly<
-  Record<string, { d: string; cx: number; cy: number }>
+  Record<UfCode, { d: string; cx: number; cy: number }>
 > = brazilMap.uf

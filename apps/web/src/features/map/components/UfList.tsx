@@ -1,19 +1,19 @@
 import { SegmentBar } from '../../president/components/SegmentBar.tsx'
 import type { UfMapResult } from '../ufResults.ts'
-import { UFS } from '../ufs.ts'
+import { isSelectedUf, UFS, type Scope } from '../ufs.ts'
 import styles from './UfList.module.css'
 
 interface UfListProps {
   candidateNames: { candidateId: string; ballotName: string }[]
   results: Record<string, UfMapResult>
-  selectedUf: string | undefined
+  scope: Scope
   onSelectUf: (code: string) => void
 }
 
 export function UfList({
   candidateNames,
   results,
-  selectedUf,
+  scope,
   onSelectUf,
 }: UfListProps) {
   return (
@@ -43,7 +43,7 @@ export function UfList({
           role="row"
           aria-label={`${uf.name}: ${results[uf.code]?.description ?? 'dados indisponíveis'}`}
           onClick={() => onSelectUf(uf.code)}
-          className={`${styles.row} ${uf.code === selectedUf ? styles.rowSelected : ''}`}
+          className={`${styles.row} ${isSelectedUf(scope, uf.code) ? styles.rowSelected : ''}`}
         >
           <span className={styles.code}>{uf.code}</span>
           <span className={styles.name}>{uf.name}</span>

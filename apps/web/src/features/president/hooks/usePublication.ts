@@ -55,12 +55,19 @@ export function usePublication<T extends SnapshotEnvelope = ResultSnapshot>({
   useEffect(() => {
     if (!source) return
     const { channel } = source
-    const update = (change: Omit<ChannelRead<T>, 'channel'>) =>
-      setRead((previous) => ({
-        ...(previous?.channel === channel ? previous : {}),
-        channel,
-        ...change,
-      }))
+    const ownRead = (previous: ChannelRead<T> | undefined): ChannelRead<T> =>
+      previous?.channel === channel ? previous : { channel }
+    const fail = (failure: UpdateFailure) =>
+      setRead((previous) => ({ ...ownRead(previous), failure }))
+    const succeed = (publication?: AcceptedPublication<T>) =>
+      setRead((previous) => {
+        const accepted = publication ?? ownRead(previous).accepted
+        return {
+          channel,
+          lastReadAt: new Date(),
+          ...(accepted && { accepted }),
+        }
+      })
     let disposed = false
     let stopped = false
     let inFlight: AbortController | undefined
@@ -95,21 +102,16 @@ export function usePublication<T extends SnapshotEnvelope = ResultSnapshot>({
         if (result.outcome === 'rejected') {
           stopped =
             stopWhenMissing && !current && result.reason === 'manifest_missing'
-          update({ failure: { reason: result.reason, at: new Date() } })
+          fail({ reason: result.reason, at: new Date() })
           return
         }
-        if (result.outcome === 'accepted') current = result.publication
-        update({
-          failure: undefined,
-          lastReadAt: new Date(),
-          ...(result.outcome === 'accepted' && {
-            accepted: result.publication,
-          }),
-        })
+        if (result.outcome === 'same') return succeed()
+        current = result.publication
+        succeed(result.publication)
       } catch {
         if (!controller.signal.aborted) {
           setNowMs(Date.now())
-          update({ failure: { reason: 'unreachable', at: new Date() } })
+          fail({ reason: 'unreachable', at: new Date() })
         }
       } finally {
         inFlight = undefined

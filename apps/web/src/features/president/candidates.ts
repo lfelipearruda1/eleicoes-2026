@@ -139,10 +139,10 @@ const PERCENTAGE_BASE =
 function differenceNote(
   candidates: { contestantVotesPercentage: string }[],
 ): string {
-  if (candidates.length !== 2) return PERCENTAGE_BASE
-  const [a, b] = candidates.map((c) =>
-    toHundredths(c.contestantVotesPercentage),
-  )
+  const [first, second] = candidates
+  if (candidates.length !== 2 || !first || !second) return PERCENTAGE_BASE
+  const a = toHundredths(first.contestantVotesPercentage)
+  const b = toHundredths(second.contestantVotesPercentage)
   if (a === b) return `${PERCENTAGE_BASE} Empate nos números apresentados.`
   const difference = formatPercentage(fromHundredths(Math.abs(a - b))).slice(
     0,

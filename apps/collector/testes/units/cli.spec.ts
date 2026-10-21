@@ -64,7 +64,7 @@ describe('runCli', () => {
   it('deve executar a demonstração presidencial só com fixtures do repositório', async () => {
     const exitCode = await run(['president-demo', '--output', workDirectory])
 
-    const report = JSON.parse(printed[0])
+    const report = JSON.parse(printed[0] ?? '')
     expect(exitCode).toBe(EXIT_CODE.success)
     expect(report.notice).toBe(DEMO_NOTICE)
     expect(report.steps).toMatchObject([
@@ -127,7 +127,7 @@ describe('runCli', () => {
 
   it('deve inspecionar o canal publicado pela demonstração', async () => {
     await run(['president-demo', '--output', workDirectory])
-    const { root } = JSON.parse(printed[0])
+    const { root } = JSON.parse(printed[0] ?? '')
     printed = []
 
     const exitCode = await run([
@@ -139,6 +139,6 @@ describe('runCli', () => {
     ])
 
     expect(exitCode).toBe(EXIT_CODE.success)
-    expect(JSON.parse(printed[0]).manifest.revision).toBe(4)
+    expect(JSON.parse(printed[0] ?? '').manifest.revision).toBe(4)
   })
 })

@@ -85,7 +85,7 @@ describe('summarizeCandidates', () => {
 
     const summary = summarizeCandidates(snapshot)
 
-    expect(summary.rows[0].votes).toBe('9.007.199.254.740.993 votos')
+    expect(summary.rows[0]?.votes).toBe('9.007.199.254.740.993 votos')
   })
 
   it('deve indicar a diferença sobre a base de candidaturas concorrentes', () => {
@@ -148,7 +148,7 @@ describe('summarizeCandidates: situação dos votos (Res. 23.751, art. 265, § 2
   ])('deve escrever a situação %s junto dos votos', (destination, text) => {
     const summary = summarizeCandidates(withDestinations(destination, 'valid'))
 
-    expect(summary.rows[0].votes).toBe(text)
+    expect(summary.rows[0]?.votes).toBe(text)
   })
 
   it('deve manter só a contagem quando a origem não informa a situação', () => {

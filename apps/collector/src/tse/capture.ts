@@ -17,8 +17,8 @@ const lastValidSchema = z.record(
   z.object({
     capture: z.string().regex(/^[\w-]+\/(config|result)\.json$/),
     validator: z.object({
-      etag: z.string().optional(),
-      lastModified: z.string().optional(),
+      etag: z.string().exactOptional(),
+      lastModified: z.string().exactOptional(),
     }),
   }),
 )

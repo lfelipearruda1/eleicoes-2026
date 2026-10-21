@@ -1,20 +1,15 @@
 import type { ReactNode } from 'react'
 
+import type { HeaderStatus } from '../status.ts'
 import styles from './SectionsProgress.module.css'
 
 interface SectionsProgressProps {
-  percentage: string | undefined
-  display: string
-  label: string
+  progress: Pick<HeaderStatus, 'percentage' | 'display' | 'label'>
   status: ReactNode
 }
 
-export function SectionsProgress({
-  percentage,
-  display,
-  label,
-  status,
-}: SectionsProgressProps) {
+export function SectionsProgress({ progress, status }: SectionsProgressProps) {
+  const { percentage, display, label } = progress
   return (
     <div role="region" aria-label="Seções apuradas" className={styles.region}>
       <div className={styles.row}>

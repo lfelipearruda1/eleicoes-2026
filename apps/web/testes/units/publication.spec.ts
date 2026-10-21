@@ -295,7 +295,7 @@ describe('readPublication com base configurada', () => {
       `${ROOT}manifest.json`,
       `${ROOT}snapshots/${DATA_VERSION_A}.json`,
     ])
-    expect(server.requests[0].init).toMatchObject({
+    expect(server.requests[0]?.init).toMatchObject({
       cache: 'no-store',
       credentials: 'omit',
       mode: 'cors',

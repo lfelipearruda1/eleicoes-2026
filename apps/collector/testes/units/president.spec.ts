@@ -13,6 +13,7 @@ import { publishResultCapture } from '../../src/president/publish.js'
 import { readPublication } from '../../src/publication/read.js'
 import { listSnapshots } from '../../src/publication/storage.js'
 import { parseResult, type ResultSummary } from '../../src/tse/ea20.js'
+import { itemAt } from './itemAt.js'
 
 const OFFICIAL_CHANNEL = 'teste-oficial-presidente-br-2t'
 const OFFICIAL_URL =
@@ -185,7 +186,7 @@ describe('normalizeResult', () => {
 
   it('deve ser determinístico e independente da ordem das candidaturas', () => {
     const reordered = rawResult()
-    reordered.carg[0].agr.reverse()
+    itemAt(reordered.carg, 0).agr.reverse()
 
     const first = normalize(parseResult(reordered))
 

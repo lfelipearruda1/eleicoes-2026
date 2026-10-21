@@ -14,6 +14,7 @@ import { PresidentPage } from '../../src/features/president/components/President
 import {
   availableSnapshot,
   fakeServer,
+  itemAt,
   manifestFor,
   pendingSnapshot,
   TEST_ENDPOINT,
@@ -238,7 +239,9 @@ describe('PresidentPage', () => {
       name: 'Presidente em Distrito Federal',
     })
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Visão Brasil' })[0])
+    fireEvent.click(
+      itemAt(screen.getAllByRole('button', { name: 'Visão Brasil' }), 0),
+    )
     await screen.findByRole('heading', { name: 'Brasil' })
 
     expect(window.location.hash).toBe('#/')
@@ -409,7 +412,7 @@ describe('ConfigurationNotice', () => {
     expect(screen.getByRole('alert').textContent).toContain(
       'não fará consultas',
     )
-    expect(screen.getByText(problems[0])).toBeTruthy()
+    expect(screen.getByText(itemAt(problems, 0))).toBeTruthy()
   })
 })
 

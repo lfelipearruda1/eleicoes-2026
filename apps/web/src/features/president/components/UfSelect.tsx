@@ -1,24 +1,29 @@
 import { ChevronDown } from 'lucide-react'
 
-import { UFS } from '../../map/ufs.ts'
+import { UFS, type Scope } from '../../map/ufs.ts'
 import styles from './UfSelect.module.css'
 
 interface UfSelectProps {
-  selectedUf: string | undefined
-  onSelectUf: (code: string | undefined) => void
+  scope: Scope
+  onShowNational: () => void
+  onShowUf: (code: string) => void
 }
 
-export function UfSelect({ selectedUf, onSelectUf }: UfSelectProps) {
+export function UfSelect({ scope, onShowNational, onShowUf }: UfSelectProps) {
   return (
     <span className={styles.wrapper}>
       <select
         aria-label="Escolher UF"
-        value={selectedUf ?? ''}
-        onChange={(event) => onSelectUf(event.target.value || undefined)}
+        value={scope.kind === 'uf' ? scope.uf.code : ''}
+        onChange={(event) => {
+          const code = event.target.value
+          if (code === '') return onShowNational()
+          onShowUf(code)
+        }}
         className={styles.select}
       >
         <option value="">
-          {selectedUf ? 'Trocar de UF' : 'Escolha uma UF'}
+          {scope.kind === 'uf' ? 'Trocar de UF' : 'Escolha uma UF'}
         </option>
         {UFS.map((uf) => (
           <option key={uf.code} value={uf.code}>

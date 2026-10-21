@@ -1,13 +1,21 @@
 import { useState } from 'react'
 
 import type { UfMapResult } from '../ufResults.ts'
-import { CALLOUTS, MAP_GEOMETRY, UFS, type Uf } from '../ufs.ts'
+import {
+  CALLOUTS,
+  isSelectedUf,
+  MAP_GEOMETRY,
+  UFS,
+  type Scope,
+  type Uf,
+  type UfCode,
+} from '../ufs.ts'
 import styles from './BrazilMap.module.css'
 import { MapTooltip } from './MapTooltip.tsx'
 
 interface BrazilMapProps {
   results: Record<string, UfMapResult>
-  selectedUf: string | undefined
+  scope: Scope
   onSelectUf: (code: string) => void
 }
 
@@ -89,13 +97,18 @@ function UfLabel({
   )
 }
 
-export function BrazilMap({ results, selectedUf, onSelectUf }: BrazilMapProps) {
-  const [hovered, setHovered] = useState<string>()
-  const [focused, setFocused] = useState<string>()
+export function BrazilMap({ results, scope, onSelectUf }: BrazilMapProps) {
+  const [hovered, setHovered] = useState<UfCode>()
+  const [focused, setFocused] = useState<UfCode>()
   const tooltipUf = UFS.find((uf) => uf.code === (hovered ?? focused))
+  const isDimmed = (code: string) =>
+    scope.kind === 'uf' && !isSelectedUf(scope, code)
 
-  const outline = (code: string | undefined, className: string, key: string) =>
-    code && <path key={key} className={className} d={MAP_GEOMETRY[code].d} />
+  const outline = (
+    code: UfCode | undefined,
+    className: string | undefined,
+    key: string,
+  ) => code && <path key={key} className={className} d={MAP_GEOMETRY[code].d} />
 
   return (
     <svg
@@ -125,12 +138,12 @@ export function BrazilMap({ results, selectedUf, onSelectUf }: BrazilMapProps) {
             className={cx(
               styles.uf,
               fillClass(results[uf.code]),
-              selectedUf && selectedUf !== uf.code && styles.ufDimmed,
+              isDimmed(uf.code) && styles.ufDimmed,
             )}
             tabIndex={0}
             role="button"
             aria-label={describeUf(uf, results[uf.code])}
-            aria-pressed={selectedUf === uf.code}
+            aria-pressed={isSelectedUf(scope, uf.code)}
             onClick={() => onSelectUf(uf.code)}
             onKeyDown={(event) => {
               if (event.key !== 'Enter' && event.key !== ' ') return
@@ -145,10 +158,19 @@ export function BrazilMap({ results, selectedUf, onSelectUf }: BrazilMapProps) {
         ))}
       </g>
       <g>
-        {hovered !== selectedUf &&
+        {hovered !== undefined &&
+          !isSelectedUf(scope, hovered) &&
           outline(hovered, styles.outlineHover, 'hover')}
-        {outline(selectedUf, styles.outlineSelectedBack, 'selected-back')}
-        {outline(selectedUf, styles.outlineSelected, 'selected')}
+        {scope.kind === 'uf' && (
+          <>
+            {outline(
+              scope.uf.code,
+              styles.outlineSelectedBack,
+              'selected-back',
+            )}
+            {outline(scope.uf.code, styles.outlineSelected, 'selected')}
+          </>
+        )}
         {outline(focused, styles.outlineFocus, 'focus')}
       </g>
       <g>
@@ -156,8 +178,8 @@ export function BrazilMap({ results, selectedUf, onSelectUf }: BrazilMapProps) {
           <UfLabel
             key={uf.code}
             uf={uf}
-            isSelected={selectedUf === uf.code}
-            isDimmed={selectedUf !== undefined && selectedUf !== uf.code}
+            isSelected={isSelectedUf(scope, uf.code)}
+            isDimmed={isDimmed(uf.code)}
             onSelect={() => onSelectUf(uf.code)}
           />
         ))}

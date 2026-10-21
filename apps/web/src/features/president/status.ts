@@ -5,13 +5,13 @@ import { formatPercentage } from './format.ts'
 
 interface StatusInput {
   snapshot: ResultSnapshot | undefined
-  ufName: string | undefined
+  scopeName: string
   isChecking: boolean
   hasFailure: boolean
 }
 
 export interface HeaderStatus {
-  percentage: string | undefined
+  percentage?: string
   display: string
   label: string
   icon: StatusIcon
@@ -59,7 +59,6 @@ export function describeHeaderStatus(input: StatusInput): HeaderStatus {
   if (!input.snapshot) {
     return {
       ...status,
-      percentage: undefined,
       display: '—',
       label: 'Carregando seções apuradas…',
     }
@@ -69,7 +68,7 @@ export function describeHeaderStatus(input: StatusInput): HeaderStatus {
     ...status,
     percentage,
     display: formatPercentage(percentage),
-    label: `seções apuradas · ${input.ufName ?? 'Brasil'}`,
+    label: `seções apuradas · ${input.scopeName}`,
   }
 }
 

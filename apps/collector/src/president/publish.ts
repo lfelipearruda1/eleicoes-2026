@@ -45,11 +45,11 @@ const captureMetadataSchema = z.discriminatedUnion('source', [
       z.object({
         url: z.string(),
         requestedAt: z.iso.datetime(),
-        status: z.int().optional(),
+        status: z.int().exactOptional(),
         reusedCapture: z
           .string()
           .regex(/^[\w-]+\/(config|result)\.json$/)
-          .optional(),
+          .exactOptional(),
       }),
     ),
   }),
@@ -179,11 +179,16 @@ export interface ResultPublishRequest {
   checkedAtMinIntervalMs?: number
 }
 
-export async function publishResultCapture(request: ResultPublishRequest) {
-  const captureDirectory = path.resolve(request.capture)
+export async function publishResultCapture({
+  capture,
+  output,
+  channel,
+  ...forwardedOptions
+}: ResultPublishRequest) {
+  const captureDirectory = path.resolve(capture)
   const { summary, context } = await readResultCapture(captureDirectory)
   const isSynthetic = context.sourceEnvironment === 'synthetic'
-  if (isSynthetic !== request.channel.startsWith(DEMO_CHANNEL_PREFIX)) {
+  if (isSynthetic !== channel.startsWith(DEMO_CHANNEL_PREFIX)) {
     throw new CollectorError(
       'CHANNEL_SOURCE_MISMATCH',
       `captura ${context.sourceEnvironment} exige canal ${isSynthetic ? 'com' : 'sem'} o prefixo "${DEMO_CHANNEL_PREFIX}"`,
@@ -195,19 +200,16 @@ export async function publishResultCapture(request: ResultPublishRequest) {
   })
   const content = electoralContent(snapshot)
   const { status } = await publishDocument({
-    root: request.output,
-    channel: request.channel,
+    root: output,
+    channel: channel,
     document: snapshot,
-    now: request.now,
-    beforeManifestSwap: request.beforeManifestSwap,
+    ...forwardedOptions,
     isUnchanged: (current) => electoralContent(current) === content,
-    checkedAt:
-      context.sourceEnvironment === 'official'
-        ? context.collectedAt
-        : undefined,
-    checkedAtMinIntervalMs: request.checkedAtMinIntervalMs,
+    ...(context.sourceEnvironment === 'official' && {
+      checkedAt: context.collectedAt,
+    }),
   })
-  const publication = await readPublication(request.output, request.channel)
+  const publication = await readPublication(output, channel)
   return {
     status,
     capture: captureDirectory,

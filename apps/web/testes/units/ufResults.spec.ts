@@ -53,7 +53,7 @@ describe('describeUfResults', () => {
       tooltip: ['CANDIDATURA A', 'à frente com 70,00%'],
       values: { '1': '70,00%', '2': '30,00%' },
     })
-    expect(results.SP.segments).toHaveLength(2)
+    expect(results.SP?.segments).toHaveLength(2)
   })
 
   it('deve usar a cor da segunda candidatura quando ela está à frente', () => {
@@ -62,7 +62,7 @@ describe('describeUfResults', () => {
       NAMES,
     )
 
-    expect(results.RJ.tone).toBe('candidate2')
+    expect(results.RJ?.tone).toBe('candidate2')
   })
 
   it('deve não colorir empate', () => {
@@ -97,7 +97,7 @@ describe('describeUfResults', () => {
       NAMES,
     )
 
-    expect(results.PE.tone).toBe('candidate2')
+    expect(results.PE?.tone).toBe('candidate2')
   })
 
   it('deve descrever UF pendente sem inventar percentual', () => {

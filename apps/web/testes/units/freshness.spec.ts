@@ -4,6 +4,7 @@ import {
   assessFreshness,
   describeFreshness,
   nextFreshnessChangeAt,
+  type Freshness,
 } from '../../src/features/president/freshness.ts'
 import type { AcceptedPublication } from '../../src/features/president/publication.ts'
 import { availableSnapshot, manifestFor } from './fixtures.ts'
@@ -11,6 +12,11 @@ import { availableSnapshot, manifestFor } from './fixtures.ts'
 const LIMIT = 120_000
 const COLLECTED_AT = '2026-10-25T21:00:05Z'
 const COLLECTED_MS = Date.parse(COLLECTED_AT)
+
+function warningOf(freshness: Freshness) {
+  if (freshness.state === 'recent') throw new Error('esperava um aviso')
+  return freshness
+}
 
 function publication(
   manifestOverrides: Record<string, unknown> = {},
@@ -104,8 +110,8 @@ describe('assessFreshness', () => {
     expect(freshness).toEqual({
       reference: 'collectedAt',
       referenceAt: COLLECTED_AT,
-      ageMs: -5_000,
       state: 'undetermined',
+      cause: 'reference-ahead',
     })
   })
 
@@ -114,8 +120,10 @@ describe('assessFreshness', () => {
 
     const freshness = assessFreshness(input, Number.NaN, LIMIT)
 
-    expect(freshness.state).toBe('undetermined')
-    expect(freshness.ageMs).toBeUndefined()
+    expect(freshness).toMatchObject({
+      state: 'undetermined',
+      cause: 'invalid-clock',
+    })
   })
 })
 
@@ -144,12 +152,6 @@ describe('nextFreshnessChangeAt', () => {
 })
 
 describe('describeFreshness', () => {
-  it('deve não exibir aviso quando recente', () => {
-    const freshness = assessFreshness(publication(), COLLECTED_MS, LIMIT)
-
-    expect(describeFreshness(freshness, LIMIT)).toBeUndefined()
-  })
-
   it('deve falar de verificação quando o checkedAt é antigo', () => {
     const checkedAt = '2026-10-25T22:00:00Z'
     const freshness = assessFreshness(
@@ -158,7 +160,7 @@ describe('describeFreshness', () => {
       LIMIT,
     )
 
-    expect(describeFreshness(freshness, LIMIT)).toBe(
+    expect(describeFreshness(warningOf(freshness), LIMIT)).toBe(
       'Sem verificação recente da origem. Exibindo o último resultado disponível.',
     )
   })
@@ -170,7 +172,7 @@ describe('describeFreshness', () => {
       LIMIT,
     )
 
-    expect(describeFreshness(freshness, LIMIT)).toBe(
+    expect(describeFreshness(warningOf(freshness), LIMIT)).toBe(
       'A última coleta registrada ocorreu há mais de 2 minutos. Não há confirmação de atualização posterior.',
     )
   })
@@ -178,8 +180,16 @@ describe('describeFreshness', () => {
   it('deve explicar a diferença de relógio quando a referência está no futuro', () => {
     const freshness = assessFreshness(publication(), COLLECTED_MS - 1, LIMIT)
 
-    expect(describeFreshness(freshness, LIMIT)).toBe(
+    expect(describeFreshness(warningOf(freshness), LIMIT)).toBe(
       'Não foi possível confirmar a atualidade dos dados: o horário de referência está à frente do relógio deste dispositivo.',
+    )
+  })
+
+  it('deve avisar sem detalhar quando o relógio do dispositivo é inválido', () => {
+    const freshness = assessFreshness(publication(), Number.NaN, LIMIT)
+
+    expect(describeFreshness(warningOf(freshness), LIMIT)).toBe(
+      'Não foi possível confirmar a atualidade dos dados.',
     )
   })
 })

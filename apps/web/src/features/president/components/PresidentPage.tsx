@@ -4,22 +4,16 @@ import { useMemo } from 'react'
 import { useUfRoute } from '../../map/hooks/useUfRoute.ts'
 import { MapSection } from '../../map/components/MapSection.tsx'
 import { describeUfResults } from '../../map/ufResults.ts'
-import { findUf } from '../../map/ufs.ts'
+import { scopeName } from '../../map/ufs.ts'
 import { summarizeCandidates } from '../candidates.ts'
-import { formatClockTime, formatInstant } from '../format.ts'
-import { describeFreshness } from '../freshness.ts'
 import { usePublication } from '../hooks/usePublication.ts'
 import {
   channelSource,
   summarySource,
   type ResultsEndpoint,
 } from '../resultsConfig.ts'
-import {
-  describeHeaderStatus,
-  PROVENANCE,
-  ROUND_LABEL,
-  SOURCE_LABEL,
-} from '../status.ts'
+import { describePublication } from '../publicationView.ts'
+import { describeHeaderStatus, ROUND_LABEL } from '../status.ts'
 import styles from './PresidentPage.module.css'
 import { ResultsPanel } from './ResultsPanel.tsx'
 import { SectionsProgress } from './SectionsProgress.tsx'
@@ -40,70 +34,67 @@ export function PresidentPage({
   pollIntervalMs,
   fetcher,
 }: PresidentPageProps) {
-  const { selected, select } = useUfRoute()
-  const uf = findUf(selected)
-  const sources = useMemo(() => {
-    const code = findUf(selected)?.code
-    return {
+  const polling = {
+    staleAfterMs,
+    ...(pollIntervalMs !== undefined && { intervalMs: pollIntervalMs }),
+    ...(fetcher && { fetcher }),
+  }
+  const { scope, showNational, showUf } = useUfRoute()
+  const uf = scope.kind === 'uf' ? scope.uf : undefined
+  const sources = useMemo(
+    () => ({
       national: channelSource(endpoint, 'president', 'BR'),
       summary: summarySource(endpoint),
-      president: code && channelSource(endpoint, 'president', code),
-      governor: code && channelSource(endpoint, 'governor', code),
-    }
-  }, [endpoint, selected])
+      president: uf && channelSource(endpoint, 'president', uf.code),
+      governor: uf && channelSource(endpoint, 'governor', uf.code),
+    }),
+    [endpoint, uf],
+  )
   const national = usePublication({
     source: sources.national,
-    staleAfterMs,
-    intervalMs: pollIntervalMs,
-    fetcher,
+    ...polling,
   })
   const ufSummary = usePublication({
     source: sources.summary,
-    staleAfterMs,
-    intervalMs: pollIntervalMs,
-    fetcher,
+    ...polling,
     schema: readUfSummarySchema,
   })
   const ufPresident = usePublication({
-    source: sources.president || undefined,
-    staleAfterMs,
-    intervalMs: pollIntervalMs,
-    fetcher,
+    source: sources.president,
+    ...polling,
   })
   const ufGovernor = usePublication({
-    source: sources.governor || undefined,
-    staleAfterMs,
-    intervalMs: pollIntervalMs,
-    fetcher,
+    source: sources.governor,
+    ...polling,
     stopWhenMissing: true,
   })
   const active = uf ? ufPresident : national
-  const { accepted, freshness, isChecking, failure, lastReadAt, refresh } =
-    active
-  const snapshot = accepted?.snapshot
-  const summary = snapshot && summarizeCandidates(snapshot)
+  const snapshot = active.accepted?.snapshot
   const nationalSnapshot = national.accepted?.snapshot
   const nationalSummary =
     nationalSnapshot && summarizeCandidates(nationalSnapshot)
-  const governorSnapshot = uf ? ufGovernor.accepted?.snapshot : undefined
+  const governor = uf && ufGovernor.accepted?.snapshot
+  const view = describePublication({
+    ...active,
+    ...(governor && { governor }),
+  })
   const status = describeHeaderStatus({
     snapshot,
-    ufName: uf?.name,
-    isChecking,
-    hasFailure: failure !== undefined,
+    scopeName: scopeName(scope),
+    isChecking: active.isChecking,
+    hasFailure: active.failure !== undefined,
   })
 
   return (
     <div className={styles.root}>
       <SiteHeader
         roundLabel={nationalSnapshot && ROUND_LABEL[nationalSnapshot.round]}
-        selectedUf={selected}
-        onSelectUf={select}
+        scope={scope}
+        onShowNational={showNational}
+        onShowUf={showUf}
         progress={
           <SectionsProgress
-            percentage={status.percentage}
-            display={status.display}
-            label={status.label}
+            progress={status}
             status={<StatusIndicator icon={status.icon} text={status.text} />}
           />
         }
@@ -115,34 +106,17 @@ export function PresidentPage({
             ufSummary.accepted?.snapshot,
             nationalSummary?.rows ?? [],
           )}
-          selectedUf={selected}
-          onSelectUf={select}
+          scope={scope}
+          onSelectUf={showUf}
         />
         <ResultsPanel
-          uf={uf}
-          summary={summary}
-          governorSummary={
-            governorSnapshot && summarizeCandidates(governorSnapshot)
-          }
-          provenance={snapshot && PROVENANCE[snapshot.sourceEnvironment]}
-          hasFailure={failure !== undefined}
-          freshnessNotice={describeFreshness(freshness, staleAfterMs)}
-          onRetry={refresh}
+          scope={scope}
+          view={view}
+          staleAfterMs={staleAfterMs}
+          onRetry={active.refresh}
         />
       </main>
-      <SiteFooter
-        provenance={snapshot && PROVENANCE[snapshot.sourceEnvironment]}
-        source={snapshot && SOURCE_LABEL[snapshot.sourceEnvironment]}
-        publishedAt={
-          accepted && formatInstant(accepted.manifest.current.publishedAt)
-        }
-        collectedAt={snapshot && formatInstant(snapshot.collectedAt)}
-        checkedAt={
-          accepted?.manifest.checkedAt &&
-          formatInstant(accepted.manifest.checkedAt)
-        }
-        lastCheck={lastReadAt && formatClockTime(lastReadAt)}
-      />
+      <SiteFooter view={view} />
     </div>
   )
 }

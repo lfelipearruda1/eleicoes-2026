@@ -112,7 +112,11 @@ function readVersionPointer(input: unknown): string | undefined {
 
 Até o schema existir, esta é a semântica que o código novo deve preservar. Ela não inventa o campo. [dados/README.md](../dados/README.md) já diz que ausência não é zero.
 
-**Verificação:** testes de ausência, vazio e zero quando a normalização existir. A fórmula eleitoral continua pendente.
+Ausência não carrega significado de domínio. Um estado que o código precisa distinguir vira união discriminada, como `Scope` em `apps/web/src/features/map/ufs.ts` (Brasil ou UF), `Freshness` e `PublicationView` na web. Prop obrigatória tipada como `X | undefined` é sinal de que falta essa união.
+
+Campo opcional é omitido, não recebe `undefined`. Repasse opção opcional com spread condicional, como `...(valor !== undefined && { chave: valor })`, e use `.exactOptional()` no Zod quando o tipo inferido alimentar outro campo opcional.
+
+**Verificação:** `exactOptionalPropertyTypes` e `noUncheckedIndexedAccess` estão ligados em `tsconfig.base.json`, desde 21 de outubro de 2026. Testes leem índice com `?.` na asserção ou com o helper `itemAt` dos testes, nunca com `!`. Também valem os testes de ausência, vazio e zero quando a normalização existir. A fórmula eleitoral continua pendente.
 
 ### TS-008. Contrato compartilhado permanece compatível
 

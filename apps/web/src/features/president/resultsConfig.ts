@@ -122,11 +122,12 @@ function readBase(raw: string, page: URL, rules: HostRules): URL | string {
 }
 
 function readNationalChannel(raw: string | undefined) {
-  const match = raw === undefined ? null : NATIONAL_CHANNEL.exec(raw)
-  if (!match || raw === undefined || raw.length > 64) {
+  const [, channelPrefix, round] =
+    (raw && raw.length <= 64 && NATIONAL_CHANNEL.exec(raw)) || []
+  if (!channelPrefix || !round) {
     return 'VITE_RESULTS_CHANNEL precisa ser o canal nacional de presidente, no formato <prefixo>-presidente-br-<turno>t.'
   }
-  return { channelPrefix: match[1], round: match[2] }
+  return { channelPrefix, round }
 }
 
 function readEndpoint(env: ResultsEnv, page: URL): ResultsEndpoint | string[] {

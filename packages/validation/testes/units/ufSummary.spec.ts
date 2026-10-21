@@ -2,6 +2,12 @@ import { describe, expect, it } from 'vitest'
 
 import { publishUfSummarySchema, readUfSummarySchema } from '../../src/index.js'
 
+function itemAt<T>(items: readonly T[], index: number): T {
+  const item = items[index]
+  if (item === undefined) throw new Error(`fixture sem o item ${index}`)
+  return item
+}
+
 const summary = (overrides: Record<string, unknown> = {}) => ({
   contractVersion: 1,
   kind: 'uf-summary',
@@ -70,14 +76,15 @@ describe('publishUfSummarySchema', () => {
 
   it('deve recusar UF repetida', () => {
     const document = summary()
-    document.ufs = [document.ufs[0], document.ufs[0]]
+    const repeated = itemAt(document.ufs, 0)
+    document.ufs = [repeated, repeated]
 
     expect(paths(document)).toEqual(['ufs'])
   })
 
   it('deve recusar abrangência Brasil dentro da lista de UFs', () => {
     const document = summary()
-    document.ufs = [{ ...document.ufs[0], scope: 'BR' }]
+    document.ufs = [{ ...itemAt(document.ufs, 0), scope: 'BR' }]
 
     expect(paths(document)).toEqual(['ufs.0.scope'])
   })
@@ -86,7 +93,7 @@ describe('publishUfSummarySchema', () => {
     const document = summary()
     document.ufs = [
       {
-        ...document.ufs[1],
+        ...itemAt(document.ufs, 1),
         candidates: [
           {
             candidateId: '900000000001',

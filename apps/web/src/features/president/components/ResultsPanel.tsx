@@ -1,5 +1,5 @@
-import { REGIONS, type Uf } from '../../map/ufs.ts'
-import type { CandidateSummary } from '../candidates.ts'
+import { REGIONS, type Scope } from '../../map/ufs.ts'
+import type { PublicationView } from '../publicationView.ts'
 import { FreshnessNotice } from './FreshnessNotice.tsx'
 import { LoadingState } from './LoadingState.tsx'
 import { PresidentCard } from './PresidentCard.tsx'
@@ -7,66 +7,81 @@ import styles from './ResultsPanel.module.css'
 import { UpdateNotice } from './UpdateNotice.tsx'
 
 interface ResultsPanelProps {
-  uf: Uf | undefined
-  summary: CandidateSummary | undefined
-  governorSummary: CandidateSummary | undefined
-  provenance: string | undefined
-  hasFailure: boolean
-  freshnessNotice: string | undefined
+  scope: Scope
+  view: PublicationView
+  staleAfterMs: number
   onRetry: () => void
 }
 
+type ReadyView = Extract<PublicationView, { status: 'ready' }>
+
+function ReadyResults({ scope, view }: { scope: Scope; view: ReadyView }) {
+  if (scope.kind === 'national') {
+    return (
+      <>
+        <PresidentCard summary={view.summary} />
+        <p className={styles.hint}>
+          Selecione uma UF no mapa, na lista ou no seletor para ver o resultado
+          local e, quando houver, o 2º turno para governador.
+        </p>
+      </>
+    )
+  }
+  return (
+    <>
+      <PresidentCard
+        summary={view.summary}
+        title={`Presidente em ${scope.uf.name}`}
+      />
+      {view.governorSummary && (
+        <PresidentCard
+          separated
+          summary={view.governorSummary}
+          title={`Governador em ${scope.uf.name}`}
+        />
+      )}
+    </>
+  )
+}
+
 export function ResultsPanel({
-  uf,
-  summary,
-  governorSummary,
-  provenance,
-  hasFailure,
-  freshnessNotice,
+  scope,
+  view,
+  staleAfterMs,
   onRetry,
 }: ResultsPanelProps) {
   return (
     <section aria-labelledby="ctx-title" className={styles.panel}>
       <div className={styles.heading}>
         <span className={styles.eyebrow}>
-          {uf ? `${REGIONS[uf.region]} · ${uf.code}` : 'Resultado nacional'}
+          {scope.kind === 'uf'
+            ? `${REGIONS[scope.uf.region]} · ${scope.uf.code}`
+            : 'Resultado nacional'}
         </span>
         <h1 id="ctx-title" className={styles.title}>
-          {uf ? uf.name : 'Brasil'}
+          {scope.kind === 'uf' ? scope.uf.name : 'Brasil'}
         </h1>
-        {provenance && <p className={styles.provenance}>{provenance}</p>}
+        {view.status === 'ready' && (
+          <p className={styles.provenance}>{view.details.provenance}</p>
+        )}
       </div>
 
-      {hasFailure && (
-        <UpdateNotice hasAccepted={summary !== undefined} onRetry={onRetry} />
+      {view.status === 'failed' && (
+        <UpdateNotice hasAccepted={false} onRetry={onRetry} />
       )}
 
-      {summary && freshnessNotice && (
-        <FreshnessNotice message={freshnessNotice} />
-      )}
+      {view.status === 'loading' && <LoadingState />}
 
-      {!summary && !hasFailure && <LoadingState />}
-
-      {summary && uf && (
+      {view.status === 'ready' && (
         <>
-          <PresidentCard summary={summary} title={`Presidente em ${uf.name}`} />
-          {governorSummary && (
-            <PresidentCard
-              separated
-              summary={governorSummary}
-              title={`Governador em ${uf.name}`}
-            />
+          {view.hasFailure && (
+            <UpdateNotice hasAccepted={true} onRetry={onRetry} />
           )}
-        </>
-      )}
-
-      {summary && !uf && (
-        <>
-          <PresidentCard summary={summary} />
-          <p className={styles.hint}>
-            Selecione uma UF no mapa, na lista ou no seletor para ver o
-            resultado local e, quando houver, o 2º turno para governador.
-          </p>
+          <FreshnessNotice
+            freshness={view.freshness}
+            staleAfterMs={staleAfterMs}
+          />
+          <ReadyResults scope={scope} view={view} />
         </>
       )}
     </section>

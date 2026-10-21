@@ -131,18 +131,19 @@ export function selectElection(
   const selected = requestedElection
     ? matches.filter((match) => match.election === requestedElection)
     : matches
-  if (selected.length === 0) {
+  const [only, ...others] = selected
+  if (!only) {
     const contest = `${target.office} em ${configScope}, turno ${round}`
     const detail = requestedElection
       ? `${contest}, eleição ${requestedElection}`
       : contest
     throw new CollectorError('ELECTION_NOT_FOUND', detail)
   }
-  if (selected.length > 1) {
+  if (others.length > 0) {
     const options = selected.map((match) => `${match.election} (${match.name})`)
     throw new CollectorError('ELECTION_AMBIGUOUS', options.join('; '))
   }
-  return selected[0]
+  return only
 }
 
 export function resultFileUrl(

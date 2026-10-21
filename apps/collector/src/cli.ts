@@ -113,9 +113,9 @@ const commands = {
       source,
       round,
       output,
-      election: options.election,
-      office: options.office,
-      scope: options.scope,
+      ...(options.election !== undefined && { election: options.election }),
+      ...(options.office !== undefined && { office: options.office }),
+      ...(options.scope !== undefined && { scope: options.scope }),
     })
   },
   'tse-watch': async (options: Options & { once?: boolean }) => {
@@ -126,14 +126,12 @@ const commands = {
       'output',
       'publications',
     )
-    const intervalMs =
-      options['interval-ms'] === undefined
-        ? undefined
-        : Number(options['interval-ms'])
+    const rawIntervalMs = options['interval-ms']
+    const channelPrefix = options['channel-prefix']
     if (
-      intervalMs !== undefined &&
-      (!/^[1-9]\d*$/.test(options['interval-ms'] ?? '') ||
-        !Number.isSafeInteger(intervalMs))
+      rawIntervalMs !== undefined &&
+      (!/^[1-9]\d*$/.test(rawIntervalMs) ||
+        !Number.isSafeInteger(Number(rawIntervalMs)))
     ) {
       throw new CollectorError(
         'INVALID_ARGUMENTS',
@@ -150,9 +148,11 @@ const commands = {
         round,
         output,
         publications,
-        channelPrefix: options['channel-prefix'],
-        intervalMs,
-        maxCycles: options.once ? 1 : undefined,
+        ...(channelPrefix !== undefined && { channelPrefix }),
+        ...(rawIntervalMs !== undefined && {
+          intervalMs: Number(rawIntervalMs),
+        }),
+        ...(options.once && { maxCycles: 1 }),
         signal: controller.signal,
         log: (event) =>
           console.log(

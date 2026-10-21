@@ -4,12 +4,19 @@ import { formatDuration } from './format.ts'
 
 export type FreshnessReference = 'checkedAt' | 'collectedAt'
 
-export interface Freshness {
+interface FreshnessReferencePoint {
   reference: FreshnessReference
   referenceAt: string
-  ageMs: number | undefined
-  state: 'recent' | 'stale' | 'undetermined'
 }
+
+export type Freshness = FreshnessReferencePoint &
+  (
+    | { state: 'recent'; ageMs: number }
+    | { state: 'stale'; ageMs: number }
+    | { state: 'undetermined'; cause: 'reference-ahead' | 'invalid-clock' }
+  )
+
+export type FreshnessWarning = Exclude<Freshness, { state: 'recent' }>
 
 export function assessFreshness(
   publication: { manifest: Manifest; snapshot: { collectedAt: string } },
@@ -21,10 +28,20 @@ export function assessFreshness(
   const referenceAt = checkedAt ?? publication.snapshot.collectedAt
   const ageMs = nowMs - Date.parse(referenceAt)
   if (!Number.isFinite(ageMs)) {
-    return { reference, referenceAt, ageMs: undefined, state: 'undetermined' }
+    return {
+      reference,
+      referenceAt,
+      state: 'undetermined',
+      cause: 'invalid-clock',
+    }
   }
   if (ageMs < 0) {
-    return { reference, referenceAt, ageMs, state: 'undetermined' }
+    return {
+      reference,
+      referenceAt,
+      state: 'undetermined',
+      cause: 'reference-ahead',
+    }
   }
   return {
     reference,
@@ -38,24 +55,24 @@ export function nextFreshnessChangeAt(
   freshness: Freshness,
   staleAfterMs: number,
 ): number | undefined {
-  if (freshness.ageMs === undefined || freshness.state === 'stale') {
+  const referenceMs = Date.parse(freshness.referenceAt)
+  if (freshness.state === 'recent') return referenceMs + staleAfterMs
+  if (freshness.state === 'stale' || freshness.cause === 'invalid-clock') {
     return undefined
   }
-  const referenceMs = Date.parse(freshness.referenceAt)
-  return freshness.state === 'recent' ? referenceMs + staleAfterMs : referenceMs
+  return referenceMs
 }
 
 export function describeFreshness(
-  freshness: Freshness | undefined,
+  warning: FreshnessWarning,
   staleAfterMs: number,
-): string | undefined {
-  if (!freshness || freshness.state === 'recent') return undefined
-  if (freshness.state === 'undetermined') {
-    return freshness.ageMs === undefined
+): string {
+  if (warning.state === 'undetermined') {
+    return warning.cause === 'invalid-clock'
       ? 'Não foi possível confirmar a atualidade dos dados.'
       : 'Não foi possível confirmar a atualidade dos dados: o horário de referência está à frente do relógio deste dispositivo.'
   }
-  return freshness.reference === 'checkedAt'
+  return warning.reference === 'checkedAt'
     ? 'Sem verificação recente da origem. Exibindo o último resultado disponível.'
     : `A última coleta registrada ocorreu há mais de ${formatDuration(staleAfterMs)}. Não há confirmação de atualização posterior.`
 }

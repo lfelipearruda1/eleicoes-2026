@@ -15,6 +15,7 @@ import {
   watchTse,
   type WatchEvent,
 } from '../../src/tse/watch.js'
+import { itemAt } from './itemAt.js'
 
 const RESULT_PATH =
   /\/ele2026\/(\d+)\/dados\/([a-z]{2})\/[a-z]{2}-c(\d{4})-e\d{6}-u\.json$/
@@ -107,7 +108,8 @@ function fakeTse(
     if (headers['If-None-Match']) return new Response(null, { status: 304 })
     if (url.endsWith('ele-c.json')) return json(configBody, { etag: '"c"' })
     if (!match) return new Response('', { status: 404 })
-    return json(result(match[1], match[2], match[3]), { etag: `"${url}"` })
+    const [, election = '', scope = '', office = ''] = match
+    return json(result(election, scope, office), { etag: `"${url}"` })
   }
   return { transport, calls }
 }
@@ -284,7 +286,7 @@ describe('watchTse', () => {
     const published = await manifest('oficial-presidente-sp-2t')
     expect(published.revision).toBe(2)
     expect(published.checkedAt).toBeDefined()
-    expect(events.indexOf(ends[0])).toBeLessThan(
+    expect(events.indexOf(itemAt(ends, 0))).toBeLessThan(
       events.findIndex(
         (event) => event.event === 'cycle_start' && event.cycle === 2,
       ),

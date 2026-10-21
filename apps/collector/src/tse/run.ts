@@ -27,12 +27,7 @@ import {
   type SourceName,
 } from './ea11.js'
 import { parseResult, type ResultSummary } from './ea20.js'
-import {
-  httpGet,
-  parseJsonBody,
-  type Transport,
-  type Validator,
-} from './http.js'
+import { httpGet, parseJsonBody, type Transport } from './http.js'
 
 export interface TseOnceOptions {
   source: string
@@ -109,14 +104,11 @@ export async function openTseSession(options: SessionOptions) {
     const previous = lastValid[url.href]
     const previousBody =
       previous && (await readCapture(sourceDirectory, previous.capture))
-    const validator: Validator | undefined = previousBody
-      ? previous.validator
-      : undefined
     Object.assign(request, { url: url.href, requestedAt: now().toISOString() })
     const response = await httpGet(url, {
       allowedHost: TSE_SOURCES[source].host,
-      validator,
-      transport: options.transport,
+      ...(previousBody && { validator: previous.validator }),
+      ...(options.transport && { transport: options.transport }),
     }).catch((error: unknown) => {
       request.error =
         error instanceof CollectorError ? error.code : 'UNEXPECTED'

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { describeHeaderStatus } from '../../src/features/president/status.ts'
 import { availableSnapshot, pendingSnapshot } from './fixtures.ts'
 
-const base = { ufName: undefined, isChecking: false, hasFailure: false }
+const base = { scopeName: 'Brasil', isChecking: false, hasFailure: false }
 
 describe('describeHeaderStatus', () => {
   it('deve indicar carregamento sem percentual antes da primeira leitura', () => {
@@ -43,7 +43,7 @@ describe('describeHeaderStatus', () => {
     const status = describeHeaderStatus({
       ...base,
       snapshot: availableSnapshot({ scope: 'AC' }),
-      ufName: 'Acre',
+      scopeName: 'Acre',
     })
 
     expect(status).toMatchObject({
@@ -57,10 +57,11 @@ describe('describeHeaderStatus', () => {
     const status = describeHeaderStatus({
       ...base,
       snapshot: undefined,
-      ufName: 'Acre',
+      scopeName: 'Acre',
     })
 
-    expect(status).toMatchObject({ display: '—', percentage: undefined })
+    expect(status.display).toBe('—')
+    expect(status).not.toHaveProperty('percentage')
   })
 
   it('deve indicar falha preservando a hora dos dados exibidos', () => {

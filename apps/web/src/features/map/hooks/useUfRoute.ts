@@ -1,24 +1,28 @@
 import { useEffect, useState } from 'react'
 
-import { findUf } from '../ufs.ts'
+import { NATIONAL_SCOPE, UFS, type Scope } from '../ufs.ts'
 
-const UF_HASH = /^#\/uf\/([a-z]{2})$/i
-
-const parse = () =>
-  findUf(UF_HASH.exec(window.location.hash)?.[1]?.toUpperCase())?.code
+function parse(): Scope {
+  const hash = window.location.hash.toUpperCase()
+  const uf = UFS.find((candidate) => hash === `#/UF/${candidate.code}`)
+  return uf ? { kind: 'uf', uf } : NATIONAL_SCOPE
+}
 
 export function useUfRoute() {
-  const [selected, setSelected] = useState(parse)
+  const [scope, setScope] = useState(parse)
 
   useEffect(() => {
-    const onHashChange = () => setSelected(parse())
+    const onHashChange = () => setScope(parse())
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
 
-  const select = (code: string | undefined) => {
-    window.location.hash = code ? `#/uf/${code}` : '#/'
+  const showNational = () => {
+    window.location.hash = '#/'
+  }
+  const showUf = (code: string) => {
+    window.location.hash = `#/uf/${code}`
   }
 
-  return { selected, select }
+  return { scope, showNational, showUf }
 }

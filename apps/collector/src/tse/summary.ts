@@ -54,6 +54,12 @@ export function buildUfSummary(
   dataVersion: string,
 ): UfSummarySnapshot {
   const [first] = snapshots
+  if (!first) {
+    throw new CollectorError(
+      'INVALID_DOCUMENT',
+      'o resumo precisa de ao menos uma UF',
+    )
+  }
   const mixed = snapshots.some(
     (snapshot) =>
       snapshot.office !== 'president' ||
@@ -72,9 +78,13 @@ export function buildUfSummary(
       BRAZILIAN_STATE_CODES.indexOf(a.scope as never) -
       BRAZILIAN_STATE_CODES.indexOf(b.scope as never),
   )
-  const oldest = snapshots
-    .map((snapshot) => snapshot.collectedAt)
-    .toSorted((a, b) => Date.parse(a) - Date.parse(b))[0]
+  const oldest = snapshots.reduce(
+    (current, snapshot) =>
+      Date.parse(snapshot.collectedAt) < Date.parse(current)
+        ? snapshot.collectedAt
+        : current,
+    first.collectedAt,
+  )
   return {
     contractVersion: 1,
     kind: 'uf-summary',

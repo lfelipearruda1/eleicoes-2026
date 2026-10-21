@@ -1,22 +1,25 @@
 import type { ReactNode } from 'react'
 
+import type { Scope } from '../../map/ufs.ts'
 import styles from './SiteHeader.module.css'
 import { UfSelect } from './UfSelect.tsx'
 
 interface SiteHeaderProps {
   roundLabel: string | undefined
-  selectedUf: string | undefined
-  onSelectUf: (code: string | undefined) => void
+  scope: Scope
+  onShowNational: () => void
+  onShowUf: (code: string) => void
   progress: ReactNode
 }
 
 export function SiteHeader({
   roundLabel,
-  selectedUf,
-  onSelectUf,
+  scope,
+  onShowNational,
+  onShowUf,
   progress,
 }: SiteHeaderProps) {
-  const isBrasil = selectedUf === undefined
+  const isBrasil = scope.kind === 'national'
   return (
     <header className={styles.header}>
       <nav aria-label="Principal" className={styles.nav}>
@@ -29,14 +32,18 @@ export function SiteHeader({
         <div className={styles.controls}>
           <button
             type="button"
-            onClick={() => onSelectUf(undefined)}
+            onClick={onShowNational}
             aria-current={isBrasil ? 'page' : 'false'}
             className={`${styles.brasil} ${isBrasil ? styles.brasilCurrent : ''}`}
           >
             Visão Brasil
           </button>
           <div className={styles.selectSlot}>
-            <UfSelect selectedUf={selectedUf} onSelectUf={onSelectUf} />
+            <UfSelect
+              scope={scope}
+              onShowNational={onShowNational}
+              onShowUf={onShowUf}
+            />
           </div>
         </div>
       </nav>

@@ -220,7 +220,7 @@ describe('usePublication', () => {
     )
     await settle()
 
-    expect(signals[0].aborted).toBe(true)
+    expect(signals[0]?.aborted).toBe(true)
     expect(result.current.accepted).toBeUndefined()
   })
 })

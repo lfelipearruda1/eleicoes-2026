@@ -124,7 +124,9 @@ async function runCycle(context: CycleContext, cycle: number) {
         capture: run.runDirectory,
         output: context.publications,
         channel: channelFor(context.prefix, target, round),
-        checkedAtMinIntervalMs: context.options.checkedAtMinIntervalMs,
+        ...(context.options.checkedAtMinIntervalMs !== undefined && {
+          checkedAtMinIntervalMs: context.options.checkedAtMinIntervalMs,
+        }),
       })
       count(published.status)
       log({
