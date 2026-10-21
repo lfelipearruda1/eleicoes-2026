@@ -1,302 +1,24 @@
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
+import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
-import { readResultSnapshotSchema } from '@eleicoes/validation'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
-import { DEMO_CHANNEL, MANIFEST_FILE } from '../../src/constants.js'
-import type { CollectorError } from '../../src/error.js'
+import { DEMO_CHANNEL } from '../../src/constants.js'
 import { DEMO_FIXTURES } from '../../src/president/demo.js'
-import { normalizeResult } from '../../src/president/normalize.js'
 import { publishResultCapture } from '../../src/president/publish.js'
 import { readPublication } from '../../src/publication/read.js'
 import { listSnapshots } from '../../src/publication/storage.js'
-import { parseResult, type ResultSummary } from '../../src/tse/ea20.js'
-import { itemAt } from './itemAt.js'
-
-const OFFICIAL_CHANNEL = 'teste-oficial-presidente-br-2t'
-const OFFICIAL_URL =
-  'https://resultados.tse.jus.br/oficial/ele2026/9002/dados/br/br-c0001-e009002-u.json'
-const DATA_VERSION = '0b7c9a52-3f1e-4d2a-9c4b-6e8f1a2b3c4d'
-
-const candidate = (id: string, vap: string, pvap: string) => ({
-  n: `9${id}`,
-  sqcand: `90000000000${id}`,
-  nmu: `CANDIDATURA SINTÉTICA ${id}`,
-  vap,
-  pvap,
-})
-
-const rawResult = (overrides: Record<string, unknown> = {}) => ({
-  ele: '9002',
-  t: '2',
-  cdabr: 'br',
-  dg: '25/10/2026',
-  hg: '18:00:00',
-  idg: '103',
-  dt: '25/10/2026',
-  ht: '18:00:00',
-  dv: 's',
-  tf: 'n',
-  and: 'p',
-  carg: [
-    {
-      cd: '1',
-      agr: [
-        { par: [{ cand: [candidate('2', '0', '0,00')] }] },
-        { par: [{ cand: [candidate('1', '6000', '33,33')] }] },
-      ],
-    },
-  ],
-  s: { ts: '400', st: '200', pst: '50,00' },
-  v: { tv: '6100', vvc: '6000', vv: '6050' },
-  ...overrides,
-})
-
-const summaryOf = (overrides: Record<string, unknown> = {}) =>
-  parseResult(rawResult(overrides))
-
-const normalize = (summary: ResultSummary) =>
-  normalizeResult(summary, {
-    dataVersion: DATA_VERSION,
-    sourceEnvironment: 'synthetic',
-    collectedAt: '2026-10-25T21:00:05Z',
-    sourceFile: 'sintetico/presidente-br.json',
-  })
-
-function thrownBy(action: () => unknown): CollectorError {
-  try {
-    action()
-  } catch (error) {
-    return error as CollectorError
-  }
-  throw new Error('a operação deveria falhar')
-}
-
-async function errorOf(promise: Promise<unknown>): Promise<CollectorError> {
-  try {
-    await promise
-  } catch (error) {
-    return error as CollectorError
-  }
-  throw new Error('a operação deveria falhar')
-}
-
-describe('normalizeResult', () => {
-  it('deve produzir pending sem votos quando a votação não foi liberada', () => {
-    const summary = summaryOf({ dv: 'n' })
-
-    const snapshot = normalize(summary)
-
-    expect(snapshot).toMatchObject({
-      availability: 'pending',
-      pendingReason: 'votes_not_released',
-      votesReleased: false,
-    })
-    expect(snapshot).not.toHaveProperty('votes')
-    expect(snapshot.candidates[0]).toEqual({
-      candidateId: '900000000001',
-      number: '91',
-      ballotName: 'CANDIDATURA SINTÉTICA 1',
-    })
-  })
-
-  it('deve produzir pending com a totalização explicitamente não iniciada', () => {
-    const summary = summaryOf({
-      and: 'n',
-      dt: '',
-      ht: '',
-      s: { ts: '400', st: '0', pst: '0,00' },
-      v: { tv: '0', vvc: '0', vv: '0' },
-    })
-
-    const snapshot = normalize(summary)
-
-    expect(snapshot).toMatchObject({
-      availability: 'pending',
-      pendingReason: 'totalization_not_started',
-      totalization: { status: 'not_started' },
-      sections: { total: '400', totalized: '0' },
-    })
-  })
-
-  it('deve manter disponível o resultado parcial com zeros legítimos', () => {
-    const summary = summaryOf()
-
-    const snapshot = normalize(summary)
-
-    expect(snapshot.availability).toBe('available')
-    expect(snapshot.totalization).toEqual({
-      status: 'in_progress',
-      finalIndicator: false,
-    })
-    expect(snapshot.candidates[1]).toMatchObject({
-      votes: '0',
-      contestantVotesPercentage: '0.00',
-    })
-  })
-
-  it('deve copiar o percentual da origem sem recalcular', () => {
-    const summary = summaryOf()
-
-    const snapshot = normalize(summary)
-
-    expect(snapshot.candidates[0]).toMatchObject({
-      votes: '6000',
-      contestantVotesPercentage: '33.33',
-    })
-  })
-
-  it('deve manter vvc e vv como categorias distintas', () => {
-    const summary = summaryOf()
-
-    const snapshot = normalize(summary)
-
-    expect(snapshot.availability === 'available' && snapshot.votes).toEqual({
-      total: '6100',
-      valid: '6050',
-      contestant: '6000',
-    })
-  })
-
-  it('deve preservar contagens maiores que o inteiro seguro', () => {
-    const big = '9007199254740993'
-    const summary = summaryOf({ v: { tv: big, vvc: big, vv: big } })
-
-    const snapshot = normalize(summary)
-
-    expect(snapshot.availability === 'available' && snapshot.votes.total).toBe(
-      big,
-    )
-  })
-
-  it('deve deixar sourceTime e totalizedAt ausentes sem horário da origem', () => {
-    const summary = summaryOf({ and: 'n', dt: '', ht: '', ...zeroed() })
-
-    const snapshot = normalize(summary)
-
-    expect(snapshot).not.toHaveProperty('sourceTime')
-    expect(snapshot.origin).not.toHaveProperty('totalizedAt')
-    expect(snapshot.origin.generatedAt).toEqual({
-      date: '25/10/2026',
-      time: '18:00:00',
-    })
-  })
-
-  it('deve ser determinístico e independente da ordem das candidaturas', () => {
-    const reordered = rawResult()
-    itemAt(reordered.carg, 0).agr.reverse()
-
-    const first = normalize(parseResult(reordered))
-
-    expect(first).toEqual(normalize(summaryOf()))
-  })
-
-  it('deve recusar totalização não iniciada com seções totalizadas', () => {
-    const summary = summaryOf({ and: 'n' })
-
-    const error = thrownBy(() => normalize(summary))
-
-    expect(error.code).toBe('TSE_RESULT_CONTRADICTION')
-  })
-
-  it('deve produzir um documento aceito pelo schema de leitura', () => {
-    const summary = summaryOf()
-
-    const snapshot = normalize(summary)
-
-    expect(readResultSnapshotSchema.parse(snapshot)).toEqual(snapshot)
-  })
-})
-
-function zeroed() {
-  return {
-    s: { ts: '400', st: '0', pst: '0,00' },
-    v: { tv: '0', vvc: '0', vv: '0' },
-  }
-}
-
-describe('EA20: indicadores de disponibilidade', () => {
-  it.each([
-    { field: 'and', value: 'x' },
-    { field: 'dv', value: 'S' },
-    { field: 'tf', value: '' },
-  ])('deve recusar $field desconhecido "$value"', ({ field, value }) => {
-    const document = rawResult({ [field]: value })
-
-    const error = thrownBy(() => parseResult(document))
-
-    expect(error.code).toBe('INVALID_TSE_RESULT')
-  })
-})
+import { errorOf } from './failures.js'
+import { OFFICIAL_CHANNEL, usePublishWorkspace } from './presidentFixtures.js'
 
 describe('publishResultCapture', () => {
-  let workDirectory: string
-  let output: string
-
-  beforeEach(async () => {
-    workDirectory = await mkdtemp(path.join(tmpdir(), 'eleicoes-president-'))
-    output = path.join(workDirectory, 'publicacoes')
-  })
-
-  afterEach(async () => {
-    await rm(workDirectory, { recursive: true, force: true })
-  })
-
-  const fixture = (name: string) => path.join(DEMO_FIXTURES, name)
-  const publishFixture = (name: string, channel = DEMO_CHANNEL) =>
-    publishResultCapture({ capture: fixture(name), output, channel })
-  const manifestText = (channel = DEMO_CHANNEL) =>
-    readFile(path.join(output, channel, MANIFEST_FILE), 'utf8')
-
-  async function copyFixture(
-    name: string,
-    edit: (metadata: Record<string, unknown>) => void,
-  ) {
-    const target = path.join(workDirectory, `copia-${name}`)
-    await cp(fixture(name), target, { recursive: true })
-    const metadataPath = path.join(target, 'metadata.json')
-    const metadata = JSON.parse(await readFile(metadataPath, 'utf8'))
-    edit(metadata)
-    await writeFile(metadataPath, JSON.stringify(metadata))
-    return target
-  }
-
-  async function officialCapture(requests: Record<string, unknown>[]) {
-    const sourceDirectory = path.join(workDirectory, 'tse', 'official')
-    const runDirectory = path.join(sourceDirectory, 'run-2')
-    await mkdir(path.join(sourceDirectory, 'run-1'), { recursive: true })
-    await mkdir(runDirectory)
-    const body = JSON.stringify(rawResult())
-    await writeFile(path.join(sourceDirectory, 'run-1', 'result.json'), body)
-    await writeFile(path.join(runDirectory, 'result.json'), body)
-    await writeFile(
-      path.join(runDirectory, 'metadata.json'),
-      JSON.stringify({
-        source: 'official',
-        sourceEnvironment: 'oficial',
-        office: 'president',
-        round: 2,
-        scope: 'br',
-        requests,
-        validation: 'valid',
-        election: {
-          cycle: 'ele2026',
-          pleito: '9900',
-          election: '9002',
-          name: 'Eleição sintética 9002',
-        },
-        sampleOrigin: 'live',
-      }),
-    )
-    return runDirectory
-  }
+  const { workspace, fixture, publishFixture, manifestText, copyFixture } =
+    usePublishWorkspace()
 
   it('deve publicar a primeira versão e ler o payload persistido', async () => {
     const result = await publishFixture('03-parcial')
 
-    const { snapshot } = await readPublication(output, DEMO_CHANNEL)
+    const { snapshot } = await readPublication(workspace.output, DEMO_CHANNEL)
     expect(result).toMatchObject({ status: 'published', revision: 1 })
     expect(snapshot).toEqual(result.snapshot)
     expect(snapshot.availability).toBe('available')
@@ -311,7 +33,9 @@ describe('publishResultCapture', () => {
 
     expect(result).toMatchObject({ status: 'unchanged', revision: 1 })
     expect(await manifestText()).toBe(before)
-    expect(await listSnapshots(path.join(output, DEMO_CHANNEL))).toHaveLength(1)
+    expect(
+      await listSnapshots(path.join(workspace.output, DEMO_CHANNEL)),
+    ).toHaveLength(1)
   })
 
   it('deve tratar nova coleta com o mesmo conteúdo como verificação, sem versão nova', async () => {
@@ -322,7 +46,7 @@ describe('publishResultCapture', () => {
 
     const result = await publishResultCapture({
       capture: recollected,
-      output,
+      output: workspace.output,
       channel: DEMO_CHANNEL,
     })
 
@@ -346,7 +70,7 @@ describe('publishResultCapture', () => {
 
     const error = await errorOf(publishFixture('05-invalida'))
 
-    const { snapshot } = await readPublication(output, DEMO_CHANNEL)
+    const { snapshot } = await readPublication(workspace.output, DEMO_CHANNEL)
     expect(error.code).toBe('INVALID_TSE_RESULT')
     expect(await manifestText()).toBe(before)
     expect(snapshot.dataVersion).toBe(first.dataVersion)
@@ -359,7 +83,7 @@ describe('publishResultCapture', () => {
     await errorOf(
       publishResultCapture({
         capture: fixture('04-parcial-atualizada'),
-        output,
+        output: workspace.output,
         channel: DEMO_CHANNEL,
         beforeManifestSwap: async () => {
           throw new Error('falha injetada')
@@ -367,7 +91,7 @@ describe('publishResultCapture', () => {
       }),
     )
 
-    const { snapshot } = await readPublication(output, DEMO_CHANNEL)
+    const { snapshot } = await readPublication(workspace.output, DEMO_CHANNEL)
     expect(await manifestText()).toBe(before)
     expect(snapshot.dataVersion).toBe(first.dataVersion)
   })
@@ -390,7 +114,7 @@ describe('publishResultCapture', () => {
     const error = await errorOf(
       publishResultCapture({
         capture: firstRound,
-        output,
+        output: workspace.output,
         channel: DEMO_CHANNEL,
       }),
     )
@@ -406,7 +130,7 @@ describe('publishResultCapture', () => {
     const error = await errorOf(
       publishResultCapture({
         capture: mismatched,
-        output,
+        output: workspace.output,
         channel: DEMO_CHANNEL,
       }),
     )
@@ -423,355 +147,12 @@ describe('publishResultCapture', () => {
     const error = await errorOf(
       publishResultCapture({
         capture: replay,
-        output,
+        output: workspace.output,
         channel: DEMO_CHANNEL,
       }),
     )
 
     expect(error.code).toBe('INVALID_CAPTURE')
-  })
-
-  it('deve publicar captura oficial de governador com a situação dos votos', async () => {
-    const sourceDirectory = path.join(workDirectory, 'tse', 'official')
-    const runDirectory = path.join(sourceDirectory, 'run-gov')
-    await mkdir(runDirectory, { recursive: true })
-    const governor = rawResult({
-      cdabr: 'df',
-      carg: [
-        {
-          cd: '3',
-          agr: [
-            {
-              par: [
-                {
-                  cand: [
-                    { ...candidate('1', '6000', '60,00'), dvt: 'Válido' },
-                    {
-                      ...candidate('2', '4000', '40,00'),
-                      dvt: 'Anulado sub judice',
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    })
-    await writeFile(
-      path.join(runDirectory, 'result.json'),
-      JSON.stringify(governor),
-    )
-    await writeFile(
-      path.join(runDirectory, 'metadata.json'),
-      JSON.stringify({
-        source: 'official',
-        office: 'governor',
-        round: 2,
-        scope: 'df',
-        validation: 'valid',
-        election: {
-          cycle: 'ele2026',
-          pleito: '9900',
-          election: '9002',
-          name: 'Eleição sintética 9002',
-        },
-        requests: [
-          {
-            url: 'https://resultados.tse.jus.br/oficial/ele2026/9002/dados/df/df-c0003-e009002-u.json',
-            requestedAt: '2026-10-25T21:00:00Z',
-            status: 200,
-          },
-        ],
-      }),
-    )
-
-    const result = await publishResultCapture({
-      capture: runDirectory,
-      output,
-      channel: 'teste-oficial-governador-df-2t',
-    })
-
-    expect(result.snapshot).toMatchObject({
-      office: 'governor',
-      scope: 'DF',
-      source: { file: 'ele2026/9002/dados/df/df-c0003-e009002-u.json' },
-      candidates: [
-        { candidateId: '900000000001', voteDestination: 'valid' },
-        { candidateId: '900000000002', voteDestination: 'annulled_sub_judice' },
-      ],
-    })
-  })
-
-  it('deve identificar a captura oficial pela URL e pelo horário da consulta', async () => {
-    const capture = await officialCapture([
-      {
-        url: OFFICIAL_URL,
-        requestedAt: '2026-10-25T21:00:01.500Z',
-        status: 200,
-      },
-    ])
-
-    const result = await publishResultCapture({
-      capture,
-      output,
-      channel: OFFICIAL_CHANNEL,
-    })
-
-    expect(result.snapshot).toMatchObject({
-      sourceEnvironment: 'official',
-      collectedAt: '2026-10-25T21:00:01.500Z',
-      source: { file: 'ele2026/9002/dados/br/br-c0001-e009002-u.json' },
-      origin: { electionCode: '9002', generationId: '103' },
-    })
-  })
-
-  it('deve resolver a cópia reaproveitada por 304 numa execução anterior', async () => {
-    const capture = await officialCapture([
-      {
-        url: OFFICIAL_URL,
-        requestedAt: '2026-10-25T21:05:00Z',
-        status: 304,
-        reusedCapture: 'run-1/result.json',
-      },
-    ])
-    await rm(path.join(capture, 'result.json'))
-
-    const result = await publishResultCapture({
-      capture,
-      output,
-      channel: OFFICIAL_CHANNEL,
-    })
-
-    expect(result.status).toBe('published')
-  })
-
-  it('deve recusar 304 sem referência à cópia reaproveitada', async () => {
-    const capture = await officialCapture([
-      { url: OFFICIAL_URL, requestedAt: '2026-10-25T21:05:00Z', status: 304 },
-    ])
-
-    const error = await errorOf(
-      publishResultCapture({
-        capture,
-        output,
-        channel: OFFICIAL_CHANNEL,
-      }),
-    )
-
-    expect(error.code).toBe('INVALID_CAPTURE')
-  })
-
-  it('deve recusar 304 do resultado que aponta para a cópia da configuração', async () => {
-    const capture = await officialCapture([
-      {
-        url: OFFICIAL_URL,
-        requestedAt: '2026-10-25T21:05:00Z',
-        status: 304,
-        reusedCapture: 'run-1/config.json',
-      },
-    ])
-
-    const error = await errorOf(
-      publishResultCapture({
-        capture,
-        output,
-        channel: OFFICIAL_CHANNEL,
-      }),
-    )
-
-    expect(error.code).toBe('INVALID_CAPTURE')
-  })
-
-  it('deve recusar referência de 304 que sai do diretório da origem', async () => {
-    const capture = await officialCapture([
-      {
-        url: OFFICIAL_URL,
-        requestedAt: '2026-10-25T21:05:00Z',
-        status: 304,
-        reusedCapture: '../fora/result.json',
-      },
-    ])
-
-    const error = await errorOf(
-      publishResultCapture({
-        capture,
-        output,
-        channel: OFFICIAL_CHANNEL,
-      }),
-    )
-
-    expect(error.code).toBe('INVALID_CAPTURE')
-  })
-
-  describe('checkedAt', () => {
-    const FIRST_CHECK = '2026-10-25T21:00:01.500Z'
-    const officialRequest = (requestedAt: string) => ({
-      url: OFFICIAL_URL,
-      requestedAt,
-      status: 200,
-    })
-
-    async function recheck(
-      capture: string,
-      request: Record<string, unknown>,
-      result: Record<string, unknown> = rawResult(),
-    ) {
-      const metadataPath = path.join(capture, 'metadata.json')
-      const metadata = JSON.parse(await readFile(metadataPath, 'utf8'))
-      await writeFile(
-        metadataPath,
-        JSON.stringify({ ...metadata, requests: [request] }),
-      )
-      await writeFile(path.join(capture, 'result.json'), JSON.stringify(result))
-      return publishResultCapture({
-        capture,
-        output,
-        channel: OFFICIAL_CHANNEL,
-      })
-    }
-
-    const officialManifestText = () => manifestText(OFFICIAL_CHANNEL)
-
-    it('deve registrar a nova consulta oficial sem mudança como checkedAt na revisão seguinte', async () => {
-      const capture = await officialCapture([officialRequest(FIRST_CHECK)])
-      const first = await publishResultCapture({
-        capture,
-        output,
-        channel: OFFICIAL_CHANNEL,
-      })
-
-      const result = await recheck(
-        capture,
-        officialRequest('2026-10-25T21:05:00Z'),
-      )
-
-      const { manifest } = await readPublication(output, OFFICIAL_CHANNEL)
-      expect(result).toMatchObject({
-        status: 'checked',
-        revision: 2,
-        dataVersion: first.dataVersion,
-        publishedAt: first.publishedAt,
-        checkedAt: '2026-10-25T21:05:00Z',
-      })
-      expect(manifest.checkedAt).toBe('2026-10-25T21:05:00Z')
-      expect(
-        await listSnapshots(path.join(output, OFFICIAL_CHANNEL)),
-      ).toHaveLength(1)
-    })
-
-    it('deve registrar a verificação respondida com 304', async () => {
-      const capture = await officialCapture([officialRequest(FIRST_CHECK)])
-      await publishResultCapture({
-        capture,
-        output,
-        channel: OFFICIAL_CHANNEL,
-      })
-
-      const result = await recheck(capture, {
-        url: OFFICIAL_URL,
-        requestedAt: '2026-10-25T21:06:00Z',
-        status: 304,
-        reusedCapture: 'run-1/result.json',
-      })
-
-      expect(result).toMatchObject({
-        status: 'checked',
-        checkedAt: '2026-10-25T21:06:00Z',
-      })
-    })
-
-    it('deve não regravar o manifesto com consulta igual ou mais antiga', async () => {
-      const capture = await officialCapture([officialRequest(FIRST_CHECK)])
-      await publishResultCapture({
-        capture,
-        output,
-        channel: OFFICIAL_CHANNEL,
-      })
-      await recheck(capture, officialRequest('2026-10-25T21:05:00Z'))
-      const before = await officialManifestText()
-
-      const same = await recheck(
-        capture,
-        officialRequest('2026-10-25T21:05:00Z'),
-      )
-      const older = await recheck(
-        capture,
-        officialRequest('2026-10-25T21:04:00Z'),
-      )
-
-      expect(same.status).toBe('unchanged')
-      expect(older.status).toBe('unchanged')
-      expect(await officialManifestText()).toBe(before)
-    })
-
-    it('deve não copiar checkedAt para uma versão nova', async () => {
-      const capture = await officialCapture([officialRequest(FIRST_CHECK)])
-      await publishResultCapture({
-        capture,
-        output,
-        channel: OFFICIAL_CHANNEL,
-      })
-      await recheck(capture, officialRequest('2026-10-25T21:05:00Z'))
-
-      const result = await recheck(
-        capture,
-        officialRequest('2026-10-25T21:10:00Z'),
-        rawResult({ s: { ts: '400', st: '300', pst: '75,00' } }),
-      )
-
-      const { manifest } = await readPublication(output, OFFICIAL_CHANNEL)
-      expect(result).toMatchObject({ status: 'published', revision: 3 })
-      expect(manifest.checkedAt).toBeUndefined()
-    })
-
-    it('deve manter o manifesto quando a gravação da verificação falha', async () => {
-      const capture = await officialCapture([officialRequest(FIRST_CHECK)])
-      await publishResultCapture({
-        capture,
-        output,
-        channel: OFFICIAL_CHANNEL,
-      })
-      const before = await officialManifestText()
-      const metadataPath = path.join(capture, 'metadata.json')
-      const metadata = JSON.parse(await readFile(metadataPath, 'utf8'))
-      await writeFile(
-        metadataPath,
-        JSON.stringify({
-          ...metadata,
-          requests: [officialRequest('2026-10-25T21:05:00Z')],
-        }),
-      )
-
-      await errorOf(
-        publishResultCapture({
-          capture,
-          output,
-          channel: OFFICIAL_CHANNEL,
-          beforeManifestSwap: async () => {
-            throw new Error('falha injetada')
-          },
-        }),
-      )
-
-      expect(await officialManifestText()).toBe(before)
-    })
-
-    it('deve não registrar checkedAt a partir de captura sintética', async () => {
-      await publishFixture('03-parcial')
-      const recollected = await copyFixture('03-parcial', (metadata) => {
-        metadata.collectedAt = '2026-10-25T23:59:00Z'
-      })
-
-      const result = await publishResultCapture({
-        capture: recollected,
-        output,
-        channel: DEMO_CHANNEL,
-      })
-
-      expect(result.status).toBe('unchanged')
-      expect(result.checkedAt).toBeUndefined()
-    })
   })
 })
 
