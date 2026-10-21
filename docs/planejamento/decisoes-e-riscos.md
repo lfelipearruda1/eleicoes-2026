@@ -77,6 +77,7 @@ Cada pendência bloqueia apenas as tarefas listadas. Trabalho independente conti
 - **Informações necessárias:** especificações PDF de 2026 (não lidas até 14/10/2026) e amostras de DP-02.
 - **Tarefas bloqueadas:** ET-02-T03 a ET-02-T05; ET-03-T04 a ET-03-T07.
 - **Condição para decidir:** matriz de ET-01-T06 com evidência por campo. Campo sem evidência permanece pendente.
+- **Resolvida em 20/10/2026** pelas especificações EA11 (23/06/2026), EA14 e EA15 (10/06/2026) e EA20 (13/10/2026), baixadas pelo usuário e lidas por inteiro. Campos, denominadores e domínios em [matriz-dados-tse.md](../dados/matriz-dados-tse.md). Correção derivada: `and` usa `n`, `p`, `f` (não `a`).
 
 ### DP-04 — Códigos, ciclo e caminhos vigentes do segundo turno
 
@@ -101,6 +102,7 @@ Cada pendência bloqueia apenas as tarefas listadas. Trabalho independente conti
 - **Opções conhecidas:** exigida antes da publicação; recomendada e adotada; não aplicável à divulgação consumida.
 - **Tarefas bloqueadas:** se exigida, ET-08-T07 (publicação de homologação com dado oficial) espera a implementação da verificação, que vira tarefa adicional de ET-04.
 - **Condição para decidir:** ET-01-T09.
+- **Registro de 20/10/2026** ([manual de 16/09/2026](evidencias/ET-01.md)): cada JSON tem um par `.jws` (cabeçalho.dados.assinatura, Base64URL) assinado com EdDSA/Ed25519. O TSE publica a chave pública oficial em JWK (`kid` `sNbt9Q_fLS65zE1_ZLNV-XRRwPY`) e a cadeia X.509 com LCR; a chave de desenvolvimento é outra e não vale para resultado oficial. A chave deve ficar fixa na configuração, nunca vir do próprio `.jws`. Verificar com JWK é possível com `node:crypto` (Ed25519 nativo), sem dependência nova. Falta decidir se o coletor passa a consumir `.jws` e confirmar o nome do par por amostra.
 
 ### DP-07 — Deveres dos artigos 264 a 269 da Resolução TSE nº 23.751/2026
 
@@ -108,6 +110,15 @@ Cada pendência bloqueia apenas as tarefas listadas. Trabalho independente conti
 - **Informações necessárias:** texto da resolução.
 - **Tarefas bloqueadas:** exposição pública de homologação com dado oficial (ET-07-T11, ET-08-T07); ET-14 inteira.
 - **Condição para decidir:** ET-01-T09, com obrigações listadas e refletidas nos critérios de ET-07 e ET-14.
+- **Resolvida em 20/10/2026** (texto compilado salvo pelo usuário; [ET-01.md](evidencias/ET-01.md)). Deveres de quem divulga a partir dos arquivos:
+  1. **Não alterar o conteúdo** dos dados distribuídos (art. 267, § 4º). O contrato já copia votos e percentuais sem recalcular; qualquer valor derivado na tela (como a diferença em p.p.) precisa ser identificável como cálculo nosso.
+  2. **Mostrar a situação dos votos de cada candidatura** (válidos, sub judice ou anulados) nos painéis (art. 265, § 2º). O contrato **não** traz isso hoje (`cand[].dvt` do EA20). Lacuna a fechar antes de exibir dado oficial ao público (ET-02/ET-03).
+  3. Presidente só a partir das 17h de Brasília (art. 265, § 1º), o que o `dv` do EA20 já sinaliza.
+  4. Buscar os arquivos periodicamente conforme os padrões do TSE (art. 267, § 3º) e manter a própria infraestrutura de comunicação (§ 2º).
+  5. Não cobrar mais caro por causa dos dados (art. 268). Sem efeito para um site gratuito.
+  6. Descumprimento leva a bloqueio ou desconexão do centro de dados (art. 269).
+  7. Dados disponíveis no centro de dados do TSE até 04/04/2028 (art. 267), insumo para ET-15.
+     Os arts. 264 e 266 tratam da própria Justiça Eleitoral e da audiência de julho.
 
 ### DP-08 — Sinal de atualização da origem
 
@@ -117,6 +128,7 @@ Cada pendência bloqueia apenas as tarefas listadas. Trabalho independente conti
 - **Recomendação:** detectar mudança pelo conteúdo normalizado até a especificação confirmar outra regra. Isso não depende de interpretar IDG.
 - **Tarefas bloqueadas:** ET-04-T07 apenas quanto ao uso do IDG; ET-04-T05.
 - **Condição para decidir:** ET-01-T07.
+- **Registro de 20/10/2026:** as especificações descrevem `idg` só como "código identificador da geração", sem ordem. A recomendação (conteúdo normalizado) continua.
 
 ### DP-09 — Denominadores, precisão e retificação
 
@@ -126,6 +138,7 @@ Cada pendência bloqueia apenas as tarefas listadas. Trabalho independente conti
 - **Recomendação:** publicar o percentual da origem quando ele existir, para não criar segunda fonte de verdade. Não descartar total menor sem regra (já registrado em [dados/README.md](../dados/README.md)).
 - **Tarefas bloqueadas:** ET-02-T03; ET-03-T06.
 - **Condição para decidir:** ET-01-T06.
+- **Registro de 20/10/2026:** denominadores e precisão resolvidos pelo EA20: `pvap` e `pvv` sobre `vvc`; `pvb`, `ptvn` e `pvvc` sobre `tv`; duas casas com vírgula e um gêmeo `…n` com nove casas; arredondamento meio para cima. Retificação continua pendente.
 
 ### DP-10 — Necessidade do EA15
 
@@ -141,6 +154,7 @@ Cada pendência bloqueia apenas as tarefas listadas. Trabalho independente conti
 - **Recomendação:** o site não declara vencedor por conta própria ([contexto.md](../contexto.md)). Se o status oficial for exibido, ele vem do campo confirmado e é rotulado como informação oficial.
 - **Tarefas bloqueadas:** ET-02-T05; ET-06-T05 e ET-11-T05 apenas quanto ao rótulo de status.
 - **Condição para decidir:** ET-01-T06 e decisão do responsável pelo produto (a designar).
+- **Registro de 20/10/2026:** o EA20 traz `e` (eleito **ou** classificado para o 2º turno), `st` (situação, só após totalização final), `md` (matematicamente definido, só enquanto `tf` = `n`) e `esae`/`mnae`. A decisão de produto continua pendente.
 
 ### DP-12 — Forma do contrato publicado
 

@@ -112,22 +112,22 @@ DA-20. Esta política concilia a ET-03-T03, ação 5, com a ET-02-V06, separando
 
 Implementação: `packages/validation/src/contract/president.ts`, sem `node:*` (importável pelo web). Normalização: `apps/collector/src/president/normalize.ts`. Campos no topo, junto do envelope. `office` é sempre `president`. `availability` só aceita `pending` ou `available`: `unknown` e `not_applicable` não têm payload definido e são recusados.
 
-| Campo                                    | Tipo              | Quando                 | Regra                                                                                                                                   |
-| ---------------------------------------- | ----------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `votesReleased`                          | booleano          | Sempre                 | `dv` do EA20 (`s`/`n`). Condição de exibição da votação presidencial                                                                    |
-| `totalization.status`                    | enum              | Sempre                 | `not_started`, `in_progress`, `finished`, de `and` (`n`, `a`, `f`). Andamento, separado da disponibilidade                              |
-| `totalization.finalIndicator`            | booleano          | Sempre                 | `tf` (`s`/`n`). Outra indicação, não sinônimo de `and`. Semântica completa pendente                                                     |
-| `sections.total` / `totalized`           | string decimal    | Sempre                 | `s.ts`, `s.st`. `totalized` ≤ `total`                                                                                                   |
-| `sections.totalizedPercentage`           | string `d.dd`     | Sempre                 | `s.pst` com vírgula trocada por ponto. Não recalculado                                                                                  |
-| `pendingReason`                          | enum              | Só em `pending`        | `votes_not_released` (`dv` = `n`) ou `totalization_not_started` (`dv` = `s` e `and` = `n`). Motivo interno, coerente com os indicadores |
-| `votes.total` / `valid` / `contestant`   | string decimal    | Só em `available`      | `v.tv`, `v.vv`, `v.vvc`. Categorias distintas; nenhuma derivada de outra (EA20, p. 20)                                                  |
-| `candidates[].candidateId`               | string de dígitos | Sempre                 | `sqcand`. Identidade estável; sem repetição. A ordem do array é por `candidateId` e não é identidade nem classificação                  |
-| `candidates[].number`, `ballotName`      | string            | Sempre                 | `n` (sem repetição) e `nmu`                                                                                                             |
-| `candidates[].votes`                     | string decimal    | Só em `available`      | `vap`                                                                                                                                   |
-| `candidates[].contestantVotesPercentage` | string `d.dd`     | Só em `available`      | `pvap` com ponto. Base: votos a votáveis concorrentes, `vvc` (EA20, p. 14). Não é percentual de votos válidos e não é renormalizado     |
-| `origin.electionCode`                    | string de dígitos | Sempre                 | `ele`. Rastreabilidade                                                                                                                  |
-| `origin.generationId`                    | string de dígitos | Sempre                 | `idg`. Não ordena versões                                                                                                               |
-| `origin.generatedAt` / `totalizedAt`     | `{date, time}`    | `totalizedAt` opcional | `dg`/`hg` e `dt`/`ht` **como a origem envia** (`dd/mm/aaaa`, `hh:mm:ss`). Fuso não confirmado: por isso `sourceTime` fica ausente       |
+| Campo                                    | Tipo              | Quando                 | Regra                                                                                                                                     |
+| ---------------------------------------- | ----------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `votesReleased`                          | booleano          | Sempre                 | `dv` do EA20 (`s`/`n`). Condição de exibição da votação presidencial                                                                      |
+| `totalization.status`                    | enum              | Sempre                 | `not_started`, `in_progress`, `finished`, de `and` (`n`, `p`, `f`; EA20 pp. 9–10). Andamento, separado da disponibilidade                 |
+| `totalization.finalIndicator`            | booleano          | Sempre                 | `tf` (`s`/`n`): totalização final, quando o juiz eleitoral finaliza a eleição, elegendo ou não. Não é sinônimo de `and` = `f` (EA20 p. 9) |
+| `sections.total` / `totalized`           | string decimal    | Sempre                 | `s.ts`, `s.st`. `totalized` ≤ `total`                                                                                                     |
+| `sections.totalizedPercentage`           | string `d.dd`     | Sempre                 | `s.pst` com vírgula trocada por ponto. Não recalculado                                                                                    |
+| `pendingReason`                          | enum              | Só em `pending`        | `votes_not_released` (`dv` = `n`) ou `totalization_not_started` (`dv` = `s` e `and` = `n`). Motivo interno, coerente com os indicadores   |
+| `votes.total` / `valid` / `contestant`   | string decimal    | Só em `available`      | `v.tv`, `v.vv`, `v.vvc`. Categorias distintas; nenhuma derivada de outra (EA20, p. 20)                                                    |
+| `candidates[].candidateId`               | string de dígitos | Sempre                 | `sqcand`. Identidade estável; sem repetição. A ordem do array é por `candidateId` e não é identidade nem classificação                    |
+| `candidates[].number`, `ballotName`      | string            | Sempre                 | `n` (sem repetição) e `nmu`                                                                                                               |
+| `candidates[].votes`                     | string decimal    | Só em `available`      | `vap`: votos computados, antes das regras de totalização (EA20 p. 14, nota 1 da p. 22)                                                    |
+| `candidates[].contestantVotesPercentage` | string `d.dd`     | Só em `available`      | `pvap` com ponto. Base: votos a votáveis concorrentes, `vvc` (EA20, p. 14). Não é percentual de votos válidos e não é renormalizado       |
+| `origin.electionCode`                    | string de dígitos | Sempre                 | `ele`. Rastreabilidade                                                                                                                    |
+| `origin.generationId`                    | string de dígitos | Sempre                 | `idg`. Não ordena versões                                                                                                                 |
+| `origin.generatedAt` / `totalizedAt`     | `{date, time}`    | `totalizedAt` opcional | `dg`/`hg` e `dt`/`ht` **como a origem envia** (`dd/mm/aaaa`, `hh:mm:ss`). Fuso não confirmado: por isso `sourceTime` fica ausente         |
 
 Regras:
 
@@ -138,7 +138,7 @@ Regras:
 5. Nenhum campo opcional aceita `null`. DA-20 vale em todos os níveis: publicação rejeita chave extra, leitura descarta.
 6. `synthetic` identifica fixture do projeto. O coletor só publica captura sintética em canal com prefixo `demo-`, e captura oficial só em canal sem esse prefixo.
 
-Fonte das semânticas: os pontos de EA20 pp. 9, 9–10, 14, 16 e 20 foram **fornecidos pelo usuário**. O PDF respondeu 403 ao cliente automatizado nesta sessão e não foi lido. Os códigos `n` e `f` de `and` foram observados em capturas oficiais (2º e 1º turno). O código `a` (em andamento) foi informado pelo usuário a partir do PDF.
+Fonte das semânticas: especificação EA20 de 13/10/2026 (22 páginas), lida em 20/10/2026 a partir do PDF baixado pelo usuário ([ET-01.md](../planejamento/evidencias/ET-01.md)). Ela define `and` como `n`, `p` ou `f`. O código `a`, usado antes a partir de um trecho fornecido em conversa, **não existe** nessa versão: o parser passou a aceitar `p` e recusar `a`. `n` e `f` também foram observados em capturas oficiais.
 
 ### Horários do manifesto (recorte da DP-14)
 

@@ -11,7 +11,7 @@ const flagSchema = z.enum(['s', 'n'])
 
 const TOTALIZATION_STATUS = {
   n: 'not_started',
-  a: 'in_progress',
+  p: 'in_progress',
   f: 'finished',
 } as const
 
@@ -34,7 +34,7 @@ const resultSchema = z.object({
   ht: timeSchema.or(z.literal('')),
   dv: flagSchema,
   tf: flagSchema,
-  and: z.enum(['n', 'a', 'f']),
+  and: z.enum(['n', 'p', 'f']),
   carg: z.array(
     z.object({
       cd: z.string(),

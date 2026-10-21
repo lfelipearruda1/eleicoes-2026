@@ -2,43 +2,69 @@
 
 [Voltar a dados](README.md) · [Contrato](contrato.md) · [Evidência ET-01](../planejamento/evidencias/ET-01.md)
 
-Liga cada informação da tela a um arquivo e campo da origem. **Fonte de cada linha:** "Observado" significa visto em amostra oficial guardada em `.local/tse/` (fora do git), sem a especificação, cujos PDFs respondem 403 ao cliente automatizado. "Usuário" significa trecho da especificação EA20 fornecido pelo usuário (ver [contrato.md](contrato.md)). Nenhuma linha vem de conhecimento externo.
+Liga cada informação da tela a um arquivo e campo da origem.
 
-Amostras: EA11 `ele-c.json` (19/10/2026, vigente em 20/10); EA20 Brasil presidente `br-c0001-e006258-u.json` (19/10); EA20 SP presidente `sp-c0001-e006258-u.json` e DF governador `df-c0003-e006260-u.json` (20/10). Todas em estado pré-eleição do 2º turno.
+**Fontes.** Além das especificações, foram lidos as "Instruções para download" (v1.1, 19/10/2026) e o "Manual de verificação dos arquivos JWS" (16/09/2026). "Spec" é a especificação oficial lida por inteiro em 20/10/2026, a partir dos PDFs baixados pelo usuário (o site do TSE responde 403 ao cliente automatizado): EA11 de 23/06/2026, EA14 e EA15 de 10/06/2026, EA20 de 13/10/2026. Os PDFs ficam em `.local/tse/docs/` (fora do git). "Amostra" é observação em captura oficial em `.local/tse/` (EA11 de 18/10; EA20 presidente Brasil, presidente SP e governador DF, todos em estado pré-eleição do 2º turno). Nenhuma linha vem de conhecimento externo.
+
+## Caminhos e nomes de arquivo
+
+| Arquivo                      | Caminho                                                                                                                                                                                                          | Fonte                                               |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Configuração (EA11)          | `<base>/<ambiente>/comum/config/ele-c.json`                                                                                                                                                                      | Spec (nome), Amostra (caminho)                      |
+| Resultado (EA20)             | `arq[tp=u].dir` = `<base>/<ambiente>/<ciclo>/<cd_eleicao>/dados/<uf>`; nome `br-c<cargo:4>-e<eleição:6>-u.json` (Brasil, só presidente) ou `<uf>-c<cargo:4>-e<eleição:6>-u.json` (UF: presidente e cargos da UF) | Spec, Amostra (BR, SP, DF)                          |
+| Acompanhamento Brasil (EA14) | `<base>/<ambiente>/<ciclo>/<cd_eleicao>/dados/br/br-e<eleição:6>-ab.json`                                                                                                                                        | Spec, Instruções v1.1 (pasta `dados/{br             | uf  | zz}` guarda unificados, eleitos e acompanhamentos), exemplo do simulado na página técnica |
+| Acompanhamento UF (EA15)     | `<base>/<ambiente>/<ciclo>/<cd_eleicao>/dados/<uf>/<uf>-e<eleição:6>-ab.json`                                                                                                                                    | Spec, Instruções v1.1, exemplo do simulado          |
+| Eleitos (EA10)               | `dados/<br\|uf>/<br\|uf>-c<cargo:4>-e<eleição:6>-e.json`; só após a totalização final da primeira UF                                                                                                             | Instruções v1.1, página técnica. Spec EA10 não lida |
+| Assinatura (JWS)             | Cada JSON tem um par `.jws` com os mesmos dados assinados                                                                                                                                                        | Manual JWS. Nome do par não explicitado             |
+
+O EA14 traz num único arquivo um `abr` para o Brasil e um por UF com eleição ordinária, com seções e eleitorado. É a fonte natural do andamento por UF no mapa, sem baixar 27 arquivos de resultado. Gerado só para eleições ordinárias.
 
 ## Configuração (EA11)
 
-| Informação             | Campo                                           | Semântica                                                                               | Fonte     | Pendência                                                                       |
-| ---------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------- |
-| Pleitos                | `pl[].cd`, `pl[].dt`                            | Código do pleito e data                                                                 | Observado | —                                                                               |
-| Eleições do pleito     | `pl[].e[].cd`, `nm`, `t`                        | Código da eleição, nome, turno                                                          | Observado | —                                                                               |
-| Ligação entre turnos   | `pl[].e[].cdt2`                                 | Código da eleição do 2º turno, no registro do 1º                                        | Observado | —                                                                               |
-| Cargos por abrangência | `pl[].e[].abr[].cd`, `abr[].cp[].cd`, `cp[].ds` | UF (ou `br`) e cargos em disputa nela. Fonte da lista de governador no 2º turno (DP-05) | Observado | Reconfirmar em ET-14-T04                                                        |
-| Montagem de caminhos   | `arq[].tp`, `arq[].dir`                         | Modelos `<base>/<ambiente>/<ciclo>/<cd_eleicao>/dados/<uf>` por tipo de arquivo         | Observado | Nome de arquivo (`<uf>-c<cargo:4>-e<eleição:6>-u.json`) confirmado só para EA20 |
-| Geração                | `dg`, `hg`, `idg`                               | Data, hora e identificador da geração                                                   | Observado | Fuso e ordenação de `idg` não confirmados                                       |
+| Informação  | Campo                                  | Semântica                                                                                                      | Fonte         |
+| ----------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------- |
+| Fase        | `f`                                    | `s` simulado, `o` oficial                                                                                      | Spec          |
+| Pleito      | `pl[].cd`, `cdpr`, `c`, `dt`, `dtlim`  | Pleito, processo eleitoral, ciclo, data, data-limite de divulgação                                             | Spec          |
+| Eleição     | `pl[].e[].cd`, `cdt2`, `nm`, `t`, `tp` | Código; código do 2º turno (no registro do 1º); nome; turno; tipo (1 estadual ordinária … 8 federal ordinária) | Spec          |
+| Abrangência | `e[].abr[].cd`                         | `br` para federal; **UF no 2º turno de eleição estadual ordinária** (fonte da lista de governador, DP-05)      | Spec, Amostra |
+| Cargo       | `abr[].cp[].cd`, `ds`, `tp`            | Código, nome, tipo (1 majoritário, 2 proporcional, 3 pergunta)                                                 | Spec          |
+| Geração     | `dg`, `hg`, `idg`                      | Data, hora, identificador da geração. Sem ordem garantida para `idg`                                           | Spec          |
 
-## Resultado (EA20), por cargo e abrangência
+## Resultado (EA20)
 
-| Informação da tela        | Campo                       | Semântica                                                      | Fonte                              | Pendência                                                   |
-| ------------------------- | --------------------------- | -------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------------- |
-| Abrangência               | `tpabr`, `cdabr`            | `br` ou `uf` + sigla minúscula                                 | Observado                          | —                                                           |
-| Cargo                     | `carg[].cd`, `nmn`          | 1 Presidente, 3 Governador                                     | Observado                          | —                                                           |
-| Candidatura               | `cand[].sqcand`, `n`, `nmu` | Identificador estável, número, nome de urna                    | Observado                          | —                                                           |
-| Votos da candidatura      | `cand[].vap`                | Votos apurados                                                 | Usuário                            | —                                                           |
-| Percentual da candidatura | `cand[].pvap`               | Sobre votos a votáveis concorrentes (`vvc`), não sobre válidos | Usuário (p. 14)                    | —                                                           |
-| Votação liberada          | `dv`                        | `s`/`n`                                                        | Usuário                            | —                                                           |
-| Andamento                 | `and`                       | `n`, `a`, `f`                                                  | Usuário; `n` e `f` observados      | `a` só da especificação fornecida                           |
-| Indicador final           | `tf`                        | `s`/`n`, distinto de `and`                                     | Usuário                            | Semântica completa                                          |
-| Seções                    | `s.ts`, `s.st`, `s.pst`     | Total, totalizadas, percentual                                 | Observado                          | —                                                           |
-| Votos agregados           | `v.tv`, `v.vvc`, `v.vv`     | Total, votos a concorrentes, válidos                           | Usuário (`vvc`); demais observados | Brancos, nulos e anulados (`vb`, `vn`, `van`, …) não usados |
-| Horário da totalização    | `dt`, `ht`                  | Vazio antes da totalização                                     | Observado                          | Fuso não confirmado; não vira `sourceTime`                  |
-| Vagas da agremiação       | `agr[].vag`                 | Só no arquivo de UF de presidente                              | Observado                          | Significado desconhecido; não usado                         |
-| Eleito, situação          | `cand[].e`, `cand[].st`     | —                                                              | Observado                          | Não entram no contrato (DP-11)                              |
+| Informação da tela       | Campo                            | Semântica                                                                                                                                                               | Fonte         | Uso no contrato                         |
+| ------------------------ | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- | --------------------------------------- |
+| Abrangência              | `tpabr`, `cdabr`                 | `br`, `uf`, `mu`, `zona`                                                                                                                                                | Spec, Amostra | Validação do arquivo pedido             |
+| Fase, suplementar        | `f`, `sup`                       | `s`/`o`; `s`/`n`                                                                                                                                                        | Spec          | Não usado                               |
+| Votação liberada         | `dv`                             | Só aplicável a presidente. Com `n`, os votos vêm zerados                                                                                                                | Spec          | `votesReleased`                         |
+| Andamento                | `and`                            | **`n`** não totalizado, **`p`** em andamento, **`f`** finalizado. Eleição federal: no arquivo de UF, `f` quando `snt` = 0; no arquivo Brasil, `f` com totalização final | Spec          | `totalization.status`                   |
+| Totalização final        | `tf`                             | Juiz eleitoral finaliza a eleição, elegendo ou não. Diferente de `and` = `f`                                                                                            | Spec          | `totalization.finalIndicator`           |
+| Reprocessamento pendente | `mntf`                           | Motivo de não haver totalização final por atualização de candidatura                                                                                                    | Spec          | Não usado                               |
+| Matematicamente definido | `md`                             | `e` eleito, `s` segundo turno, `n` não definido; presidente, governador e prefeito; só enquanto `tf` = `n`                                                              | Spec          | Não usado (DP-11)                       |
+| Sem atribuição de eleito | `esae`, `mnae`                   | Após `tf` = `s`                                                                                                                                                         | Spec          | Não usado                               |
+| Horário da totalização   | `dt`, `ht`                       | Última totalização. Vazios antes da primeira                                                                                                                            | Spec, Amostra | `origin.totalizedAt`, sem fuso          |
+| Horário da geração       | `dg`, `hg`                       | Geração do arquivo                                                                                                                                                      | Spec          | `origin.generatedAt`, sem fuso          |
+| Cargo                    | `carg[].cd`, `nmn`               | 1 Presidente, 3 Governador                                                                                                                                              | Spec, Amostra | Validação                               |
+| Candidatura              | `cand[].sqcand`, `n`, `nmu`      | Identificador único (também da foto), número e nome de urna                                                                                                             | Spec          | `candidateId`, `number`, `ballotName`   |
+| Votos                    | `cand[].vap`                     | Votos **computados**: destinados pela urna, antes das regras de totalização                                                                                             | Spec          | `votes`                                 |
+| Percentual               | `cand[].pvap`, `pvapn`           | Sobre votos a votáveis concorrentes (`vvc`). `pvap` com 2 casas e vírgula; `pvapn` com 9 casas                                                                          | Spec          | `contestantVotesPercentage` (de `pvap`) |
+| Eleito / 2º turno        | `cand[].e`                       | `s` também quando a candidatura vai ao 2º turno                                                                                                                         | Spec          | Não usado (DP-11)                       |
+| Situação                 | `cand[].st`                      | Só após totalização final                                                                                                                                               | Spec          | Não usado (DP-11)                       |
+| Vice                     | `cand[].vs[]` (`tp` = `v`)       | Nome, nome de urna, partido                                                                                                                                             | Spec, Amostra | Não usado                               |
+| Substituído              | `cand[].subs[]`                  | Candidatura substituída                                                                                                                                                 | Spec          | Não usado                               |
+| Seções                   | `s.ts`, `s.st`, `s.pst`, `s.snt` | Total, totalizadas, % totalizadas, não totalizadas                                                                                                                      | Spec          | `sections`                              |
+| Votos agregados          | `v.tv`, `v.vvc`, `v.vv`          | `tv` = `vb` + `vn` + `vnt` + `van` + `vansj` + `vv`; `vvc` = `vv` + `van` + `vansj`                                                                                     | Spec          | `votes.total`, `contestant`, `valid`    |
+| Brancos e nulos          | `v.vb`, `v.tvn`, `v.vn`, `v.vnt` | `pvb` e `ptvn` sobre `tv`                                                                                                                                               | Spec          | Não usado                               |
+| Sem candidato            | `v.vscv`                         | Se > 0, demais contagens zeradas exceto `tv`                                                                                                                            | Spec          | Não tratado                             |
+| Comparecimento           | `e.c`, `e.a`, `e.te`             | Comparecimento e abstenção sobre eleitores das seções instaladas                                                                                                        | Spec          | Não usado                               |
 
-## Ainda sem amostra
+Percentuais: arredondamento meio para cima; `0` e `100` sem casas decimais nos campos `…n`.
 
-| Informação                 | Arquivo provável | Bloqueio                                     |
-| -------------------------- | ---------------- | -------------------------------------------- |
-| Acompanhamento Brasil e UF | EA14, EA15       | Caminho não confirmado em documentação (T06) |
-| Resultado com votos        | EA20 do 2º turno | Eleição em 25/10/2026 (T07)                  |
-| Assinatura                 | JWS              | Manual inacessível (T09, DP-06)              |
+## Ainda sem amostra ou sem documento
+
+| Informação                                    | Bloqueio                                            |
+| --------------------------------------------- | --------------------------------------------------- |
+| Resultado com votos (EA20 do 2º turno)        | Eleição em 25/10/2026 (ET-01-T07)                   |
+| Acompanhamento (EA14/EA15)                    | Caminho conhecido pela spec; nenhuma consulta feita |
+| Assinatura                                    | Manual JWS não fornecido (ET-01-T09, DP-06)         |
+| Instruções de download, Resolução 23.751/2026 | Não fornecidas                                      |

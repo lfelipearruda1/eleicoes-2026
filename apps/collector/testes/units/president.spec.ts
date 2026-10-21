@@ -41,7 +41,7 @@ const rawResult = (overrides: Record<string, unknown> = {}) => ({
   ht: '18:00:00',
   dv: 's',
   tf: 'n',
-  and: 'a',
+  and: 'p',
   carg: [
     {
       cd: '1',

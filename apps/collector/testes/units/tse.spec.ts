@@ -52,7 +52,7 @@ const syntheticResult = (overrides: Record<string, unknown> = {}) => ({
   ht: '17:00:00',
   dv: 's',
   tf: 'n',
-  and: 'a',
+  and: 'p',
   carg: [
     {
       cd: '1',
@@ -334,6 +334,26 @@ describe('EA20: parser do resultado presidencial', () => {
     expect(
       summary.candidates.map((candidate) => candidate.candidateId),
     ).toEqual(['900000000001', '900000000002'])
+  })
+
+  it.each([
+    ['n', 'not_started'],
+    ['p', 'in_progress'],
+    ['f', 'finished'],
+  ])('deve ler o andamento %j da especificação EA20 como %s', (and, status) => {
+    const document = syntheticResult({ and })
+
+    const summary = parsePresidentialResult(document)
+
+    expect(summary.totalizationStatus).toBe(status)
+  })
+
+  it('deve recusar andamento fora da especificação EA20', () => {
+    const document = syntheticResult({ and: 'a' })
+
+    const error = thrownBy(() => parsePresidentialResult(document))
+
+    expect(error.code).toBe('INVALID_TSE_RESULT')
   })
 
   it('deve aceitar votos zerados como dado válido', () => {
