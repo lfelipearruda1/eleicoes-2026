@@ -45,7 +45,7 @@ export const rawResult = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 })
 
-export function usePublishWorkspace() {
+export function setupPublishWorkspace() {
   const workspace = { directory: '', output: '' }
 
   beforeEach(async () => {

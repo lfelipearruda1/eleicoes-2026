@@ -12,7 +12,7 @@ import {
   OFFICIAL_CHANNEL,
   OFFICIAL_URL,
   rawResult,
-  usePublishWorkspace,
+  setupPublishWorkspace,
 } from './presidentFixtures.js'
 
 describe('publishResultCapture: checkedAt', () => {
@@ -22,7 +22,7 @@ describe('publishResultCapture: checkedAt', () => {
     manifestText,
     copyFixture,
     officialCapture,
-  } = usePublishWorkspace()
+  } = setupPublishWorkspace()
 
   const FIRST_CHECK = '2026-10-25T21:00:01.500Z'
   const officialRequest = (requestedAt: string) => ({

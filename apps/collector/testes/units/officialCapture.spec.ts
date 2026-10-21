@@ -10,11 +10,11 @@ import {
   OFFICIAL_URL,
   candidate,
   rawResult,
-  usePublishWorkspace,
+  setupPublishWorkspace,
 } from './presidentFixtures.js'
 
 describe('publishResultCapture: captura oficial', () => {
-  const { workspace, officialCapture } = usePublishWorkspace()
+  const { workspace, officialCapture } = setupPublishWorkspace()
 
   it('deve publicar captura oficial de governador com a situação dos votos', async () => {
     const sourceDirectory = path.join(workspace.directory, 'tse', 'official')

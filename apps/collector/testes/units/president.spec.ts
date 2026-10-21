@@ -9,11 +9,11 @@ import { publishResultCapture } from '../../src/president/publish.js'
 import { readPublication } from '../../src/publication/read.js'
 import { listSnapshots } from '../../src/publication/storage.js'
 import { errorOf } from './failures.js'
-import { OFFICIAL_CHANNEL, usePublishWorkspace } from './presidentFixtures.js'
+import { OFFICIAL_CHANNEL, setupPublishWorkspace } from './presidentFixtures.js'
 
 describe('publishResultCapture', () => {
   const { workspace, fixture, publishFixture, manifestText, copyFixture } =
-    usePublishWorkspace()
+    setupPublishWorkspace()
 
   it('deve publicar a primeira versão e ler o payload persistido', async () => {
     const result = await publishFixture('03-parcial')
