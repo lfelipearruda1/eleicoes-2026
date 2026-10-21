@@ -29,7 +29,7 @@
 }
 
 .name {
-  @apply truncate text-[17px] font-semibold;
+  @apply text-[17px] leading-[1.25] font-semibold [overflow-wrap:anywhere];
 }
 
 .votes {

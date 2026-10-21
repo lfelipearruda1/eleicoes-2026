@@ -298,11 +298,11 @@ Não se aplica. Tudo roda na máquina.
 
 ## 13. Critérios de conclusão
 
-- [ ] Leitura com schema e erros tipados (V02–V04).
+- [x] Leitura com schema e erros tipados (V02–V04).
 - [ ] Estados e regras de apresentação testados (V05–V10, V13, V14).
-- [ ] Verificação de versão sem sobreposição (V15).
-- [ ] Fluxo vertical demonstrado e registrado (V11).
-- [ ] Bundle sem segredo nem host do TSE (V12).
+- [x] Verificação de versão sem sobreposição (V15).
+- [ ] Fluxo vertical demonstrado e registrado (V11). Parcial em 20/10/2026: fixtures sintéticas no lugar do simulador; sem passo de desatualização ([ET-06.md](../evidencias/ET-06.md)).
+- [x] Bundle sem segredo nem host do TSE (V12).
 - [ ] `.env.example` do web documentado.
 
 ## 14. Pendências e passagem adiante

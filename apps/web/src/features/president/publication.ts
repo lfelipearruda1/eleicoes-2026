@@ -8,7 +8,7 @@ import {
   type PresidentialSnapshot,
 } from '@eleicoes/validation'
 
-export const PUBLICATIONS_BASE = '/publications/'
+import { resolveInChannel, type ResultsEndpoint } from './resultsConfig.ts'
 
 export interface AcceptedPublication {
   manifest: Manifest
@@ -19,6 +19,7 @@ export type RejectionReason =
   | 'manifest_missing'
   | 'invalid_manifest'
   | 'unexpected_contest'
+  | 'unexpected_channel'
   | 'stale'
   | 'conflict'
   | 'incomparable'
@@ -35,12 +36,18 @@ type Fetch = typeof fetch
 
 async function fetchJson(
   fetcher: Fetch,
-  url: string,
+  url: URL,
   signal: AbortSignal,
 ): Promise<
   { status: 'ok'; body: unknown } | { status: 'missing' | 'invalid' }
 > {
-  const response = await fetcher(url, { cache: 'no-store', signal })
+  const response = await fetcher(url.href, {
+    cache: 'no-store',
+    credentials: 'omit',
+    mode: 'cors',
+    redirect: 'error',
+    signal,
+  })
   if (response.status === 404) return { status: 'missing' }
   if (!response.ok) throw new Error(`HTTP ${response.status}`)
   try {
@@ -50,18 +57,15 @@ async function fetchJson(
   }
 }
 
-// Erro de rede ou HTTP inesperado é lançado; o resto vira rejeição explícita.
-// Em nenhum caso o conjunto aceito anterior é alterado aqui.
 export async function readPublication(
   accepted: AcceptedPublication | undefined,
   signal: AbortSignal,
+  endpoint: ResultsEndpoint,
   fetcher: Fetch = fetch,
 ): Promise<PublicationRead> {
-  const manifestResponse = await fetchJson(
-    fetcher,
-    `${PUBLICATIONS_BASE}manifest.json`,
-    signal,
-  )
+  const manifestUrl = resolveInChannel(endpoint, 'manifest.json')
+  if (!manifestUrl) return { outcome: 'rejected', reason: 'invalid_manifest' }
+  const manifestResponse = await fetchJson(fetcher, manifestUrl, signal)
   if (manifestResponse.status === 'missing') {
     return { outcome: 'rejected', reason: 'manifest_missing' }
   }
@@ -75,15 +79,27 @@ export async function readPublication(
   if (manifest.data.office !== 'president' || manifest.data.scope !== 'BR') {
     return { outcome: 'rejected', reason: 'unexpected_contest' }
   }
+  if (endpoint.channel && manifest.data.channel !== endpoint.channel) {
+    return { outcome: 'rejected', reason: 'unexpected_channel' }
+  }
   const decision = decideManifestUpdate(accepted?.manifest, manifest.data)
   if (decision === 'same') return { outcome: 'same' }
   if (decision !== 'newer') return { outcome: 'rejected', reason: decision }
+  if (
+    accepted?.manifest.current.dataVersion === manifest.data.current.dataVersion
+  ) {
+    return {
+      outcome: 'accepted',
+      publication: { manifest: manifest.data, snapshot: accepted.snapshot },
+    }
+  }
 
-  const snapshotResponse = await fetchJson(
-    fetcher,
-    `${PUBLICATIONS_BASE}${snapshotPathFor(manifest.data.current.dataVersion)}`,
-    signal,
+  const snapshotUrl = resolveInChannel(
+    endpoint,
+    snapshotPathFor(manifest.data.current.dataVersion),
   )
+  if (!snapshotUrl) return { outcome: 'rejected', reason: 'invalid_manifest' }
+  const snapshotResponse = await fetchJson(fetcher, snapshotUrl, signal)
   if (snapshotResponse.status === 'missing') {
     return { outcome: 'rejected', reason: 'snapshot_missing' }
   }

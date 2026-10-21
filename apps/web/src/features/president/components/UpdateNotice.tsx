@@ -11,7 +11,7 @@ export function UpdateNotice({
     <div role="alert" className={styles.notice}>
       <span className={styles.text}>
         {hasAccepted
-          ? 'Não foi possível atualizar. Exibindo o último resultado disponível.'
+          ? 'Não foi possível consultar os resultados. Exibindo a última versão válida.'
           : 'Não foi possível carregar os resultados.'}
       </span>
       <button type="button" onClick={onRetry} className={styles.retry}>

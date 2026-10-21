@@ -9,11 +9,9 @@ const brasiliaTime = new Intl.DateTimeFormat('pt-BR', {
   timeZone: 'America/Sao_Paulo',
 })
 
-// Só para horários do contrato em UTC (sufixo Z) ou do relógio do navegador.
 export const formatInstant = (value: string | Date) =>
   `${brasiliaTime.format(new Date(value))} (horário de Brasília)`
 
-// Data e hora brutas da origem: fuso não confirmado, exibidas como recebidas.
 export const formatSourceClock = (clock: { date: string; time: string }) =>
   `${clock.date} ${clock.time}`
 
@@ -22,5 +20,18 @@ const brasiliaClock = new Intl.DateTimeFormat('pt-BR', {
   timeZone: 'America/Sao_Paulo',
 })
 
-// Hora do relógio do navegador, no horário de Brasília (hh:mm:ss).
 export const formatClockTime = (value: Date) => brasiliaClock.format(value)
+
+const DURATION_UNITS = [
+  [3_600_000, 'hora', 'horas'],
+  [60_000, 'minuto', 'minutos'],
+  [1_000, 'segundo', 'segundos'],
+] as const
+
+export function formatDuration(ms: number): string {
+  if (ms < 1_000) return `${ms} milissegundos`
+  const [size, one, many] =
+    DURATION_UNITS.find(([unit]) => ms % unit === 0) ?? DURATION_UNITS[2]
+  const count = Math.floor(ms / size)
+  return `${count} ${count === 1 ? one : many}`
+}

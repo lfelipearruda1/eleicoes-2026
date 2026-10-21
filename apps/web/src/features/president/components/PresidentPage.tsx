@@ -2,8 +2,10 @@ import { useUfRoute } from '../../map/hooks/useUfRoute.ts'
 import { MapSection } from '../../map/components/MapSection.tsx'
 import { findUf } from '../../map/ufs.ts'
 import { summarizeCandidates } from '../candidates.ts'
-import { formatClockTime } from '../format.ts'
+import { formatClockTime, formatInstant } from '../format.ts'
+import { describeFreshness } from '../freshness.ts'
 import { usePublication } from '../hooks/usePublication.ts'
+import type { ResultsEndpoint } from '../resultsConfig.ts'
 import {
   describeHeaderStatus,
   PROVENANCE,
@@ -17,10 +19,19 @@ import { SiteFooter } from './SiteFooter.tsx'
 import { SiteHeader } from './SiteHeader.tsx'
 import { StatusIndicator } from './StatusIndicator.tsx'
 
-export function PresidentPage({ fetcher }: { fetcher?: typeof fetch }) {
-  const { accepted, isChecking, failure, lastReadAt, refresh } = usePublication(
-    { fetcher },
-  )
+interface PresidentPageProps {
+  endpoint: ResultsEndpoint
+  staleAfterMs: number
+  fetcher?: typeof fetch
+}
+
+export function PresidentPage({
+  endpoint,
+  staleAfterMs,
+  fetcher,
+}: PresidentPageProps) {
+  const { accepted, freshness, isChecking, failure, lastReadAt, refresh } =
+    usePublication({ endpoint, staleAfterMs, fetcher })
   const { selected, select } = useUfRoute()
   const snapshot = accepted?.snapshot
   const uf = findUf(selected)
@@ -56,13 +67,23 @@ export function PresidentPage({ fetcher }: { fetcher?: typeof fetch }) {
         <ResultsPanel
           uf={uf}
           summary={summary}
+          provenance={snapshot && PROVENANCE[snapshot.sourceEnvironment]}
           hasFailure={failure !== undefined}
+          freshnessNotice={describeFreshness(freshness, staleAfterMs)}
           onRetry={refresh}
         />
       </main>
       <SiteFooter
         provenance={snapshot && PROVENANCE[snapshot.sourceEnvironment]}
         source={snapshot && SOURCE_LABEL[snapshot.sourceEnvironment]}
+        publishedAt={
+          accepted && formatInstant(accepted.manifest.current.publishedAt)
+        }
+        collectedAt={snapshot && formatInstant(snapshot.collectedAt)}
+        checkedAt={
+          accepted?.manifest.checkedAt &&
+          formatInstant(accepted.manifest.checkedAt)
+        }
         lastCheck={lastReadAt && formatClockTime(lastReadAt)}
       />
     </div>

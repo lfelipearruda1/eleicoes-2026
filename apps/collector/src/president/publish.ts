@@ -145,7 +145,6 @@ export async function readPresidentialCapture(captureDirectory: string) {
   }
 }
 
-// Ordem de chaves não é conteúdo: compara a forma canônica.
 const canonical = (value: unknown): unknown => {
   if (Array.isArray(value)) return value.map(canonical)
   if (value === null || typeof value !== 'object') return value
@@ -156,8 +155,6 @@ const canonical = (value: unknown): unknown => {
   )
 }
 
-// dataVersion é gerado a cada execução e collectedAt é verificação operacional:
-// nenhum dos dois é mudança eleitoral.
 const electoralContent = (snapshot: PresidentialSnapshot) =>
   JSON.stringify(
     canonical({ ...snapshot, dataVersion: undefined, collectedAt: undefined }),

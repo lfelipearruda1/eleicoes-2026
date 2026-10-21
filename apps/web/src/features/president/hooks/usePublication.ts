@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { assessFreshness, nextFreshnessChangeAt } from '../freshness.ts'
 import {
   readPublication,
   type AcceptedPublication,
   type RejectionReason,
 } from '../publication.ts'
+import type { ResultsEndpoint } from '../resultsConfig.ts'
 
 export const LOCAL_POLL_INTERVAL_MS = 5_000
+export const FRESHNESS_RECHECK_MAX_MS = 60_000
 
 export type FailureReason = RejectionReason | 'unreachable'
 
@@ -16,14 +19,22 @@ export interface UpdateFailure {
 }
 
 export function usePublication({
+  endpoint,
+  staleAfterMs,
   intervalMs = LOCAL_POLL_INTERVAL_MS,
   fetcher = fetch,
-}: { intervalMs?: number; fetcher?: typeof fetch } = {}) {
+}: {
+  endpoint: ResultsEndpoint
+  staleAfterMs: number
+  intervalMs?: number
+  fetcher?: typeof fetch
+}) {
   const [accepted, setAccepted] = useState<AcceptedPublication>()
   const [isLoading, setIsLoading] = useState(false)
   const [isChecking, setIsChecking] = useState(false)
   const [failure, setFailure] = useState<UpdateFailure>()
   const [lastReadAt, setLastReadAt] = useState<Date>()
+  const [nowMs, setNowMs] = useState(() => Date.now())
   const attemptRef = useRef<(manual: boolean) => void>(() => {})
 
   useEffect(() => {
@@ -49,9 +60,11 @@ export function usePublication({
         const result = await readPublication(
           current,
           controller.signal,
+          endpoint,
           fetcher,
         )
         if (controller.signal.aborted) return
+        setNowMs(Date.now())
         if (result.outcome === 'rejected') {
           setFailure({ reason: result.reason, at: new Date() })
           return
@@ -64,6 +77,7 @@ export function usePublication({
         }
       } catch {
         if (!controller.signal.aborted) {
+          setNowMs(Date.now())
           setFailure({ reason: 'unreachable', at: new Date() })
         }
       } finally {
@@ -78,6 +92,7 @@ export function usePublication({
 
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
+        setNowMs(Date.now())
         void attempt()
         return
       }
@@ -94,9 +109,30 @@ export function usePublication({
       document.removeEventListener('visibilitychange', onVisibilityChange)
       attemptRef.current = () => {}
     }
-  }, [intervalMs, fetcher])
+  }, [endpoint, intervalMs, fetcher])
+
+  const freshness = accepted && assessFreshness(accepted, nowMs, staleAfterMs)
+  const changesAt = freshness && nextFreshnessChangeAt(freshness, staleAfterMs)
+
+  useEffect(() => {
+    if (changesAt === undefined) return
+    const wait = Math.min(
+      Math.max(changesAt - Date.now(), 0),
+      FRESHNESS_RECHECK_MAX_MS,
+    )
+    const timer = setTimeout(() => setNowMs(Date.now()), wait)
+    return () => clearTimeout(timer)
+  }, [changesAt, nowMs])
 
   const refresh = useCallback(() => attemptRef.current(true), [])
 
-  return { accepted, isLoading, isChecking, failure, lastReadAt, refresh }
+  return {
+    accepted,
+    freshness,
+    isLoading,
+    isChecking,
+    failure,
+    lastReadAt,
+    refresh,
+  }
 }

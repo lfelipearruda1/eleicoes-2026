@@ -24,7 +24,7 @@ export interface BarSegment {
 export interface CandidateSummary {
   rows: CandidateRow[]
   segments: BarSegment[]
-  note: string | undefined
+  note: string
 }
 
 const toneAt = (index: number): CandidateTone =>
@@ -104,17 +104,20 @@ export function summarizeCandidates(
   }
 }
 
+const PERCENTAGE_BASE =
+  'Percentuais sobre os votos a candidaturas concorrentes.'
+
 function differenceNote(
   candidates: { contestantVotesPercentage: string }[],
-): string | undefined {
-  if (candidates.length !== 2) return undefined
+): string {
+  if (candidates.length !== 2) return PERCENTAGE_BASE
   const [a, b] = candidates.map((c) =>
     toHundredths(c.contestantVotesPercentage),
   )
-  if (a === b) return 'Empate nos números apresentados.'
+  if (a === b) return `${PERCENTAGE_BASE} Empate nos números apresentados.`
   const difference = formatPercentage(fromHundredths(Math.abs(a - b))).slice(
     0,
     -1,
   )
-  return `Diferença de ${difference} p.p. nos votos a candidaturas concorrentes.`
+  return `${PERCENTAGE_BASE} Diferença de ${difference} p.p.`
 }

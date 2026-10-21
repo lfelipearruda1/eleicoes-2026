@@ -1,5 +1,14 @@
 import type { Manifest, PresidentialSnapshot } from '@eleicoes/validation'
 
+import type { ResultsEndpoint } from '../../src/features/president/resultsConfig.ts'
+
+export const TEST_ORIGIN = 'http://127.0.0.1:5173'
+export const TEST_ENDPOINT: ResultsEndpoint = {
+  channelRoot: new URL('/publications/', TEST_ORIGIN),
+  channel: undefined,
+}
+export const TEST_STALE_AFTER_MS = 120_000
+
 export const DATA_VERSION_A = '0b7c9a52-3f1e-4d2a-9c4b-6e8f1a2b3c4d'
 export const DATA_VERSION_B = '1c8d0b63-4a2f-4e3b-8d5c-7f9a2b3c4d5e'
 
@@ -102,11 +111,13 @@ export const manifestFor = (
     ...overrides,
   }) as Manifest
 
-// Servidor falso em memória: o conteúdo pode mudar entre as leituras.
 export function fakeServer(files: Record<string, unknown> = {}) {
   const calls: string[] = []
   const fetcher = (async (input: RequestInfo | URL) => {
-    const url = String(input)
+    const href = String(input)
+    const url = href.startsWith(`${TEST_ORIGIN}/`)
+      ? href.slice(TEST_ORIGIN.length)
+      : href
     calls.push(url)
     const body = files[url]
     if (body instanceof Error) throw body

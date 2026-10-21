@@ -34,7 +34,9 @@ describe('describeHeaderStatus', () => {
       snapshot: availableSnapshot(),
     })
 
-    expect(status.text).toBe('Dados da apuração: 18:00 · 25/10/2026')
+    expect(status.text).toBe(
+      'Apuração em andamento · dados de 18:00 · 25/10/2026',
+    )
   })
 
   it('deve marcar a UF como indisponível sem percentual', () => {

@@ -8,7 +8,7 @@ O frontend é a aplicação que o visitante abre. Ela exibe os painéis e lê os
 
 ## Referência visual vigente
 
-O protótipo `Eleicoes-2026 v2.dc.html` (pasta "Protótipos Eleições 2026", fornecida pelo usuário, fora do repositório) é a referência de layout, cores e comportamento: fundo `#0a0a0a`, mapa do Brasil à esquerda, painel do resultado à direita, alternância Mapa/Lista, seletor de UF e rota por hash (`#/uf/SP`). Ele substitui o `DESIGN-mobbin.md` usado antes. A geometria do mapa veio de `data/br-map.js` do mesmo protótipo (`apps/web/src/features/map/brazil-map.json`); a fonte cartográfica original continua sem registro.
+O protótipo `Eleicoes-2026 v2.dc.html` (pasta "Protótipos Eleições 2026", fornecida pelo usuário, fora do repositório) é a referência de layout, cores e comportamento: fundo `#0a0a0a`, mapa do Brasil à esquerda, painel do resultado à direita, alternância Mapa/Lista, seletor de UF e rota por hash (`#/uf/SP`). Ele substitui o `DESIGN-mobbin.md` usado antes. Divergência registrada em 20/10/2026: o `DESIGN-mobbin.md` (tema claro) voltou a ser fornecido em conversa, mas o repositório continua indicando o protótipo v2 como vigente; a tela segue escura e os avisos novos (configuração ausente, atualidade) reutilizam os componentes e tokens atuais. Trocar de tema é decisão a registrar antes, não efeito de incremento funcional. A geometria do mapa veio de `data/br-map.js` do mesmo protótipo (`apps/web/src/features/map/brazil-map.json`); a fonte cartográfica original continua sem registro.
 
 Implementação:
 
@@ -22,7 +22,9 @@ Diferenças em relação ao protótipo, por falta de dado no contrato:
 - **Círculo da candidatura:** sem a palavra "Foto", porque o contrato não tem fotos. Quem tem mais votos recebe o anel cheio do protótipo; não há selo de eleito.
 - **Diferença em p.p.:** subtração exata dos percentuais publicados, descrita como "nos votos a candidaturas concorrentes" (a base do contrato), não "votos válidos".
 - **Horário "Dados da apuração":** hora e data da origem como recebidas (`totalizedAt` ou `generatedAt`), sem conversão de fuso.
-- **Rodapé:** o seletor "Cenário do protótipo" não existe; no lugar fica o aviso de proveniência ("Demonstração — dados sintéticos, sem valor oficial."). "Última verificação" é a última leitura do manifesto pelo navegador.
+- **Rodapé:** o seletor "Cenário do protótipo" não existe; no lugar ficam o aviso de proveniência ("Demonstração — dados fictícios, sem valor oficial."), os horários de publicação (`current.publishedAt`) e de coleta (`collectedAt`) em horário de Brasília, a fonte e a "Última leitura pelo navegador" (hora em que o navegador leu o manifesto; não é verificação da origem). Quando o manifesto trouxer `checkedAt`, aparece também "Verificação da origem".
+- **Aviso no painel:** o mesmo aviso de proveniência aparece numa cápsula logo abaixo de "Brasil", para não ficar só no rodapé no celular.
+- **Andamento:** com totalização em andamento, o indicador diz "Apuração em andamento · dados de hh:mm · dd/mm/aaaa", com a hora da origem como recebida (fuso não confirmado).
 - **Tooltip:** desenhado dentro do SVG, ancorado no centro da UF, em vez de seguir o ponteiro.
 - **"Verificando atualizações."** aparece só no "Tentar novamente"; o polling de 5 s não muda o indicador.
 
@@ -35,9 +37,69 @@ pnpm collector:president:publish --capture apps/collector/fixtures/president-syn
 pnpm dev:web   # http://127.0.0.1:5173/
 ```
 
+Para uma demonstração sem resíduo de sessões anteriores, use uma raiz nova e aponte o servidor para ela:
+
+```sh
+mkdir -p .local/et06/publications
+pnpm --filter "@eleicoes/collector..." run build
+node apps/collector/dist/main.js president-publish --capture apps/collector/fixtures/president-synthetic/01-nao-iniciada \
+  --output .local/et06/publications --channel demo-sintetico-presidente-br-2t
+ELEICOES_PUBLICATIONS_DIR="$PWD/.local/et06/publications" pnpm dev:web
+```
+
 Uma ponte do servidor de desenvolvimento (`apps/web/vite/publications.ts`) serve **só** `/publications/manifest.json` e `/publications/snapshots/<uuid v4>.json` do canal configurado, lidos do disco a cada requisição: `GET`/`HEAD`, sem listagem, sem link simbólico, até 1 MiB, `Cache-Control: no-store`. Variáveis lidas só pelo servidor (sem prefixo `VITE_`): `ELEICOES_PUBLICATIONS_DIR` (padrão `.local/publications`) e `ELEICOES_CHANNEL` (padrão `demo-sintetico-presidente-br-2t`). O servidor escuta em `127.0.0.1`, e `server.fs.allow` restringe o `/@fs/` do Vite a `apps/web`, `packages` e `node_modules`, com `.local/` negado. A ponte não existe no `vite build` nem no `vite preview`.
 
-Publicar outra fixture (`02-aguardando-liberacao`, `03-parcial`, `04-parcial-atualizada`) muda a tela em até ~5 s, sem recarregar. O polling de 5 s após o fim da tentativa anterior é escolha da demonstração local, não intervalo de produção; pausa com a aba oculta e retoma ao voltar.
+Publicar outra fixture (`02-aguardando-liberacao`, `03-parcial`, `04-parcial-atualizada`) muda a tela em até ~5 s, sem recarregar. Se o manifesto subir de revisão mantendo a mesma `dataVersion`, a tela reaproveita o snapshot já validado, sem baixá-lo de novo. O polling de 5 s após o fim da tentativa anterior é escolha da demonstração local, não intervalo de produção; pausa com a aba oculta e retoma ao voltar.
+
+## Origem dos resultados no build
+
+`apps/web/src/features/president/resultsConfig.ts` lê e valida a configuração uma vez, na partida. Os valores locais ficam em `apps/web/.env` (ignorado pelo git; modelo em `.env.example`), que o Vite carrega no `dev` e no `build`; `vite.config.ts` lê `ELEICOES_*` do mesmo arquivo com `loadEnv`, e variável de ambiente do shell tem precedência. As variáveis `VITE_*` são **incorporadas no JavaScript no momento do build** e são públicas: mudar a base, o canal ou o limiar exige outro build. Não há configuração remota nem reescrita do bundle.
+
+| Variável                       | Desenvolvimento (`pnpm dev:web`)                    | Build (`vite build`)   | Validação                                                                                                                                                                                                         |
+| ------------------------------ | --------------------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VITE_RESULTS_BASE_URL`        | Vazia ou só espaços: ponte `/publications/` do Vite | Obrigatória            | URL absoluta; `https`; `http` só com página e dados nos hosts de `VITE_RESULTS_LOOPBACK_HOSTS`; sem usuário/senha, query ou fragmento; nunca domínio de `VITE_RESULTS_BLOCKED_DOMAINS`. Barra final é normalizada |
+| `VITE_RESULTS_CHANNEL`         | Ignorada sem base (a ponte usa `ELEICOES_CHANNEL`)  | Obrigatória com a base | Mesmo padrão do contrato (`channelSchema`). O manifesto lido precisa ter o mesmo `channel`                                                                                                                        |
+| `VITE_RESULTS_STALE_AFTER_MS`  | Vazia: 120000 (valor local, não meta de produção)   | Obrigatória            | Inteiro decimal positivo e seguro; recusa `0`, negativos, frações, `1e3`, `0x10`, `NaN`, `Infinity` e texto parcial                                                                                               |
+| `VITE_RESULTS_LOOPBACK_HOSTS`  | Lista de hosts (`127.0.0.1,[::1]` no `.env` local)  | Opcional               | Só hosts, sem esquema, porta ou caminho. Vazia: `http` nunca é aceito. Nenhum host de loopback fica fixo no código                                                                                                |
+| `VITE_RESULTS_BLOCKED_DOMAINS` | Lista de domínios (`tse.jus.br` no `.env` local)    | Obrigatória com a base | Bloqueia o domínio e os subdomínios; o domínio do TSE não fica fixo no código                                                                                                                                     |
+
+URLs lidas: `<base>/<canal>/manifest.json` e `<base>/<canal>/snapshots/<dataVersion>.json`, montadas com `new URL` e conferidas por `resolveInChannel` (mesma origem, dentro do diretório do canal, sem query, fragmento ou credencial). O `fetch` usa `mode: 'cors'`, `credentials: 'omit'`, `redirect: 'error'` e `cache: 'no-store'`. Se a origem dos dados for outra, ela precisa responder CORS para a origem exata do site.
+
+Build sem base ou sem limiar mostra "Origem dos resultados não configurada", lista o que falta e **não faz nenhuma requisição**. Esse `dist` serve para verificar compilação; não é entregável. Build configurado para demonstração local:
+
+```sh
+pnpm --filter "@eleicoes/collector..." run build
+node apps/collector/dist/main.js president-publish --capture apps/collector/fixtures/president-synthetic/03-parcial \
+  --output /tmp/et06-demo/publications --channel demo-sintetico-presidente-br-2t
+cd apps/web
+VITE_RESULTS_BASE_URL=http://127.0.0.1:4174/ VITE_RESULTS_CHANNEL=demo-sintetico-presidente-br-2t \
+  VITE_RESULTS_STALE_AFTER_MS=15000 VITE_RESULTS_LOOPBACK_HOSTS=127.0.0.1 \
+  VITE_RESULTS_BLOCKED_DOMAINS=tse.jus.br npx vite build --outDir /tmp/et06-demo/web-dist --emptyOutDir
+```
+
+Sirva `web-dist` em `127.0.0.1:4173` e `publications` em `127.0.0.1:4174` com `Access-Control-Allow-Origin: http://127.0.0.1:4173`. Use um diretório fora de `apps/web/dist` para não confundir o build de demonstração com o build padrão.
+
+## Atualidade dos dados
+
+`apps/web/src/features/president/freshness.ts` avalia, sem efeito colateral, o conjunto aceito contra um instante e um limiar:
+
+1. `checkedAt` do manifesto, se existir: última verificação válida da origem (DA-21). Não significa voto novo.
+2. Sem `checkedAt`: `collectedAt` do snapshot, a última coleta conhecida.
+3. `publishedAt` só é exibido; republicar uma captura antiga não a torna recente. A hora em que o navegador leu o manifesto não renova nada. `generatedAt`/`totalizedAt` da origem não entram (fuso não confirmado) e `sourceTime` ausente não é criado.
+4. Idade ≥ limiar: aviso. Referência à frente do relógio do dispositivo: "não foi possível confirmar a atualidade", sem tratar como recente e sem corrigir fuso.
+
+| Situação                         | Texto                                                                                                                    | Papel    |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------- |
+| `checkedAt` antigo               | "Sem verificação recente da origem. Exibindo o último resultado disponível."                                             | `status` |
+| Sem `checkedAt`, coleta antiga   | "A última coleta registrada ocorreu há mais de X. Não há confirmação de atualização posterior." (X = limiar)             | `status` |
+| Referência no futuro             | "Não foi possível confirmar a atualidade dos dados: o horário de referência está à frente do relógio deste dispositivo." | `status` |
+| Falha de comunicação ou rejeição | "Não foi possível consultar os resultados. Exibindo a última versão válida." + "Tentar novamente"                        | `alert`  |
+
+Disponibilidade (`pending`/`available`), atualidade e comunicação são independentes: os dois avisos podem coexistir, nenhum altera `availability`, os números, o indicador "Aguardando…"/"Apuração concluída" ou a UF aberta. Recuperar a comunicação remove só o alerta. O texto não muda a cada segundo (só ao cruzar o limiar), e o navegador não afirma que o TSE ou o coletor pararam.
+
+O relógio fica em `usePublication`: um único temporizador agendado para o próximo instante em que o estado muda (no máximo 60 s), recálculo ao fim de cada leitura e ao voltar de aba oculta, limpo ao desmontar. O polling continua em 5 s.
+
+A avaliação usa o relógio do dispositivo do visitante. Relógio errado produz aviso errado; é indicação operacional, não garantia de segurança nem prova de que os números estão errados ou de que a apuração terminou. As fixtures sintéticas versionadas têm `collectedAt` em 25/10/2026; antes dessa data a tela mostra o aviso de relógio.
 
 **Decisão adotada:** manter essa base. SVG e GeoJSON são a abordagem inicial do mapa. A hospedagem planejada é Cloudflare Workers Static Assets. Não escolher agora outra biblioteca de estado, de roteamento ou de mapas.
 

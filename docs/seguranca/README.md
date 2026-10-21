@@ -16,7 +16,7 @@ O navegador baixa o site e os snapshots. Não há conta de visitante na primeira
 - Texto de candidato e de situação eleitoral entra na página como texto.
 - Ausência de dado não é preenchida com zero para “parecer” apuração.
 - O polling não usa parâmetro aleatório. Parâmetro arbitrário não pode multiplicar as variantes de cache.
-- Segredo não entra no bundle. Variável `VITE_*` é pública por natureza do Vite. Credencial de publicação não usa esse prefixo. Os `.env.example` atuais não definem variável alguma.
+- Segredo não entra no bundle. Variável `VITE_*` é pública por natureza do Vite. Credencial de publicação não usa esse prefixo. O `.env.example` do web define só valores públicos: as três `VITE_RESULTS_*` e as variáveis do servidor de desenvolvimento, que não entram no bundle.
 
 Proteção de borda, WAF, limite de requisição e mitigação de negação de serviço ficam a cargo dos produtos da Cloudflare compatíveis com o domínio e com o plano. O plano está pendente, então o conjunto exato de regras também está. A documentação de cache do R2 diz que essas proteções não existem no host `r2.dev`. A primeira exposição pública, mesmo de homologação, já precisa do domínio próprio e de proteção básica. Não se espera a véspera da eleição para ligar o mínimo.
 

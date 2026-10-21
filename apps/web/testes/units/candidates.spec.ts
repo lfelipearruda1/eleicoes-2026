@@ -94,7 +94,7 @@ describe('summarizeCandidates', () => {
     const summary = summarizeCandidates(snapshot)
 
     expect(summary.note).toBe(
-      'Diferença de 0,94 p.p. nos votos a candidaturas concorrentes.',
+      'Percentuais sobre os votos a candidaturas concorrentes. Diferença de 0,94 p.p.',
     )
   })
 
@@ -103,7 +103,9 @@ describe('summarizeCandidates', () => {
 
     const summary = summarizeCandidates(snapshot)
 
-    expect(summary.note).toBe('Empate nos números apresentados.')
+    expect(summary.note).toBe(
+      'Percentuais sobre os votos a candidaturas concorrentes. Empate nos números apresentados.',
+    )
     expect(summary.rows.some((row) => row.isAhead)).toBe(false)
   })
 
@@ -115,9 +117,11 @@ describe('summarizeCandidates', () => {
     expect(summary.rows.map((row) => row.isAhead)).toEqual([false, true])
   })
 
-  it('deve omitir a diferença com mais de duas candidaturas', () => {
+  it('deve trocar a diferença pela base do percentual com mais de duas candidaturas', () => {
     const summary = summarizeCandidates(availableSnapshot())
 
-    expect(summary.note).toBeUndefined()
+    expect(summary.note).toBe(
+      'Percentuais sobre os votos a candidaturas concorrentes.',
+    )
   })
 })

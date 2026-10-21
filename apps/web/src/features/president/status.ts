@@ -48,7 +48,10 @@ function indicator(input: StatusInput): Pick<HeaderStatus, 'icon' | 'text'> {
   if (snapshot.totalization.status === 'finished') {
     return { icon: 'full', text: `Apuração concluída · dados de ${time}` }
   }
-  return { icon: 'ring', text: `Dados da apuração: ${time} · ${date}` }
+  return {
+    icon: 'ring',
+    text: `Apuração em andamento · dados de ${time} · ${date}`,
+  }
 }
 
 export function describeHeaderStatus(input: StatusInput): HeaderStatus {
@@ -84,7 +87,7 @@ export const PROVENANCE: Record<
   PresidentialSnapshot['sourceEnvironment'],
   string
 > = {
-  synthetic: 'Demonstração — dados sintéticos, sem valor oficial.',
+  synthetic: 'Demonstração — dados fictícios, sem valor oficial.',
   official:
     'Captura oficial do TSE reprocessada localmente; autenticidade não verificada.',
   simulated: 'Ambiente simulado do TSE, sem valor oficial.',
