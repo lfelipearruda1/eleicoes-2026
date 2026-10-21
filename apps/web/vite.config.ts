@@ -17,13 +17,12 @@ export default defineConfig(({ mode }) => {
   const publicationsRoot =
     env.ELEICOES_PUBLICATIONS_DIR ||
     path.join(repositoryRoot, '.local/publications')
-  const channel = env.ELEICOES_CHANNEL || 'demo-sintetico-presidente-br-2t'
 
   return {
     plugins: [
       react(),
       tailwindcss(),
-      publicationsBridge({ root: publicationsRoot, channel }),
+      publicationsBridge({ root: publicationsRoot }),
     ],
     resolve: { conditions: ['source', ...defaultClientConditions] },
     server: {

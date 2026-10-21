@@ -11,7 +11,8 @@ import {
   fakeServer,
   manifestFor,
   pendingSnapshot,
-  TEST_ENDPOINT,
+  TEST_SOURCE,
+  NATIONAL_PATH,
 } from './fixtures.ts'
 
 const signal = new AbortController().signal
@@ -33,7 +34,7 @@ describe('readPublication', () => {
     const result = await readPublication(
       undefined,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
@@ -51,12 +52,12 @@ describe('readPublication', () => {
     const result = await readPublication(
       accepted,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
     expect(result).toEqual({ outcome: 'same' })
-    expect(server.calls).toEqual(['/publications/manifest.json'])
+    expect(server.calls).toEqual([`${NATIONAL_PATH}manifest.json`])
   })
 
   it('deve reaproveitar o snapshot aceito quando a revisão nova mantém a dataVersion', async () => {
@@ -67,7 +68,7 @@ describe('readPublication', () => {
     const result = await readPublication(
       accepted,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
@@ -78,7 +79,7 @@ describe('readPublication', () => {
         snapshot: accepted.snapshot,
       },
     })
-    expect(server.calls).toEqual(['/publications/manifest.json'])
+    expect(server.calls).toEqual([`${NATIONAL_PATH}manifest.json`])
   })
 
   it('deve recusar como conflito a mesma revisão com conteúdo diferente', async () => {
@@ -90,12 +91,12 @@ describe('readPublication', () => {
     const result = await readPublication(
       accepted,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
     expect(result).toEqual({ outcome: 'rejected', reason: 'conflict' })
-    expect(server.calls).toEqual(['/publications/manifest.json'])
+    expect(server.calls).toEqual([`${NATIONAL_PATH}manifest.json`])
   })
 
   it('deve recusar revisão antiga', async () => {
@@ -106,7 +107,7 @@ describe('readPublication', () => {
     const result = await readPublication(
       accepted,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
@@ -122,7 +123,7 @@ describe('readPublication', () => {
     const result = await readPublication(
       accepted,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
@@ -131,13 +132,14 @@ describe('readPublication', () => {
 
   it('deve recusar manifesto que não é de presidente no Brasil', async () => {
     const snapshot = pendingSnapshot({ office: 'governor', scope: 'DF' })
-    const server = fakeServer()
-    server.publish(manifestFor(snapshot), snapshot)
+    const server = fakeServer({
+      [`${NATIONAL_PATH}manifest.json`]: manifestFor(snapshot),
+    })
 
     const result = await readPublication(
       undefined,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
@@ -157,7 +159,7 @@ describe('readPublication', () => {
     const result = await readPublication(
       accepted,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
@@ -172,7 +174,7 @@ describe('readPublication', () => {
     const result = await readPublication(
       undefined,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
@@ -183,13 +185,13 @@ describe('readPublication', () => {
     const snapshot = availableSnapshot()
     const server = fakeServer()
     server.publish(manifestFor(snapshot))
-    server.files[`/publications/snapshots/${snapshot.dataVersion}.json`] =
+    server.files[`${NATIONAL_PATH}snapshots/${snapshot.dataVersion}.json`] =
       availableSnapshot({ round: 1 })
 
     const result = await readPublication(
       undefined,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
@@ -213,21 +215,21 @@ describe('readPublication', () => {
     const result = await readPublication(
       undefined,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
     expect(result).toEqual({ outcome: 'rejected', reason: 'invalid_manifest' })
-    expect(server.calls).toEqual(['/publications/manifest.json'])
+    expect(server.calls).toEqual([`${NATIONAL_PATH}manifest.json`])
   })
 
   it('deve recusar manifesto que não é JSON', async () => {
-    const server = fakeServer({ '/publications/manifest.json': '<html>' })
+    const server = fakeServer({ [`${NATIONAL_PATH}manifest.json`]: '<html>' })
 
     const result = await readPublication(
       undefined,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
@@ -236,13 +238,13 @@ describe('readPublication', () => {
 
   it('deve propagar falha de rede sem produzir estado', async () => {
     const server = fakeServer({
-      '/publications/manifest.json': new TypeError('rede'),
+      [`${NATIONAL_PATH}manifest.json`]: new TypeError('rede'),
     })
 
     const result = readPublication(
       undefined,
       signal,
-      TEST_ENDPOINT,
+      TEST_SOURCE,
       server.fetcher,
     )
 
@@ -253,7 +255,12 @@ describe('readPublication', () => {
 describe('readPublication com base configurada', () => {
   const CHANNEL = 'demo-sintetico-presidente-br-2t'
   const ROOT = `https://resultados.exemplo.invalid/publicacoes/${CHANNEL}/`
-  const endpoint = { channelRoot: new URL(ROOT), channel: CHANNEL }
+  const endpoint = {
+    channelRoot: new URL(ROOT),
+    channel: CHANNEL,
+    office: 'president' as const,
+    scope: 'BR',
+  }
 
   function remoteServer(manifest: unknown, snapshot?: unknown) {
     const requests: { url: string; init: RequestInit | undefined }[] = []

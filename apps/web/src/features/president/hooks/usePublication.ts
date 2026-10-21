@@ -6,7 +6,7 @@ import {
   type AcceptedPublication,
   type RejectionReason,
 } from '../publication.ts'
-import type { ResultsEndpoint } from '../resultsConfig.ts'
+import type { ChannelSource } from '../resultsConfig.ts'
 
 export const LOCAL_POLL_INTERVAL_MS = 5_000
 export const FRESHNESS_RECHECK_MAX_MS = 60_000
@@ -18,34 +18,56 @@ export interface UpdateFailure {
   at: Date
 }
 
+interface ChannelRead {
+  channel: string
+  accepted?: AcceptedPublication
+  failure?: UpdateFailure
+  lastReadAt?: Date
+}
+
 export function usePublication({
-  endpoint,
+  source,
   staleAfterMs,
   intervalMs = LOCAL_POLL_INTERVAL_MS,
   fetcher = fetch,
+  stopWhenMissing = false,
 }: {
-  endpoint: ResultsEndpoint
+  source: ChannelSource | undefined
   staleAfterMs: number
   intervalMs?: number
   fetcher?: typeof fetch
+  stopWhenMissing?: boolean
 }) {
-  const [accepted, setAccepted] = useState<AcceptedPublication>()
+  const [read, setRead] = useState<ChannelRead>()
   const [isLoading, setIsLoading] = useState(false)
   const [isChecking, setIsChecking] = useState(false)
-  const [failure, setFailure] = useState<UpdateFailure>()
-  const [lastReadAt, setLastReadAt] = useState<Date>()
   const [nowMs, setNowMs] = useState(() => Date.now())
   const attemptRef = useRef<(manual: boolean) => void>(() => {})
+  const own = read && read.channel === source?.channel ? read : undefined
+  const accepted = own?.accepted
+  const failure = own?.failure
+  const lastReadAt = own?.lastReadAt
 
   useEffect(() => {
+    if (!source) return
+    const { channel } = source
+    const update = (change: Omit<ChannelRead, 'channel'>) =>
+      setRead((previous) => ({
+        ...(previous?.channel === channel ? previous : {}),
+        channel,
+        ...change,
+      }))
     let disposed = false
+    let stopped = false
     let inFlight: AbortController | undefined
     let timer: ReturnType<typeof setTimeout> | undefined
     let current: AcceptedPublication | undefined
 
     const schedule = () => {
       clearTimeout(timer)
-      if (disposed || document.visibilityState !== 'visible') return
+      if (disposed || stopped || document.visibilityState !== 'visible') {
+        return
+      }
       timer = setTimeout(() => void attempt(), intervalMs)
     }
 
@@ -60,25 +82,29 @@ export function usePublication({
         const result = await readPublication(
           current,
           controller.signal,
-          endpoint,
+          source,
           fetcher,
         )
         if (controller.signal.aborted) return
         setNowMs(Date.now())
         if (result.outcome === 'rejected') {
-          setFailure({ reason: result.reason, at: new Date() })
+          stopped =
+            stopWhenMissing && !current && result.reason === 'manifest_missing'
+          update({ failure: { reason: result.reason, at: new Date() } })
           return
         }
-        setFailure(undefined)
-        setLastReadAt(new Date())
-        if (result.outcome === 'accepted') {
-          current = result.publication
-          setAccepted(result.publication)
-        }
+        if (result.outcome === 'accepted') current = result.publication
+        update({
+          failure: undefined,
+          lastReadAt: new Date(),
+          ...(result.outcome === 'accepted' && {
+            accepted: result.publication,
+          }),
+        })
       } catch {
         if (!controller.signal.aborted) {
           setNowMs(Date.now())
-          setFailure({ reason: 'unreachable', at: new Date() })
+          update({ failure: { reason: 'unreachable', at: new Date() } })
         }
       } finally {
         inFlight = undefined
@@ -109,7 +135,7 @@ export function usePublication({
       document.removeEventListener('visibilitychange', onVisibilityChange)
       attemptRef.current = () => {}
     }
-  }, [endpoint, intervalMs, fetcher])
+  }, [source, intervalMs, fetcher, stopWhenMissing])
 
   const freshness = accepted && assessFreshness(accepted, nowMs, staleAfterMs)
   const changesAt = freshness && nextFreshnessChangeAt(freshness, staleAfterMs)

@@ -43,7 +43,7 @@ function request(url: string, method = 'GET') {
           })
         },
       }
-      createPublicationsHandler(channelDirectory)(
+      createPublicationsHandler(workDirectory)(
         { url, method } as IncomingMessage,
         response as unknown as ServerResponse,
         () => resolve({ status: 0, body: '', next: true }),
@@ -54,24 +54,31 @@ function request(url: string, method = 'GET') {
 
 describe('createPublicationsHandler', () => {
   it('deve servir o manifesto do canal', async () => {
-    const result = await request('/publications/manifest.json')
+    const result = await request('/publications/canal/manifest.json')
 
     expect(result).toMatchObject({ status: 200, body: '{"m":1}' })
   })
 
   it('deve servir um snapshot pelo caminho canônico', async () => {
-    const result = await request(`/publications/${SNAPSHOT}`)
+    const result = await request(`/publications/canal/${SNAPSHOT}`)
 
     expect(result).toMatchObject({ status: 200, body: '{"s":1}' })
   })
 
   it.each([
-    '/publications/.publish.lock',
-    '/publications/snapshots/',
-    '/publications/../segredo.json',
-    '/publications/%2e%2e/segredo.json',
-    '/publications/manifest.json?x=1',
-    '/publications/snapshots/0B7C9A52-3F1E-4D2A-9C4B-6E8F1A2B3C4D.json',
+    '/publications/canal/.publish.lock',
+    '/publications/canal/snapshots/',
+    '/publications/canal/../segredo.json',
+    '/publications/canal/%2e%2e/segredo.json',
+    '/publications/canal/manifest.json?x=1',
+    '/publications/canal/snapshots/0B7C9A52-3F1E-4D2A-9C4B-6E8F1A2B3C4D.json',
+    '/publications/segredo.json',
+    '/publications/manifest.json',
+    '/publications/Canal/manifest.json',
+    '/publications/../canal/manifest.json',
+    '/publications/%2e%2e/canal/manifest.json',
+    '/publications/canal_x/manifest.json',
+    `/publications/${'a'.repeat(65)}/manifest.json`,
   ])('deve recusar %s sem expor arquivo', async (url) => {
     const result = await request(url)
 
@@ -79,7 +86,7 @@ describe('createPublicationsHandler', () => {
   })
 
   it('deve recusar escrita', async () => {
-    const result = await request('/publications/manifest.json', 'POST')
+    const result = await request('/publications/canal/manifest.json', 'POST')
 
     expect(result.status).toBe(405)
   })
@@ -91,8 +98,29 @@ describe('createPublicationsHandler', () => {
       path.join(channelDirectory, SNAPSHOT),
     )
 
-    const result = await request(`/publications/${SNAPSHOT}`)
+    const result = await request(`/publications/canal/${SNAPSHOT}`)
 
+    expect(result.status).toBe(404)
+  })
+
+  it('deve servir outro canal da mesma raiz', async () => {
+    const other = path.join(workDirectory, 'outro-canal')
+    await mkdir(other)
+    await writeFile(path.join(other, 'manifest.json'), '{"o":1}')
+
+    const result = await request('/publications/outro-canal/manifest.json')
+
+    expect(result).toMatchObject({ status: 200, body: '{"o":1}' })
+  })
+
+  it('deve recusar canal que é link simbólico para fora da raiz', async () => {
+    const outside = await mkdtemp(path.join(tmpdir(), 'eleicoes-fora-'))
+    await writeFile(path.join(outside, 'manifest.json'), '{"x":1}')
+    await symlink(outside, path.join(workDirectory, 'atalho'))
+
+    const result = await request('/publications/atalho/manifest.json')
+
+    await rm(outside, { recursive: true, force: true })
     expect(result.status).toBe(404)
   })
 

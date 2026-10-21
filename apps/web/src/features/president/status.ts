@@ -64,20 +64,12 @@ export function describeHeaderStatus(input: StatusInput): HeaderStatus {
       label: 'Carregando seções apuradas…',
     }
   }
-  if (input.ufName) {
-    return {
-      ...status,
-      percentage: undefined,
-      display: '—',
-      label: `Seções apuradas · ${input.ufName} · indisponível`,
-    }
-  }
   const percentage = input.snapshot.sections.totalizedPercentage
   return {
     ...status,
     percentage,
     display: formatPercentage(percentage),
-    label: 'seções apuradas · Brasil',
+    label: `seções apuradas · ${input.ufName ?? 'Brasil'}`,
   }
 }
 

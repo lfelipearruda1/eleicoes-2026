@@ -18,6 +18,7 @@ import {
   pendingSnapshot,
   TEST_ENDPOINT,
   TEST_STALE_AFTER_MS,
+  NATIONAL_PATH,
 } from './fixtures.ts'
 
 let server: ReturnType<typeof fakeServer>
@@ -42,7 +43,39 @@ const renderPage = async () => {
   return view
 }
 
-const results = () => within(screen.getByRole('region', { name: 'Brasil' }))
+const results = () =>
+  within(
+    screen.getByRole('region', {
+      name: /^(Brasil|São Paulo|Distrito Federal)$/,
+    }),
+  )
+
+function ufSnapshot(
+  office: 'president' | 'governor',
+  scope: string,
+  votes: string,
+) {
+  const snapshot = availableSnapshot({ office, scope })
+  if (snapshot.availability !== 'available') throw new Error('available')
+  return {
+    ...snapshot,
+    candidates: snapshot.candidates.map((candidate, index) =>
+      index === 0 ? { ...candidate, votes: votes.replace('.', '') } : candidate,
+    ),
+  } as typeof snapshot
+}
+
+function publishUf(
+  scope: string,
+  presidentVotes: string,
+  governorVotes?: string,
+) {
+  const president = ufSnapshot('president', scope, presidentVotes)
+  server.publish(manifestFor(president), president)
+  if (!governorVotes) return
+  const governor = ufSnapshot('governor', scope, governorVotes)
+  server.publish(manifestFor(governor), governor)
+}
 
 describe('PresidentPage', () => {
   it('deve mostrar o carregamento antes da primeira leitura', () => {
@@ -101,7 +134,8 @@ describe('PresidentPage', () => {
     expect(ufs).toHaveLength(27)
   })
 
-  it('deve abrir a UF pelo mapa sem inventar resultado', async () => {
+  it('deve abrir a UF pelo mapa e mostrar o resultado presidencial dela', async () => {
+    publishUf('SP', '7.000')
     await renderPage()
 
     fireEvent.click(
@@ -109,12 +143,10 @@ describe('PresidentPage', () => {
         name: 'São Paulo (SP): dados indisponíveis',
       }),
     )
-    await screen.findByRole('heading', { name: 'São Paulo' })
+    await screen.findByRole('heading', { name: 'Presidente em São Paulo' })
 
     expect(window.location.hash).toBe('#/uf/SP')
-    expect(
-      screen.getByText('Dados indisponíveis nesta demonstração.'),
-    ).toBeTruthy()
+    expect(results().getByText('7.000 votos')).toBeTruthy()
   })
 
   it('deve abrir a UF pelo teclado no mapa', async () => {
@@ -129,7 +161,71 @@ describe('PresidentPage', () => {
     expect(window.location.hash).toBe('#/uf/AC')
   })
 
+  it('deve mostrar governador abaixo de presidente na UF com 2º turno', async () => {
+    publishUf('DF', '1.111', '2.222')
+    window.location.hash = '#/uf/DF'
+
+    render(
+      <PresidentPage
+        endpoint={TEST_ENDPOINT}
+        staleAfterMs={TEST_STALE_AFTER_MS}
+        fetcher={server.fetcher}
+      />,
+    )
+    const governor = await screen.findByRole('heading', {
+      name: 'Governador em Distrito Federal',
+    })
+
+    const president = screen.getByRole('heading', {
+      name: 'Presidente em Distrito Federal',
+    })
+    expect(
+      president.compareDocumentPosition(governor) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    expect(results().getByText('1.111 votos')).toBeTruthy()
+    expect(results().getByText('2.222 votos')).toBeTruthy()
+  })
+
+  it('deve mostrar só presidente, sem mensagem, na UF sem 2º turno de governador', async () => {
+    publishUf('SP', '7.000')
+    window.location.hash = '#/uf/SP'
+
+    render(
+      <PresidentPage
+        endpoint={TEST_ENDPOINT}
+        staleAfterMs={TEST_STALE_AFTER_MS}
+        fetcher={server.fetcher}
+      />,
+    )
+    await screen.findByRole('heading', { name: 'Presidente em São Paulo' })
+    await act(async () => {})
+
+    expect(results().getAllByRole('heading', { level: 2 })).toHaveLength(1)
+    expect(results().queryByText(/governador/i)).toBeNull()
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(
+      server.calls.filter((url) => url.includes('governador-sp')),
+    ).toHaveLength(1)
+  })
+
+  it('deve mostrar as seções apuradas da UF aberta no cabeçalho', async () => {
+    publishUf('SP', '7.000')
+    window.location.hash = '#/uf/SP'
+
+    render(
+      <PresidentPage
+        endpoint={TEST_ENDPOINT}
+        staleAfterMs={TEST_STALE_AFTER_MS}
+        fetcher={server.fetcher}
+      />,
+    )
+
+    expect(await screen.findByText('seções apuradas · São Paulo')).toBeTruthy()
+  })
+
   it('deve voltar à visão Brasil pelo botão do cabeçalho', async () => {
+    publishUf('DF', '1.111', '2.222')
     window.location.hash = '#/uf/DF'
     render(
       <PresidentPage
@@ -146,6 +242,8 @@ describe('PresidentPage', () => {
     await screen.findByRole('heading', { name: 'Brasil' })
 
     expect(window.location.hash).toBe('#/')
+    expect(screen.getByRole('heading', { name: 'Presidente' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: /^Governador/ })).toBeNull()
   })
 
   it('deve trocar o mapa pela lista textual das UFs', async () => {
@@ -163,7 +261,7 @@ describe('PresidentPage', () => {
 
   it('deve preservar o resultado e avisar quando a atualização falha', async () => {
     await renderPage()
-    server.files['/publications/manifest.json'] = new TypeError('rede')
+    server.files[`${NATIONAL_PATH}manifest.json`] = new TypeError('rede')
 
     act(() => {
       document.dispatchEvent(new Event('visibilitychange'))
@@ -275,7 +373,7 @@ describe('PresidentPage — atualidade e comunicação', () => {
 
   it('deve mostrar falha de comunicação e idade como avisos separados', async () => {
     await renderPage()
-    server.files['/publications/manifest.json'] = new TypeError('rede')
+    server.files[`${NATIONAL_PATH}manifest.json`] = new TypeError('rede')
 
     act(() => {
       document.dispatchEvent(new Event('visibilitychange'))

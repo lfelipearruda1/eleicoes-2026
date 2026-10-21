@@ -4,12 +4,12 @@ import { FreshnessNotice } from './FreshnessNotice.tsx'
 import { LoadingState } from './LoadingState.tsx'
 import { PresidentCard } from './PresidentCard.tsx'
 import styles from './ResultsPanel.module.css'
-import { UnavailableCard } from './UnavailableCard.tsx'
 import { UpdateNotice } from './UpdateNotice.tsx'
 
 interface ResultsPanelProps {
   uf: Uf | undefined
   summary: CandidateSummary | undefined
+  governorSummary: CandidateSummary | undefined
   provenance: string | undefined
   hasFailure: boolean
   freshnessNotice: string | undefined
@@ -19,6 +19,7 @@ interface ResultsPanelProps {
 export function ResultsPanel({
   uf,
   summary,
+  governorSummary,
   provenance,
   hasFailure,
   freshnessNotice,
@@ -48,15 +49,14 @@ export function ResultsPanel({
 
       {summary && uf && (
         <>
-          <UnavailableCard
-            title={`Presidente em ${uf.name}`}
-            message="Dados indisponíveis nesta demonstração."
-          />
-          <UnavailableCard
-            separated
-            title={`Governador em ${uf.name}`}
-            message="Dados de governador indisponíveis nesta demonstração."
-          />
+          <PresidentCard summary={summary} title={`Presidente em ${uf.name}`} />
+          {governorSummary && (
+            <PresidentCard
+              separated
+              summary={governorSummary}
+              title={`Governador em ${uf.name}`}
+            />
+          )}
         </>
       )}
 

@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import { useUfRoute } from '../../map/hooks/useUfRoute.ts'
 import { MapSection } from '../../map/components/MapSection.tsx'
 import { findUf } from '../../map/ufs.ts'
@@ -5,7 +7,7 @@ import { summarizeCandidates } from '../candidates.ts'
 import { formatClockTime, formatInstant } from '../format.ts'
 import { describeFreshness } from '../freshness.ts'
 import { usePublication } from '../hooks/usePublication.ts'
-import type { ResultsEndpoint } from '../resultsConfig.ts'
+import { channelSource, type ResultsEndpoint } from '../resultsConfig.ts'
 import {
   describeHeaderStatus,
   PROVENANCE,
@@ -30,12 +32,41 @@ export function PresidentPage({
   staleAfterMs,
   fetcher,
 }: PresidentPageProps) {
-  const { accepted, freshness, isChecking, failure, lastReadAt, refresh } =
-    usePublication({ endpoint, staleAfterMs, fetcher })
   const { selected, select } = useUfRoute()
-  const snapshot = accepted?.snapshot
   const uf = findUf(selected)
+  const sources = useMemo(() => {
+    const code = findUf(selected)?.code
+    return {
+      national: channelSource(endpoint, 'president', 'BR'),
+      president: code && channelSource(endpoint, 'president', code),
+      governor: code && channelSource(endpoint, 'governor', code),
+    }
+  }, [endpoint, selected])
+  const national = usePublication({
+    source: sources.national,
+    staleAfterMs,
+    fetcher,
+  })
+  const ufPresident = usePublication({
+    source: sources.president || undefined,
+    staleAfterMs,
+    fetcher,
+  })
+  const ufGovernor = usePublication({
+    source: sources.governor || undefined,
+    staleAfterMs,
+    fetcher,
+    stopWhenMissing: true,
+  })
+  const active = uf ? ufPresident : national
+  const { accepted, freshness, isChecking, failure, lastReadAt, refresh } =
+    active
+  const snapshot = accepted?.snapshot
   const summary = snapshot && summarizeCandidates(snapshot)
+  const nationalSnapshot = national.accepted?.snapshot
+  const nationalSummary =
+    nationalSnapshot && summarizeCandidates(nationalSnapshot)
+  const governorSnapshot = uf ? ufGovernor.accepted?.snapshot : undefined
   const status = describeHeaderStatus({
     snapshot,
     ufName: uf?.name,
@@ -46,7 +77,7 @@ export function PresidentPage({
   return (
     <div className={styles.root}>
       <SiteHeader
-        roundLabel={snapshot && ROUND_LABEL[snapshot.round]}
+        roundLabel={nationalSnapshot && ROUND_LABEL[nationalSnapshot.round]}
         selectedUf={selected}
         onSelectUf={select}
         progress={
@@ -60,13 +91,16 @@ export function PresidentPage({
       />
       <main className={styles.main}>
         <MapSection
-          candidates={summary?.rows ?? []}
+          candidates={nationalSummary?.rows ?? []}
           selectedUf={selected}
           onSelectUf={select}
         />
         <ResultsPanel
           uf={uf}
           summary={summary}
+          governorSummary={
+            governorSnapshot && summarizeCandidates(governorSnapshot)
+          }
           provenance={snapshot && PROVENANCE[snapshot.sourceEnvironment]}
           hasFailure={failure !== undefined}
           freshnessNotice={describeFreshness(freshness, staleAfterMs)}

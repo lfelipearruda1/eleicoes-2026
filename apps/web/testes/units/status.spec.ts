@@ -39,17 +39,28 @@ describe('describeHeaderStatus', () => {
     )
   })
 
-  it('deve marcar a UF como indisponível sem percentual', () => {
+  it('deve mostrar as seções apuradas da UF aberta', () => {
     const status = describeHeaderStatus({
       ...base,
-      snapshot: availableSnapshot(),
+      snapshot: availableSnapshot({ scope: 'AC' }),
       ufName: 'Acre',
     })
 
     expect(status).toMatchObject({
-      display: '—',
-      label: 'Seções apuradas · Acre · indisponível',
+      percentage: '50.00',
+      display: '50,00%',
+      label: 'seções apuradas · Acre',
     })
+  })
+
+  it('deve aguardar os dados da UF sem mostrar os do Brasil', () => {
+    const status = describeHeaderStatus({
+      ...base,
+      snapshot: undefined,
+      ufName: 'Acre',
+    })
+
+    expect(status).toMatchObject({ display: '—', percentage: undefined })
   })
 
   it('deve indicar falha preservando a hora dos dados exibidos', () => {

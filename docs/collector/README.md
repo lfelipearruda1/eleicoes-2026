@@ -164,7 +164,7 @@ pnpm collector:tse:watch --source official --round 2 --output .local/tse --publi
 - **Parada:** `SIGINT`/`SIGTERM` interrompe a espera entre ciclos ou entre requisições; uma requisição em andamento termina dentro do timeout de 15 s e uma publicação em andamento termina antes de parar. Nada fica publicado pela metade.
 - **Log:** uma linha JSON por evento (`cycle_start`, `target`, `target_failed`, `target_disabled`, `cycle_end` com contagens, `wait`, `stopped`), sem corpo de resposta nem URL completa.
 - **Valores:** intervalo, pausa de bloqueio e intervalo de `checkedAt` são provisórios até DP-16. `--once` executa um ciclo e sai.
-- **Ver no web local:** `ELEICOES_CHANNEL=oficial-presidente-br-2t ELEICOES_PUBLICATIONS_DIR=$PWD/.local/publications pnpm dev:web`.
+- **Ver no web local:** `VITE_RESULTS_CHANNEL=oficial-presidente-br-2t ELEICOES_PUBLICATIONS_DIR=$PWD/.local/publications pnpm dev:web`. O web lê o canal nacional e, ao abrir uma UF, os canais de presidente e de governador dela.
 
 ## Um publicador
 

@@ -8,7 +8,7 @@ import {
   type ResultSnapshot,
 } from '@eleicoes/validation'
 
-import { resolveInChannel, type ResultsEndpoint } from './resultsConfig.ts'
+import { resolveInChannel, type ChannelSource } from './resultsConfig.ts'
 
 export interface AcceptedPublication {
   manifest: Manifest
@@ -60,10 +60,10 @@ async function fetchJson(
 export async function readPublication(
   accepted: AcceptedPublication | undefined,
   signal: AbortSignal,
-  endpoint: ResultsEndpoint,
+  source: ChannelSource,
   fetcher: Fetch = fetch,
 ): Promise<PublicationRead> {
-  const manifestUrl = resolveInChannel(endpoint, 'manifest.json')
+  const manifestUrl = resolveInChannel(source, 'manifest.json')
   if (!manifestUrl) return { outcome: 'rejected', reason: 'invalid_manifest' }
   const manifestResponse = await fetchJson(fetcher, manifestUrl, signal)
   if (manifestResponse.status === 'missing') {
@@ -76,10 +76,13 @@ export async function readPublication(
   if (!manifest?.success) {
     return { outcome: 'rejected', reason: 'invalid_manifest' }
   }
-  if (manifest.data.office !== 'president' || manifest.data.scope !== 'BR') {
+  if (
+    manifest.data.office !== source.office ||
+    manifest.data.scope !== source.scope
+  ) {
     return { outcome: 'rejected', reason: 'unexpected_contest' }
   }
-  if (endpoint.channel && manifest.data.channel !== endpoint.channel) {
+  if (manifest.data.channel !== source.channel) {
     return { outcome: 'rejected', reason: 'unexpected_channel' }
   }
   const decision = decideManifestUpdate(accepted?.manifest, manifest.data)
@@ -95,7 +98,7 @@ export async function readPublication(
   }
 
   const snapshotUrl = resolveInChannel(
-    endpoint,
+    source,
     snapshotPathFor(manifest.data.current.dataVersion),
   )
   if (!snapshotUrl) return { outcome: 'rejected', reason: 'invalid_manifest' }

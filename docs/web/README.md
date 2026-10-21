@@ -17,7 +17,7 @@ Implementação:
 
 Diferenças em relação ao protótipo, por falta de dado no contrato:
 
-- **Mapa e lista:** não há resultado por UF. As 27 UFs aparecem como "Indisponível" (hachura do protótipo); a lista mostra "Indisp."; abrir uma UF mostra "Dados indisponíveis nesta demonstração." para presidente e governador.
+- **Mapa e lista:** o mapa ainda não tem resultado por UF: as 27 UFs aparecem como "Indisponível" (hachura do protótipo) e a lista mostra "Indisp.". Abrir uma UF mostra "Presidente em <UF>" com o resultado do canal da UF e, só nas UFs que têm canal de governador, "Governador em <UF>" logo abaixo. Nas demais, nenhum card ou mensagem de governador (desde 20/10/2026).
 - **Cores:** vermelho e azul do protótipo vão para a 1ª e a 2ª candidatura na ordem do contrato (`candidateId`); demais em cinza. Não dependem do nome.
 - **Círculo da candidatura:** sem a palavra "Foto", porque o contrato não tem fotos. Quem tem mais votos recebe o anel cheio do protótipo; não há selo de eleito.
 - **Diferença em p.p.:** subtração exata dos percentuais publicados, descrita como "nos votos a candidaturas concorrentes" (a base do contrato), não "votos válidos".
@@ -47,7 +47,7 @@ node apps/collector/dist/main.js president-publish --capture apps/collector/fixt
 ELEICOES_PUBLICATIONS_DIR="$PWD/.local/et06/publications" pnpm dev:web
 ```
 
-Uma ponte do servidor de desenvolvimento (`apps/web/vite/publications.ts`) serve **só** `/publications/manifest.json` e `/publications/snapshots/<uuid v4>.json` do canal configurado, lidos do disco a cada requisição: `GET`/`HEAD`, sem listagem, sem link simbólico, até 1 MiB, `Cache-Control: no-store`. Variáveis lidas só pelo servidor (sem prefixo `VITE_`): `ELEICOES_PUBLICATIONS_DIR` (padrão `.local/publications`) e `ELEICOES_CHANNEL` (padrão `demo-sintetico-presidente-br-2t`). O servidor escuta em `127.0.0.1`, e `server.fs.allow` restringe o `/@fs/` do Vite a `apps/web`, `packages` e `node_modules`, com `.local/` negado. A ponte não existe no `vite build` nem no `vite preview`.
+Uma ponte do servidor de desenvolvimento (`apps/web/vite/publications.ts`) serve **só** `/publications/<canal>/manifest.json` e `/publications/<canal>/snapshots/<uuid v4>.json` de qualquer canal da raiz, lidos do disco a cada requisição: `GET`/`HEAD`, canal no padrão do contrato (até 64 caracteres), pasta do canal real dentro da raiz (link simbólico recusado), sem listagem, até 1 MiB, `Cache-Control: no-store`. Variável lida só pelo servidor (sem prefixo `VITE_`): `ELEICOES_PUBLICATIONS_DIR` (padrão `.local/publications`), também lida do `apps/web/.env`. O servidor escuta em `127.0.0.1`, e `server.fs.allow` restringe o `/@fs/` do Vite a `apps/web`, `packages` e `node_modules`, com `.local/` negado. A ponte não existe no `vite build` nem no `vite preview`.
 
 Publicar outra fixture (`02-aguardando-liberacao`, `03-parcial`, `04-parcial-atualizada`) muda a tela em até ~5 s, sem recarregar. Se o manifesto subir de revisão mantendo a mesma `dataVersion`, a tela reaproveita o snapshot já validado, sem baixá-lo de novo. O polling de 5 s após o fim da tentativa anterior é escolha da demonstração local, não intervalo de produção; pausa com a aba oculta e retoma ao voltar.
 
@@ -55,13 +55,13 @@ Publicar outra fixture (`02-aguardando-liberacao`, `03-parcial`, `04-parcial-atu
 
 `apps/web/src/features/president/resultsConfig.ts` lê e valida a configuração uma vez, na partida. Os valores locais ficam em `apps/web/.env` (ignorado pelo git; modelo em `.env.example`), que o Vite carrega no `dev` e no `build`; `vite.config.ts` lê `ELEICOES_*` do mesmo arquivo com `loadEnv`, e variável de ambiente do shell tem precedência. As variáveis `VITE_*` são **incorporadas no JavaScript no momento do build** e são públicas: mudar a base, o canal ou o limiar exige outro build. Não há configuração remota nem reescrita do bundle.
 
-| Variável                       | Desenvolvimento (`pnpm dev:web`)                    | Build (`vite build`)   | Validação                                                                                                                                                                                                         |
-| ------------------------------ | --------------------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `VITE_RESULTS_BASE_URL`        | Vazia ou só espaços: ponte `/publications/` do Vite | Obrigatória            | URL absoluta; `https`; `http` só com página e dados nos hosts de `VITE_RESULTS_LOOPBACK_HOSTS`; sem usuário/senha, query ou fragmento; nunca domínio de `VITE_RESULTS_BLOCKED_DOMAINS`. Barra final é normalizada |
-| `VITE_RESULTS_CHANNEL`         | Ignorada sem base (a ponte usa `ELEICOES_CHANNEL`)  | Obrigatória com a base | Mesmo padrão do contrato (`channelSchema`). O manifesto lido precisa ter o mesmo `channel`                                                                                                                        |
-| `VITE_RESULTS_STALE_AFTER_MS`  | Vazia: 120000 (valor local, não meta de produção)   | Obrigatória            | Inteiro decimal positivo e seguro; recusa `0`, negativos, frações, `1e3`, `0x10`, `NaN`, `Infinity` e texto parcial                                                                                               |
-| `VITE_RESULTS_LOOPBACK_HOSTS`  | Lista de hosts (`127.0.0.1,[::1]` no `.env` local)  | Opcional               | Só hosts, sem esquema, porta ou caminho. Vazia: `http` nunca é aceito. Nenhum host de loopback fica fixo no código                                                                                                |
-| `VITE_RESULTS_BLOCKED_DOMAINS` | Lista de domínios (`tse.jus.br` no `.env` local)    | Obrigatória com a base | Bloqueia o domínio e os subdomínios; o domínio do TSE não fica fixo no código                                                                                                                                     |
+| Variável                       | Desenvolvimento (`pnpm dev:web`)                    | Build (`vite build`)   | Validação                                                                                                                                                                                                                                                                 |
+| ------------------------------ | --------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VITE_RESULTS_BASE_URL`        | Vazia ou só espaços: ponte `/publications/` do Vite | Obrigatória            | URL absoluta; `https`; `http` só com página e dados nos hosts de `VITE_RESULTS_LOOPBACK_HOSTS`; sem usuário/senha, query ou fragmento; nunca domínio de `VITE_RESULTS_BLOCKED_DOMAINS`. Barra final é normalizada                                                         |
+| `VITE_RESULTS_CHANNEL`         | Sem base: padrão `demo-sintetico-presidente-br-2t`  | Obrigatória com a base | Canal **nacional** de presidente, `<prefixo>-presidente-br-<turno>t`. O web deriva os demais do mesmo prefixo e turno: `<prefixo>-presidente-<uf>-<turno>t` e `<prefixo>-governador-<uf>-<turno>t`. O manifesto lido precisa ter o canal, o cargo e a abrangência pedidos |
+| `VITE_RESULTS_STALE_AFTER_MS`  | Vazia: 120000 (valor local, não meta de produção)   | Obrigatória            | Inteiro decimal positivo e seguro; recusa `0`, negativos, frações, `1e3`, `0x10`, `NaN`, `Infinity` e texto parcial                                                                                                                                                       |
+| `VITE_RESULTS_LOOPBACK_HOSTS`  | Lista de hosts (`127.0.0.1,[::1]` no `.env` local)  | Opcional               | Só hosts, sem esquema, porta ou caminho. Vazia: `http` nunca é aceito. Nenhum host de loopback fica fixo no código                                                                                                                                                        |
+| `VITE_RESULTS_BLOCKED_DOMAINS` | Lista de domínios (`tse.jus.br` no `.env` local)    | Obrigatória com a base | Bloqueia o domínio e os subdomínios; o domínio do TSE não fica fixo no código                                                                                                                                                                                             |
 
 URLs lidas: `<base>/<canal>/manifest.json` e `<base>/<canal>/snapshots/<dataVersion>.json`, montadas com `new URL` e conferidas por `resolveInChannel` (mesma origem, dentro do diretório do canal, sem query, fragmento ou credencial). O `fetch` usa `mode: 'cors'`, `credentials: 'omit'`, `redirect: 'error'` e `cache: 'no-store'`. Se a origem dos dados for outra, ela precisa responder CORS para a origem exata do site.
 
@@ -78,6 +78,13 @@ VITE_RESULTS_BASE_URL=http://127.0.0.1:4174/ VITE_RESULTS_CHANNEL=demo-sintetico
 ```
 
 Sirva `web-dist` em `127.0.0.1:4173` e `publications` em `127.0.0.1:4174` com `Access-Control-Allow-Origin: http://127.0.0.1:4173`. Use um diretório fora de `apps/web/dist` para não confundir o build de demonstração com o build padrão.
+
+## Brasil, UF e governador
+
+- **Brasil:** lê só o canal nacional de presidente e mostra só o card "Presidente".
+- **UF aberta:** lê o canal de presidente da UF; cabeçalho (seções apuradas), avisos e rodapé passam a ser os da UF. Lê também o canal de governador da UF: se ele existir, o card "Governador em <UF>" aparece abaixo do de presidente; se o manifesto não existir (404), nada é mostrado e esse canal deixa de ser consultado enquanto a UF estiver aberta (volta a ser consultado ao reabrir a UF ou ao voltar à aba). Nenhuma lista de UFs com governador fica no código: quem decide é a existência do canal, publicado pelo coletor a partir do EA11.
+- **Troca de UF:** o estado de cada leitura é do canal a que pertence; ao trocar, o card da UF anterior não aparece sob o nome da nova.
+- **Mapa:** continua com as cores de legenda do resultado nacional e sem resultado por UF (próximo passo: resumo por UF publicado pelo coletor).
 
 ## Atualidade dos dados
 

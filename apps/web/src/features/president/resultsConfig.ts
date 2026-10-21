@@ -1,7 +1,11 @@
-import { channelSchema } from '@eleicoes/validation'
+import type { ResultSnapshot } from '@eleicoes/validation'
 
 export const DEV_BRIDGE_PATH = '/publications/'
+export const DEV_NATIONAL_CHANNEL = 'demo-sintetico-presidente-br-2t'
 export const LOCAL_STALE_AFTER_MS = 120_000
+
+const NATIONAL_CHANNEL = /^([a-z0-9]+(?:-[a-z0-9]+)*)-presidente-br-([12])t$/
+const CHANNEL_OFFICE = { president: 'presidente', governor: 'governador' }
 
 export interface ResultsEnv {
   DEV: boolean
@@ -13,8 +17,16 @@ export interface ResultsEnv {
 }
 
 export interface ResultsEndpoint {
+  root: URL
+  channelPrefix: string
+  round: string
+}
+
+export interface ChannelSource {
   channelRoot: URL
-  channel: string | undefined
+  channel: string
+  office: ResultSnapshot['office']
+  scope: string
 }
 
 export type ResultsConfig =
@@ -102,31 +114,49 @@ function readBase(raw: string, page: URL, rules: HostRules): URL | string {
   return base
 }
 
+function readNationalChannel(raw: string | undefined) {
+  const match = raw === undefined ? null : NATIONAL_CHANNEL.exec(raw)
+  if (!match || raw === undefined || raw.length > 64) {
+    return 'VITE_RESULTS_CHANNEL precisa ser o canal nacional de presidente, no formato <prefixo>-presidente-br-<turno>t.'
+  }
+  return { channelPrefix: match[1], round: match[2] }
+}
+
 function readEndpoint(env: ResultsEnv, page: URL): ResultsEndpoint | string[] {
   const rawBase = present(env.VITE_RESULTS_BASE_URL)
+  const rawChannel = present(env.VITE_RESULTS_CHANNEL)
+  if (!rawBase && !env.DEV) {
+    return ['VITE_RESULTS_BASE_URL não foi definida neste build.']
+  }
+  const channel = readNationalChannel(
+    rawChannel ?? (rawBase ? undefined : DEV_NATIONAL_CHANNEL),
+  )
   if (!rawBase) {
-    return env.DEV
-      ? {
-          channelRoot: new URL(DEV_BRIDGE_PATH, page.origin),
-          channel: undefined,
-        }
-      : ['VITE_RESULTS_BASE_URL não foi definida neste build.']
+    return typeof channel === 'string'
+      ? [channel]
+      : { root: new URL(DEV_BRIDGE_PATH, page.origin), ...channel }
   }
   const rules = readHostRules(env)
   if (Array.isArray(rules)) return rules
-  const problems: string[] = []
   const base = readBase(rawBase, page, rules)
-  if (typeof base === 'string') problems.push(base)
-  const channel = channelSchema.safeParse(present(env.VITE_RESULTS_CHANNEL))
-  if (!channel.success) {
-    problems.push(
-      'VITE_RESULTS_CHANNEL precisa ser um canal válido (minúsculas, dígitos e hífens).',
-    )
-  }
-  if (typeof base === 'string' || !channel.success) return problems
+  const problems = [base, channel].filter(
+    (item): item is string => typeof item === 'string',
+  )
+  if (typeof base === 'string' || typeof channel === 'string') return problems
+  return { root: base, ...channel }
+}
+
+export function channelSource(
+  endpoint: ResultsEndpoint,
+  office: ChannelSource['office'],
+  scope: string,
+): ChannelSource {
+  const channel = `${endpoint.channelPrefix}-${CHANNEL_OFFICE[office]}-${scope.toLowerCase()}-${endpoint.round}t`
   return {
-    channelRoot: new URL(`${channel.data}/`, base),
-    channel: channel.data,
+    channelRoot: new URL(`${channel}/`, endpoint.root),
+    channel,
+    office,
+    scope,
   }
 }
 
@@ -161,10 +191,10 @@ export function readResultsConfig(
 }
 
 export function resolveInChannel(
-  endpoint: ResultsEndpoint,
+  source: ChannelSource,
   relativePath: string,
 ): URL | undefined {
-  const root = endpoint.channelRoot
+  const root = source.channelRoot
   const url = new URL(relativePath, root)
   const staysInChannel =
     url.origin === root.origin &&

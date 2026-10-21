@@ -3,10 +3,20 @@ import { CandidateAvatar } from './CandidateAvatar.tsx'
 import styles from './ResultCard.module.css'
 import { SegmentBar } from './SegmentBar.tsx'
 
-export function PresidentCard({ summary }: { summary: CandidateSummary }) {
+interface PresidentCardProps {
+  summary: CandidateSummary
+  title?: string
+  separated?: boolean
+}
+
+export function PresidentCard({
+  summary,
+  title = 'Presidente',
+  separated = false,
+}: PresidentCardProps) {
   return (
-    <div className={styles.card}>
-      <h2 className={styles.title}>Presidente</h2>
+    <div className={`${styles.card} ${separated ? styles.separated : ''}`}>
+      <h2 className={styles.title}>{title}</h2>
       <ul className={styles.rows}>
         {summary.rows.map((row) => (
           <li key={row.candidateId} className={styles.row}>

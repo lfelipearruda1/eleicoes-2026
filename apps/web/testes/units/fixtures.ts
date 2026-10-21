@@ -1,12 +1,21 @@
 import type { Manifest, ResultSnapshot } from '@eleicoes/validation'
 
-import type { ResultsEndpoint } from '../../src/features/president/resultsConfig.ts'
+import {
+  channelSource,
+  type ResultsEndpoint,
+} from '../../src/features/president/resultsConfig.ts'
 
 export const TEST_ORIGIN = 'http://127.0.0.1:5173'
 export const TEST_ENDPOINT: ResultsEndpoint = {
-  channelRoot: new URL('/publications/', TEST_ORIGIN),
-  channel: undefined,
+  root: new URL('/publications/', TEST_ORIGIN),
+  channelPrefix: 'demo-sintetico',
+  round: '2',
 }
+export const TEST_SOURCE = channelSource(TEST_ENDPOINT, 'president', 'BR')
+export const NATIONAL_PATH = '/publications/demo-sintetico-presidente-br-2t/'
+
+const channelOf = (snapshot: ResultSnapshot) =>
+  `demo-sintetico-${snapshot.office === 'president' ? 'presidente' : 'governador'}-${snapshot.scope.toLowerCase()}-2t`
 export const TEST_STALE_AFTER_MS = 120_000
 
 export const DATA_VERSION_A = '0b7c9a52-3f1e-4d2a-9c4b-6e8f1a2b3c4d'
@@ -96,7 +105,7 @@ export const manifestFor = (
 ): Manifest =>
   ({
     contractVersion: 1,
-    channel: 'demo-sintetico-presidente-br-2t',
+    channel: channelOf(snapshot),
     revision,
     environment: snapshot.environment,
     sourceEnvironment: snapshot.sourceEnvironment,
@@ -125,9 +134,10 @@ export function fakeServer(files: Record<string, unknown> = {}) {
     return new Response(typeof body === 'string' ? body : JSON.stringify(body))
   }) as typeof fetch
   const publish = (manifest: Manifest, snapshot?: ResultSnapshot) => {
-    files['/publications/manifest.json'] = manifest
+    const root = `/publications/${manifest.channel}/`
+    files[`${root}manifest.json`] = manifest
     if (snapshot) {
-      files[`/publications/snapshots/${snapshot.dataVersion}.json`] = snapshot
+      files[`${root}snapshots/${snapshot.dataVersion}.json`] = snapshot
     }
   }
   return { files, calls, fetcher, publish }

@@ -7,14 +7,17 @@ import {
   LOCAL_POLL_INTERVAL_MS,
   usePublication,
 } from '../../src/features/president/hooks/usePublication.ts'
+import { channelSource } from '../../src/features/president/resultsConfig.ts'
 import {
   availableSnapshot,
   DATA_VERSION_B,
   fakeServer,
   manifestFor,
   pendingSnapshot,
-  TEST_ENDPOINT,
+  TEST_SOURCE,
   TEST_STALE_AFTER_MS,
+  NATIONAL_PATH,
+  TEST_ENDPOINT,
 } from './fixtures.ts'
 
 const settle = () => act(async () => {})
@@ -48,7 +51,7 @@ afterEach(() => {
 const render = () =>
   renderHook(() =>
     usePublication({
-      endpoint: TEST_ENDPOINT,
+      source: TEST_SOURCE,
       staleAfterMs: TEST_STALE_AFTER_MS,
       fetcher: server.fetcher,
     }),
@@ -135,7 +138,7 @@ describe('usePublication', () => {
     const { result } = render()
     await settle()
     const accepted = result.current.accepted
-    server.files['/publications/manifest.json'] = new TypeError('rede')
+    server.files[`${NATIONAL_PATH}manifest.json`] = new TypeError('rede')
 
     await advance(LOCAL_POLL_INTERVAL_MS)
 
@@ -203,7 +206,7 @@ describe('usePublication', () => {
     }) as typeof fetch
     const { result, unmount } = renderHook(() =>
       usePublication({
-        endpoint: TEST_ENDPOINT,
+        source: TEST_SOURCE,
         staleAfterMs: TEST_STALE_AFTER_MS,
         fetcher,
       }),
@@ -256,15 +259,15 @@ describe('usePublication — atualidade dos dados', () => {
     vi.setSystemTime(COLLECTED_MS + TEST_STALE_AFTER_MS)
     const { result } = render()
     await settle()
-    const manifest = server.files['/publications/manifest.json']
-    server.files['/publications/manifest.json'] = new TypeError('rede')
+    const manifest = server.files[`${NATIONAL_PATH}manifest.json`]
+    server.files[`${NATIONAL_PATH}manifest.json`] = new TypeError('rede')
     await advance(LOCAL_POLL_INTERVAL_MS)
     const duringFailure = {
       reason: result.current.failure?.reason,
       availability: result.current.accepted?.snapshot.availability,
       freshness: result.current.freshness?.state,
     }
-    server.files['/publications/manifest.json'] = manifest
+    server.files[`${NATIONAL_PATH}manifest.json`] = manifest
 
     await advance(LOCAL_POLL_INTERVAL_MS)
 
@@ -369,5 +372,79 @@ describe('usePublication — atualidade dos dados', () => {
     unmount()
 
     expect(vi.getTimerCount()).toBe(0)
+  })
+})
+
+describe('usePublication — canais de UF', () => {
+  const SP = channelSource(TEST_ENDPOINT, 'president', 'SP')
+  const GOVERNOR_SP = channelSource(TEST_ENDPOINT, 'governor', 'SP')
+  const channelCalls = (channel: string) =>
+    server.calls.filter((url) => url.includes(`/${channel}/manifest.json`))
+      .length
+
+  it('deve ficar parado sem canal', async () => {
+    renderHook(() =>
+      usePublication({
+        source: undefined,
+        staleAfterMs: TEST_STALE_AFTER_MS,
+        fetcher: server.fetcher,
+      }),
+    )
+
+    await advance(LOCAL_POLL_INTERVAL_MS * 3)
+
+    expect(server.calls).toEqual([])
+  })
+
+  it('deve parar de consultar o canal ausente quando pedido', async () => {
+    const { result } = renderHook(() =>
+      usePublication({
+        source: GOVERNOR_SP,
+        staleAfterMs: TEST_STALE_AFTER_MS,
+        fetcher: server.fetcher,
+        stopWhenMissing: true,
+      }),
+    )
+    await settle()
+
+    await advance(LOCAL_POLL_INTERVAL_MS * 3)
+
+    expect(channelCalls(GOVERNOR_SP.channel)).toBe(1)
+    expect(result.current.accepted).toBeUndefined()
+  })
+
+  it('deve continuar consultando o canal ausente sem a opção', async () => {
+    renderHook(() =>
+      usePublication({
+        source: GOVERNOR_SP,
+        staleAfterMs: TEST_STALE_AFTER_MS,
+        fetcher: server.fetcher,
+      }),
+    )
+    await settle()
+
+    await advance(LOCAL_POLL_INTERVAL_MS * 2)
+
+    expect(channelCalls(GOVERNOR_SP.channel)).toBe(3)
+  })
+
+  it('deve não mostrar dados do canal anterior ao trocar de canal', async () => {
+    const { result, rerender } = renderHook(
+      ({ source }) =>
+        usePublication({
+          source,
+          staleAfterMs: TEST_STALE_AFTER_MS,
+          fetcher: server.fetcher,
+        }),
+      { initialProps: { source: TEST_SOURCE } },
+    )
+    await settle()
+    const national = result.current.accepted
+
+    rerender({ source: SP })
+
+    expect(national?.manifest.channel).toBe(TEST_SOURCE.channel)
+    expect(result.current.accepted).toBeUndefined()
+    expect(result.current.failure).toBeUndefined()
   })
 })

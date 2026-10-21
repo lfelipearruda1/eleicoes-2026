@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  channelSource,
   LOCAL_STALE_AFTER_MS,
   readResultsConfig,
   resolveInChannel,
@@ -27,6 +28,9 @@ function ready(config: ResultsConfig) {
   return config
 }
 
+const nationalRoot = (config: Extract<ResultsConfig, { status: 'ready' }>) =>
+  channelSource(config.endpoint, 'president', 'BR').channelRoot.href
+
 function problems(config: ResultsConfig) {
   return config.status === 'invalid' ? config.problems : []
 }
@@ -39,10 +43,9 @@ describe('readResultsConfig', () => {
       readResultsConfig(env, 'http://127.0.0.1:5173/#/uf/SP'),
     )
 
-    expect(config.endpoint.channelRoot.href).toBe(
-      'http://127.0.0.1:5173/publications/',
+    expect(nationalRoot(config)).toBe(
+      'http://127.0.0.1:5173/publications/demo-sintetico-presidente-br-2t/',
     )
-    expect(config.endpoint.channel).toBeUndefined()
     expect(config.staleAfterMs).toBe(LOCAL_STALE_AFTER_MS)
   })
 
@@ -51,7 +54,7 @@ describe('readResultsConfig', () => {
 
     const config = ready(readResultsConfig(env, LOCAL_PAGE))
 
-    expect(config.endpoint.channelRoot.pathname).toBe('/publications/')
+    expect(config.endpoint.root.pathname).toBe('/publications/')
   })
 
   it('deve recusar build sem base nem limiar, sem cair na ponte', () => {
@@ -81,10 +84,9 @@ describe('readResultsConfig', () => {
 
     const config = ready(readResultsConfig(env, PUBLIC_PAGE))
 
-    expect(config.endpoint.channelRoot.href).toBe(
+    expect(nationalRoot(config)).toBe(
       `https://resultados.exemplo.invalid/publicacoes/${CHANNEL}/`,
     )
-    expect(config.endpoint.channel).toBe(CHANNEL)
     expect(config.staleAfterMs).toBe(300_000)
   })
 
@@ -95,7 +97,7 @@ describe('readResultsConfig', () => {
 
     const config = ready(readResultsConfig(env, PUBLIC_PAGE))
 
-    expect(config.endpoint.channelRoot.href).toBe(
+    expect(nationalRoot(config)).toBe(
       `https://resultados.exemplo.invalid/publicacoes/${CHANNEL}/`,
     )
   })
@@ -105,9 +107,7 @@ describe('readResultsConfig', () => {
 
     const config = ready(readResultsConfig(env, LOCAL_PAGE))
 
-    expect(config.endpoint.channelRoot.href).toBe(
-      `http://127.0.0.1:4174/${CHANNEL}/`,
-    )
+    expect(nationalRoot(config)).toBe(`http://127.0.0.1:4174/${CHANNEL}/`)
   })
 
   it.each([
@@ -257,10 +257,61 @@ describe('readResultsConfig', () => {
   })
 })
 
+describe('channelSource', () => {
+  const endpoint = {
+    root: new URL('https://resultados.exemplo.invalid/p/'),
+    channelPrefix: 'oficial',
+    round: '2',
+  }
+
+  it.each([
+    ['president', 'BR', 'oficial-presidente-br-2t'],
+    ['president', 'SP', 'oficial-presidente-sp-2t'],
+    ['governor', 'DF', 'oficial-governador-df-2t'],
+  ] as const)('deve derivar o canal de %s em %s', (office, scope, channel) => {
+    const source = channelSource(endpoint, office, scope)
+
+    expect(source).toMatchObject({ channel, office, scope })
+    expect(source.channelRoot.href).toBe(
+      `https://resultados.exemplo.invalid/p/${channel}/`,
+    )
+  })
+})
+
+describe('readResultsConfig: canal nacional', () => {
+  it.each([
+    'oficial-governador-df-2t',
+    'oficial-presidente-sp-2t',
+    'oficial-presidente-br-3t',
+    'presidente-br-2t',
+  ])('deve recusar %j como canal nacional', (channel) => {
+    const env = build({ VITE_RESULTS_CHANNEL: channel })
+
+    const config = readResultsConfig(env, PUBLIC_PAGE)
+
+    expect(problems(config)).toEqual([
+      'VITE_RESULTS_CHANNEL precisa ser o canal nacional de presidente, no formato <prefixo>-presidente-br-<turno>t.',
+    ])
+  })
+
+  it('deve usar o canal nacional configurado em desenvolvimento', () => {
+    const env = { DEV: true, VITE_RESULTS_CHANNEL: 'oficial-presidente-br-1t' }
+
+    const config = ready(readResultsConfig(env, LOCAL_PAGE))
+
+    expect(config.endpoint).toMatchObject({
+      channelPrefix: 'oficial',
+      round: '1',
+    })
+  })
+})
+
 describe('resolveInChannel', () => {
   const endpoint = {
     channelRoot: new URL(`https://resultados.exemplo.invalid/p/${CHANNEL}/`),
     channel: CHANNEL,
+    office: 'president' as const,
+    scope: 'BR',
   }
 
   it('deve resolver o snapshot dentro do canal', () => {

@@ -8,6 +8,7 @@ import type { Plugin } from 'vite'
 export const PUBLICATIONS_ROUTE = '/publications/'
 
 const CHANNEL_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const CHANNEL_MAX_LENGTH = 64
 const ALLOWED_FILE =
   /^(manifest\.json|snapshots\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.json)$/
 const MAX_BYTES = 1024 * 1024
@@ -29,12 +30,16 @@ function reply(response: ServerResponse, status: number, body?: Buffer) {
 }
 
 async function readChannelFile(
-  channelDirectory: string,
+  root: string,
+  channel: string,
   relativePath: string,
 ): Promise<Buffer | undefined> {
+  const channelDirectory = path.join(root, channel)
   const filePath = path.join(channelDirectory, relativePath)
   try {
-    const expected = path.join(await realpath(channelDirectory), relativePath)
+    const realChannel = path.join(await realpath(root), channel)
+    if ((await realpath(channelDirectory)) !== realChannel) return undefined
+    const expected = path.join(realChannel, relativePath)
     if ((await realpath(filePath)) !== expected) return undefined
     const file = await open(filePath, constants.O_RDONLY | constants.O_NOFOLLOW)
     try {
@@ -49,7 +54,7 @@ async function readChannelFile(
   }
 }
 
-export function createPublicationsHandler(channelDirectory: string): Handler {
+export function createPublicationsHandler(root: string): Handler {
   return (request, response, next) => {
     const url = request.url ?? ''
     if (!url.startsWith(PUBLICATIONS_ROUTE)) {
@@ -60,33 +65,32 @@ export function createPublicationsHandler(channelDirectory: string): Handler {
       reply(response, 405)
       return
     }
-    const relativePath = url.slice(PUBLICATIONS_ROUTE.length)
-    if (!ALLOWED_FILE.test(relativePath)) {
+    const relative = url.slice(PUBLICATIONS_ROUTE.length)
+    const separator = relative.indexOf('/')
+    const channel = relative.slice(0, separator)
+    const file = relative.slice(separator + 1)
+    const isAllowed =
+      separator > 0 &&
+      channel.length <= CHANNEL_MAX_LENGTH &&
+      CHANNEL_PATTERN.test(channel) &&
+      ALLOWED_FILE.test(file)
+    if (!isAllowed) {
       reply(response, 404)
       return
     }
-    void readChannelFile(channelDirectory, relativePath).then((body) =>
+    void readChannelFile(root, channel, file).then((body) =>
       body ? reply(response, 200, body) : reply(response, 404),
     )
   }
 }
 
-export function publicationsBridge(options: {
-  root: string
-  channel: string
-}): Plugin {
-  if (!CHANNEL_PATTERN.test(options.channel) || options.channel.length > 64) {
-    throw new Error(`canal inválido: ${options.channel}`)
-  }
-  const channelDirectory = path.join(
-    path.resolve(options.root),
-    options.channel,
-  )
+export function publicationsBridge(options: { root: string }): Plugin {
+  const root = path.resolve(options.root)
   return {
     name: 'eleicoes-publications',
     apply: 'serve',
     configureServer(server) {
-      server.middlewares.use(createPublicationsHandler(channelDirectory))
+      server.middlewares.use(createPublicationsHandler(root))
     },
   }
 }
