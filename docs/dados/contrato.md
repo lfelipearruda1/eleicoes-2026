@@ -142,7 +142,7 @@ Fonte das semânticas: os pontos de EA20 pp. 9, 9–10, 14, 16 e 20 foram **forn
 
 ### Horários do manifesto (recorte da DP-14)
 
-DA-21. O manifesto mínimo e a publicação local foram implementados depois (DA-22). O heartbeat **não** existe: a publicação local nunca preenche `checkedAt`, porque ler um arquivo local não comprova consulta à origem.
+DA-21. O manifesto mínimo e a publicação local foram implementados depois (DA-22). Desde 20/10/2026, `president-publish` grava `checkedAt` quando a captura é **oficial** (consulta registrada em `requests[]`, com 200 ou 304) e o conteúdo eleitoral é igual ao da versão atual: `checkedAt` recebe o `requestedAt` da consulta, `revision` soma 1 e `current` não muda. Só avança: consulta igual ou mais antiga que o último `checkedAt` (ou que o `collectedAt` da versão atual) não regrava o manifesto. Captura sintética e `publish` genérico nunca preenchem `checkedAt`, porque ler um arquivo local não comprova consulta à origem. Não há agendador: a frequência das regravações é a das execuções manuais (regra 8 depende de DP-16).
 
 | Horário       | Onde                      | O que representa                                               |
 | ------------- | ------------------------- | -------------------------------------------------------------- |
@@ -244,7 +244,7 @@ DA-22. Implementação: `packages/validation/src/contract/manifest.ts` (sem `nod
 | `current.dataVersion`   | string           | Sim         | Forma de [dataVersion](#dataversion)                                                                                                        |
 | `current.path`          | string           | Sim         | Exatamente `snapshots/<current.dataVersion>.json`, relativo ao diretório do canal. Sem URL, caminho absoluto ou `..`                        |
 | `current.publishedAt`   | string, horário  | Sim         | Regra geral 4. Instante em que a versão passou a ser a atual                                                                                |
-| `checkedAt`             | string, horário  | Não         | DA-21. Ausente no publicador local                                                                                                          |
+| `checkedAt`             | string, horário  | Não         | DA-21. Só a partir de captura oficial sem mudança                                                                                           |
 
 DA-20 vale também aqui: `publishManifestSchema` rejeita chave extra no topo e em `current`; `readManifestSchema` descarta.
 
@@ -254,7 +254,7 @@ DA-20 vale também aqui: `publishManifestSchema` rejeita chave extra no topo e e
 2. **Revisão.** A primeira publicação de um canal novo tem `revision` 1. Cada troca efetiva do manifesto soma 1, a partir do valor persistido. Repetir a versão atual não muda a revisão nem `publishedAt`. No limite de inteiro seguro, a publicação falha; a sequência nunca recomeça sozinha.
 3. **O que não ordena.** UUID, `publishedAt` e relógio não definem a ordem. A revisão ordena nossas publicações; não prova que a origem tem dado mais novo. Retificação oficial que reduz votos não é regressão do manifesto.
 4. **Canal.** Um canal é um fluxo com contexto fixo. Documento de outro contexto é recusado. Uma eleição futura usa outro canal: o publicador não tem como reconhecer o ano, então a chave é responsabilidade do operador.
-5. **checkedAt.** Uma futura atualização de `checkedAt` soma 1 a `revision`, sem mudar `current`. Não é copiado de uma versão para outra.
+5. **checkedAt.** Uma atualização de `checkedAt` soma 1 a `revision`, sem mudar `current`. Não é copiado de uma versão para outra.
 
 ### Decisão do consumidor
 

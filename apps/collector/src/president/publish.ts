@@ -192,6 +192,10 @@ export async function publishPresidentialCapture(
     now: request.now,
     beforeManifestSwap: request.beforeManifestSwap,
     isUnchanged: (current) => electoralContent(current) === content,
+    checkedAt:
+      context.sourceEnvironment === 'official'
+        ? context.collectedAt
+        : undefined,
   })
   const publication = await readPublication(request.output, request.channel)
   return {
@@ -201,6 +205,7 @@ export async function publishPresidentialCapture(
     revision: publication.manifest.revision,
     dataVersion: publication.manifest.current.dataVersion,
     publishedAt: publication.manifest.current.publishedAt,
+    checkedAt: publication.manifest.checkedAt,
     snapshot: publication.snapshot,
   }
 }

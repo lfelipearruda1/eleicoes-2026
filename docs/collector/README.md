@@ -127,7 +127,7 @@ pnpm collector:president:publish \
 5. Publica pelo publicador local. Dentro do bloqueio, compara o conteúdo com a versão atual sem `dataVersion` e `collectedAt`: igual → `unchanged`, sem UUID nem revisão novos. Diferente (inclusive com votos menores) → versão nova.
 6. Relê manifesto e snapshot com o schema de leitura e imprime status, revisão, `dataVersion` e o snapshot lido.
 
-`sourceEnvironment` vem da captura, não de argumento. `source.file` é o caminho do arquivo relativo à base do ambiente (`ele2026/6258/dados/br/br-c0001-e006258-u.json`) e não é usado como caminho local. `checkedAt` continua ausente.
+`sourceEnvironment` vem da captura, não de argumento. `source.file` é o caminho do arquivo relativo à base do ambiente (`ele2026/6258/dados/br/br-c0001-e006258-u.json`) e não é usado como caminho local. `checkedAt` só é gravado a partir de captura oficial cujo conteúdo eleitoral não mudou (status `checked`, revisão seguinte, mesma versão); ver [contrato.md](../dados/contrato.md#horários-do-manifesto-recorte-da-dp-14).
 
 `president-demo` usa as capturas sintéticas versionadas em `apps/collector/fixtures/president-synthetic/` (não iniciada, aguardando liberação, parcial, parcial repetida, parcial atualizada, inválida) num canal `demo-sintetico-presidente-br-2t` dentro de uma pasta `eleicoes-demo-*` nova (padrão: diretório temporário do sistema).
 

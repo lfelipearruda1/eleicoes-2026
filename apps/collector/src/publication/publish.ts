@@ -33,10 +33,11 @@ export interface PublishRequest {
 export type PublishDocumentRequest = Omit<PublishRequest, 'inputPath'> & {
   document: unknown
   isUnchanged?: (current: PresidentialSnapshot) => boolean
+  checkedAt?: string
 }
 
 export interface PublishResult {
-  status: 'published' | 'unchanged'
+  status: 'published' | 'checked' | 'unchanged'
   channelDirectory: string
   manifest: Manifest
 }
@@ -72,6 +73,36 @@ function validateDocument(document: unknown): PresidentialSnapshot {
   return parsed.data
 }
 
+async function recordCheck(
+  channelDirectory: string,
+  previous: Manifest,
+  current: PresidentialSnapshot,
+  request: PublishDocumentRequest,
+): Promise<PublishResult> {
+  const latestCheck = previous.checkedAt ?? current.collectedAt
+  if (
+    request.checkedAt === undefined ||
+    Date.parse(request.checkedAt) <= Date.parse(latestCheck)
+  ) {
+    return { status: 'unchanged', channelDirectory, manifest: previous }
+  }
+  const revision = previous.revision + 1
+  if (!Number.isSafeInteger(revision)) {
+    throw new CollectorError('REVISION_LIMIT', String(previous.revision))
+  }
+  const manifest = publishManifestSchema.parse({
+    ...previous,
+    revision,
+    checkedAt: request.checkedAt,
+  })
+  await request.beforeManifestSwap?.()
+  await replaceFile(
+    path.join(channelDirectory, MANIFEST_FILE),
+    serialize(manifest),
+  )
+  return { status: 'checked', channelDirectory, manifest }
+}
+
 export async function publishSnapshot({
   inputPath,
   ...request
@@ -105,11 +136,12 @@ export async function publishDocument(
     if (contextMismatches.length > 0) {
       throw new CollectorError('CHANNEL_MISMATCH', contextMismatches.join(', '))
     }
-    if (
+    const current =
       previous &&
-      request.isUnchanged?.(await loadSnapshot(channelDirectory, previous))
-    ) {
-      return { status: 'unchanged', channelDirectory, manifest: previous }
+      request.isUnchanged &&
+      (await loadSnapshot(channelDirectory, previous))
+    if (previous && current && request.isUnchanged?.(current)) {
+      return recordCheck(channelDirectory, previous, current, request)
     }
 
     const content = serialize(snapshot)
