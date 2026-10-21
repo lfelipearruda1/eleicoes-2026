@@ -23,3 +23,8 @@ export {
   VOTE_DESTINATIONS,
   type ResultSnapshot,
 } from './contract/result.js'
+export {
+  publishUfSummarySchema,
+  readUfSummarySchema,
+  type UfSummarySnapshot,
+} from './contract/ufSummary.js'

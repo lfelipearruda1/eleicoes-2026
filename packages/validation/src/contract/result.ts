@@ -3,9 +3,9 @@ import { z } from 'zod'
 import { RULE_MESSAGES } from './constants.js'
 import { checkContextRules, envelopeShape, sourceShape } from './envelope.js'
 
-const countSchema = z.string().regex(/^(0|[1-9]\d*)$/)
-const sourceIdSchema = z.string().regex(/^\d+$/)
-const percentageSchema = z.string().regex(/^\d{1,3}\.\d{2}$/)
+export const countSchema = z.string().regex(/^(0|[1-9]\d*)$/)
+export const sourceIdSchema = z.string().regex(/^\d+$/)
+export const percentageSchema = z.string().regex(/^\d{1,3}\.\d{2}$/)
 const sourceClockSchema = {
   date: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/),
   time: z.string().regex(/^\d{2}:\d{2}:\d{2}$/),

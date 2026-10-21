@@ -21,6 +21,7 @@ export const HELP = `Uso: collector <comando> [opções]
               [--office president|governor] [--scope br|<uf>]
   tse-watch   --source official --round <1|2> --output <pasta> --publications <pasta>
               [--channel-prefix oficial] [--interval-ms 30000] [--once]
+  summary-publish --publications <pasta> --prefix <prefixo> --round <1|2>
   tse-replay  --input <arquivo EA20> --output <pasta>`
 
 export const TSE_SOURCES = {

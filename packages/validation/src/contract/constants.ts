@@ -49,4 +49,5 @@ export const RULE_MESSAGES = {
   pendingReasonMismatch: 'pendingReason não corresponde aos indicadores',
   sectionsOverTotal: 'seções totalizadas passam do total',
   duplicateCandidate: 'candidatura repetida',
+  duplicateScope: 'UF repetida no resumo',
 } as const

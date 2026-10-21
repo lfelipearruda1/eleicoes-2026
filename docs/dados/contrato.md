@@ -291,3 +291,16 @@ Manifesto recebido, snapshot carregado e estado aceito são três coisas distint
   }
 }
 ```
+
+## Resumo por UF para o mapa (20/10/2026)
+
+Implementação: `packages/validation/src/contract/ufSummary.ts` (`publishUfSummarySchema`, `readUfSummarySchema`). Publicado no canal `<prefixo>-mapa-presidente-<turno>t` com o mesmo manifesto, revisão e versões imutáveis dos demais.
+
+| Campo              | Regra                                                                                                                                                                |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Envelope           | Igual ao dos snapshots, com `kind` `uf-summary`, `office` `president`, `scope` `BR` e `availability` `available`                                                     |
+| `collectedAt`      | A coleta mais antiga entre as UFs incluídas                                                                                                                          |
+| `ufs[]`            | Uma entrada por UF publicada, sem repetição e nunca `BR`: `scope`, `dataVersion` e `collectedAt` do snapshot da UF, `availability`, `totalizationStatus`, `sections` |
+| `ufs[].candidates` | `pending`: só `candidateId`. `available`: `candidateId`, `votes`, `contestantVotesPercentage` e `voteDestination` opcional, copiados do snapshot da UF               |
+
+O resumo não decide quem lidera: o web aplica a mesma regra do painel. UF ausente do resumo é "dados indisponíveis".

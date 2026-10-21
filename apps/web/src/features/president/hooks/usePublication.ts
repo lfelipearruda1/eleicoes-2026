@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { assessFreshness, nextFreshnessChangeAt } from '../freshness.ts'
+import type { ResultSnapshot, SnapshotEnvelope } from '@eleicoes/validation'
+
 import {
   readPublication,
   type AcceptedPublication,
   type RejectionReason,
+  type SnapshotSchema,
 } from '../publication.ts'
 import type { ChannelSource } from '../resultsConfig.ts'
 
@@ -18,27 +21,29 @@ export interface UpdateFailure {
   at: Date
 }
 
-interface ChannelRead {
+interface ChannelRead<T extends SnapshotEnvelope> {
   channel: string
-  accepted?: AcceptedPublication
+  accepted?: AcceptedPublication<T>
   failure?: UpdateFailure
   lastReadAt?: Date
 }
 
-export function usePublication({
+export function usePublication<T extends SnapshotEnvelope = ResultSnapshot>({
   source,
   staleAfterMs,
   intervalMs = LOCAL_POLL_INTERVAL_MS,
   fetcher = fetch,
   stopWhenMissing = false,
+  schema,
 }: {
   source: ChannelSource | undefined
   staleAfterMs: number
   intervalMs?: number
   fetcher?: typeof fetch
   stopWhenMissing?: boolean
+  schema?: SnapshotSchema<T>
 }) {
-  const [read, setRead] = useState<ChannelRead>()
+  const [read, setRead] = useState<ChannelRead<T>>()
   const [isLoading, setIsLoading] = useState(false)
   const [isChecking, setIsChecking] = useState(false)
   const [nowMs, setNowMs] = useState(() => Date.now())
@@ -51,7 +56,7 @@ export function usePublication({
   useEffect(() => {
     if (!source) return
     const { channel } = source
-    const update = (change: Omit<ChannelRead, 'channel'>) =>
+    const update = (change: Omit<ChannelRead<T>, 'channel'>) =>
       setRead((previous) => ({
         ...(previous?.channel === channel ? previous : {}),
         channel,
@@ -61,7 +66,7 @@ export function usePublication({
     let stopped = false
     let inFlight: AbortController | undefined
     let timer: ReturnType<typeof setTimeout> | undefined
-    let current: AcceptedPublication | undefined
+    let current: AcceptedPublication<T> | undefined
 
     const schedule = () => {
       clearTimeout(timer)
@@ -84,6 +89,7 @@ export function usePublication({
           controller.signal,
           source,
           fetcher,
+          schema,
         )
         if (controller.signal.aborted) return
         setNowMs(Date.now())
@@ -135,7 +141,7 @@ export function usePublication({
       document.removeEventListener('visibilitychange', onVisibilityChange)
       attemptRef.current = () => {}
     }
-  }, [source, intervalMs, fetcher, stopWhenMissing])
+  }, [source, intervalMs, fetcher, stopWhenMissing, schema])
 
   const freshness = accepted && assessFreshness(accepted, nowMs, staleAfterMs)
   const changesAt = freshness && nextFreshnessChangeAt(freshness, staleAfterMs)

@@ -1,5 +1,6 @@
+import type { Manifest } from '@eleicoes/validation'
+
 import { formatDuration } from './format.ts'
-import type { AcceptedPublication } from './publication.ts'
 
 export type FreshnessReference = 'checkedAt' | 'collectedAt'
 
@@ -11,7 +12,7 @@ export interface Freshness {
 }
 
 export function assessFreshness(
-  publication: AcceptedPublication,
+  publication: { manifest: Manifest; snapshot: { collectedAt: string } },
   nowMs: number,
   staleAfterMs: number,
 ): Freshness {

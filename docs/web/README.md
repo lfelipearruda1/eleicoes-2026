@@ -17,7 +17,7 @@ Implementação:
 
 Diferenças em relação ao protótipo, por falta de dado no contrato:
 
-- **Mapa e lista:** o mapa ainda não tem resultado por UF: as 27 UFs aparecem como "Indisponível" (hachura do protótipo) e a lista mostra "Indisp.". Abrir uma UF mostra "Presidente em <UF>" com o resultado do canal da UF e, só nas UFs que têm canal de governador, "Governador em <UF>" logo abaixo. Nas demais, nenhum card ou mensagem de governador (desde 20/10/2026).
+- **Mapa e lista:** desde 20/10/2026 o mapa lê o resumo por UF (`<prefixo>-mapa-presidente-<turno>t`, um canal só). Cada UF presente no resumo é pintada com a cor da candidatura à frente, pela mesma regra do painel (votos anulados não contam); empate ou UF sem votos apurados em cinza ("Sem candidatura à frente" aparece na legenda só quando há UF nesse estado); UF aguardando votos ou fora do resumo continua com a hachura de "Indisponível". O texto acessível, o tooltip (nome e "à frente com X%") e a lista (percentual de cada candidatura e barra) usam os percentuais copiados do resumo. Abrir uma UF mostra "Presidente em <UF>" e, só nas UFs que têm canal de governador, "Governador em <UF>" logo abaixo.
 - **Cores:** vermelho e azul do protótipo vão para a 1ª e a 2ª candidatura na ordem do contrato (`candidateId`); demais em cinza. Não dependem do nome.
 - **Círculo da candidatura:** sem a palavra "Foto", porque o contrato não tem fotos. Quem tem mais votos recebe o anel cheio do protótipo; não há selo de eleito.
 - **Diferença em p.p.:** subtração exata dos percentuais publicados, descrita como "nos votos a candidaturas concorrentes" (a base do contrato), não "votos válidos".
@@ -84,7 +84,7 @@ Sirva `web-dist` em `127.0.0.1:4173` e `publications` em `127.0.0.1:4174` com `A
 - **Brasil:** lê só o canal nacional de presidente e mostra só o card "Presidente".
 - **UF aberta:** lê o canal de presidente da UF; cabeçalho (seções apuradas), avisos e rodapé passam a ser os da UF. Lê também o canal de governador da UF: se ele existir, o card "Governador em <UF>" aparece abaixo do de presidente; se o manifesto não existir (404), nada é mostrado e esse canal deixa de ser consultado enquanto a UF estiver aberta (volta a ser consultado ao reabrir a UF ou ao voltar à aba). Nenhuma lista de UFs com governador fica no código: quem decide é a existência do canal, publicado pelo coletor a partir do EA11.
 - **Troca de UF:** o estado de cada leitura é do canal a que pertence; ao trocar, o card da UF anterior não aparece sob o nome da nova.
-- **Mapa:** continua com as cores de legenda do resultado nacional e sem resultado por UF (próximo passo: resumo por UF publicado pelo coletor).
+- **Mapa:** lê só o canal do resumo por UF (uma consulta, não 27). As cores da legenda continuam vindo do resultado nacional.
 
 ## Atualidade dos dados
 

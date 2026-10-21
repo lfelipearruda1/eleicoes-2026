@@ -8,6 +8,7 @@ import {
   type Manifest,
   type ManifestUpdateDecision,
   type ResultSnapshot,
+  type SnapshotEnvelope,
 } from '@eleicoes/validation'
 
 import { MANIFEST_FILE } from '../constants.js'
@@ -46,12 +47,17 @@ export async function readManifest(
   return manifest
 }
 
-export async function loadSnapshot(
+export interface SnapshotSchema<T> {
+  parse: (value: unknown) => T
+}
+
+export async function loadSnapshot<T extends SnapshotEnvelope = ResultSnapshot>(
   channelDirectory: string,
   manifest: Manifest,
-): Promise<ResultSnapshot> {
+  schema: SnapshotSchema<T> = readResultSnapshotSchema as unknown as SnapshotSchema<T>,
+): Promise<T> {
   const snapshotPath = path.join(channelDirectory, manifest.current.path)
-  const snapshot = await readValidJson(snapshotPath, readResultSnapshotSchema)
+  const snapshot = await readValidJson(snapshotPath, schema)
   if (snapshot === undefined) {
     throw new CollectorError('NOT_FOUND', snapshotPath)
   }
@@ -62,7 +68,9 @@ export async function loadSnapshot(
   return snapshot
 }
 
-export async function readPublication(root: string, channel: string) {
+export async function readPublication<
+  T extends SnapshotEnvelope = ResultSnapshot,
+>(root: string, channel: string, schema?: SnapshotSchema<T>) {
   const channelDirectory = await resolveChannelDirectory(root, channel, false)
   const manifest = await readManifest(channelDirectory, channel)
   if (manifest === undefined) {
@@ -71,7 +79,7 @@ export async function readPublication(root: string, channel: string) {
       path.join(channelDirectory, MANIFEST_FILE),
     )
   }
-  const snapshot = await loadSnapshot(channelDirectory, manifest)
+  const snapshot = await loadSnapshot<T>(channelDirectory, manifest, schema)
   return { channelDirectory, manifest, snapshot }
 }
 

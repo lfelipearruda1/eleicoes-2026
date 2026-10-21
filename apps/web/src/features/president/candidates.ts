@@ -42,14 +42,21 @@ const VOTES_LABEL: Record<VoteDestination, string> = {
 const isAnnulled = (destination: VoteDestination | undefined) =>
   destination === 'annulled' || destination === 'annulled_sub_judice'
 
-const toneAt = (index: number): CandidateTone =>
+interface VotedCandidate {
+  candidateId: string
+  votes: string
+  contestantVotesPercentage: string
+  voteDestination?: VoteDestination
+}
+
+export const toneAt = (index: number): CandidateTone =>
   index === 0 ? 'candidate1' : index === 1 ? 'candidate2' : 'other'
 
 const toHundredths = (value: string) => Number(value.replace('.', ''))
 const fromHundredths = (value: number) => (value / 100).toFixed(2)
 
-function aheadId(snapshot: AvailableSnapshot) {
-  const ordered = snapshot.candidates
+export function leadingCandidateId(candidates: VotedCandidate[]) {
+  const ordered = candidates
     .filter((candidate) => !isAnnulled(candidate.voteDestination))
     .toSorted((a, b) =>
       BigInt(b.votes) > BigInt(a.votes)
@@ -91,20 +98,7 @@ export function summarizeCandidates(
     }
   }
 
-  const ahead = aheadId(snapshot)
-  let offset = 0
-  const segments = snapshot.candidates.map((candidate, index) => {
-    const width = toHundredths(candidate.contestantVotesPercentage)
-    const segment = {
-      key: candidate.candidateId,
-      tone: toneAt(index),
-      start: fromHundredths(offset),
-      width: fromHundredths(width),
-      dim: false,
-    }
-    offset += width
-    return segment
-  })
+  const ahead = leadingCandidateId(snapshot.candidates)
   return {
     rows: snapshot.candidates.map((candidate, index) => ({
       candidateId: candidate.candidateId,
@@ -118,9 +112,25 @@ export function summarizeCandidates(
       }`,
       isAhead: candidate.candidateId === ahead,
     })),
-    segments,
+    segments: percentageSegments(snapshot.candidates),
     note: differenceNote(snapshot.candidates),
   }
+}
+
+export function percentageSegments(candidates: VotedCandidate[]): BarSegment[] {
+  let offset = 0
+  return candidates.map((candidate, index) => {
+    const width = toHundredths(candidate.contestantVotesPercentage)
+    const segment = {
+      key: candidate.candidateId,
+      tone: toneAt(index),
+      start: fromHundredths(offset),
+      width: fromHundredths(width),
+      dim: false,
+    }
+    offset += width
+    return segment
+  })
 }
 
 const PERCENTAGE_BASE =

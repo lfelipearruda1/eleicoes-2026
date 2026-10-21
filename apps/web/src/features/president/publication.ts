@@ -6,13 +6,20 @@ import {
   snapshotPathFor,
   type Manifest,
   type ResultSnapshot,
+  type SnapshotEnvelope,
 } from '@eleicoes/validation'
 
 import { resolveInChannel, type ChannelSource } from './resultsConfig.ts'
 
-export interface AcceptedPublication {
+export interface AcceptedPublication<
+  T extends SnapshotEnvelope = ResultSnapshot,
+> {
   manifest: Manifest
-  snapshot: ResultSnapshot
+  snapshot: T
+}
+
+export interface SnapshotSchema<T> {
+  safeParse: (value: unknown) => { success: boolean; data?: T }
 }
 
 export type RejectionReason =
@@ -27,8 +34,8 @@ export type RejectionReason =
   | 'invalid_snapshot'
   | 'snapshot_mismatch'
 
-export type PublicationRead =
-  | { outcome: 'accepted'; publication: AcceptedPublication }
+export type PublicationRead<T extends SnapshotEnvelope = ResultSnapshot> =
+  | { outcome: 'accepted'; publication: AcceptedPublication<T> }
   | { outcome: 'same' }
   | { outcome: 'rejected'; reason: RejectionReason }
 
@@ -57,12 +64,15 @@ async function fetchJson(
   }
 }
 
-export async function readPublication(
-  accepted: AcceptedPublication | undefined,
+export async function readPublication<
+  T extends SnapshotEnvelope = ResultSnapshot,
+>(
+  accepted: AcceptedPublication<T> | undefined,
   signal: AbortSignal,
   source: ChannelSource,
   fetcher: Fetch = fetch,
-): Promise<PublicationRead> {
+  schema: SnapshotSchema<T> = readResultSnapshotSchema as SnapshotSchema<T>,
+): Promise<PublicationRead<T>> {
   const manifestUrl = resolveInChannel(source, 'manifest.json')
   if (!manifestUrl) return { outcome: 'rejected', reason: 'invalid_manifest' }
   const manifestResponse = await fetchJson(fetcher, manifestUrl, signal)
@@ -108,9 +118,9 @@ export async function readPublication(
   }
   const snapshot =
     snapshotResponse.status === 'ok'
-      ? readResultSnapshotSchema.safeParse(snapshotResponse.body)
+      ? schema.safeParse(snapshotResponse.body)
       : undefined
-  if (!snapshot?.success) {
+  if (!snapshot?.success || snapshot.data === undefined) {
     return { outcome: 'rejected', reason: 'invalid_snapshot' }
   }
   if (findSnapshotMismatches(manifest.data, snapshot.data).length > 0) {

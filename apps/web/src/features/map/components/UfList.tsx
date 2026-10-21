@@ -1,15 +1,18 @@
 import { SegmentBar } from '../../president/components/SegmentBar.tsx'
+import type { UfMapResult } from '../ufResults.ts'
 import { UFS } from '../ufs.ts'
 import styles from './UfList.module.css'
 
 interface UfListProps {
   candidateNames: { candidateId: string; ballotName: string }[]
+  results: Record<string, UfMapResult>
   selectedUf: string | undefined
   onSelectUf: (code: string) => void
 }
 
 export function UfList({
   candidateNames,
+  results,
   selectedUf,
   onSelectUf,
 }: UfListProps) {
@@ -38,18 +41,21 @@ export function UfList({
           key={uf.code}
           type="button"
           role="row"
-          aria-label={`${uf.name}: dados indisponíveis`}
+          aria-label={`${uf.name}: ${results[uf.code]?.description ?? 'dados indisponíveis'}`}
           onClick={() => onSelectUf(uf.code)}
           className={`${styles.row} ${uf.code === selectedUf ? styles.rowSelected : ''}`}
         >
           <span className={styles.code}>{uf.code}</span>
           <span className={styles.name}>{uf.name}</span>
           <span className={styles.barCell}>
-            <SegmentBar size="thin" segments={[]} />
+            <SegmentBar
+              size="thin"
+              segments={results[uf.code]?.segments ?? []}
+            />
           </span>
           {candidateNames.map((candidate) => (
             <span key={candidate.candidateId} className={styles.value}>
-              Indisp.
+              {results[uf.code]?.values[candidate.candidateId] ?? 'Indisp.'}
             </span>
           ))}
         </button>

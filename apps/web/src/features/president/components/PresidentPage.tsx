@@ -1,13 +1,19 @@
+import { readUfSummarySchema } from '@eleicoes/validation'
 import { useMemo } from 'react'
 
 import { useUfRoute } from '../../map/hooks/useUfRoute.ts'
 import { MapSection } from '../../map/components/MapSection.tsx'
+import { describeUfResults } from '../../map/ufResults.ts'
 import { findUf } from '../../map/ufs.ts'
 import { summarizeCandidates } from '../candidates.ts'
 import { formatClockTime, formatInstant } from '../format.ts'
 import { describeFreshness } from '../freshness.ts'
 import { usePublication } from '../hooks/usePublication.ts'
-import { channelSource, type ResultsEndpoint } from '../resultsConfig.ts'
+import {
+  channelSource,
+  summarySource,
+  type ResultsEndpoint,
+} from '../resultsConfig.ts'
 import {
   describeHeaderStatus,
   PROVENANCE,
@@ -38,6 +44,7 @@ export function PresidentPage({
     const code = findUf(selected)?.code
     return {
       national: channelSource(endpoint, 'president', 'BR'),
+      summary: summarySource(endpoint),
       president: code && channelSource(endpoint, 'president', code),
       governor: code && channelSource(endpoint, 'governor', code),
     }
@@ -46,6 +53,12 @@ export function PresidentPage({
     source: sources.national,
     staleAfterMs,
     fetcher,
+  })
+  const ufSummary = usePublication({
+    source: sources.summary,
+    staleAfterMs,
+    fetcher,
+    schema: readUfSummarySchema,
   })
   const ufPresident = usePublication({
     source: sources.president || undefined,
@@ -92,6 +105,10 @@ export function PresidentPage({
       <main className={styles.main}>
         <MapSection
           candidates={nationalSummary?.rows ?? []}
+          ufResults={describeUfResults(
+            ufSummary.accepted?.snapshot,
+            nationalSummary?.rows ?? [],
+          )}
           selectedUf={selected}
           onSelectUf={select}
         />

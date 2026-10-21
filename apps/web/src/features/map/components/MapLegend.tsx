@@ -3,8 +3,10 @@ import styles from './MapLegend.module.css'
 
 export function MapLegend({
   candidates,
+  showUndecided,
 }: {
   candidates: { candidateId: string; ballotName: string; tone: CandidateTone }[]
+  showUndecided: boolean
 }) {
   return (
     <ul aria-label="Legenda" className={styles.legend}>
@@ -17,6 +19,15 @@ export function MapLegend({
           {candidate.ballotName}
         </li>
       ))}
+      {showUndecided && (
+        <li className={styles.item}>
+          <span
+            aria-hidden="true"
+            className={`${styles.swatch} ${styles.undecided}`}
+          />
+          Sem candidatura à frente
+        </li>
+      )}
       <li className={styles.item}>
         <span
           aria-hidden="true"

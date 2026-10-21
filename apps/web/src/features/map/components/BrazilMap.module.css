@@ -81,3 +81,19 @@
     font-size: 20.8px;
   }
 }
+
+.candidate1 {
+  @apply fill-candidate-1;
+}
+
+.candidate2 {
+  @apply fill-candidate-2;
+}
+
+.other {
+  @apply fill-dim;
+}
+
+.undecided {
+  @apply fill-line;
+}

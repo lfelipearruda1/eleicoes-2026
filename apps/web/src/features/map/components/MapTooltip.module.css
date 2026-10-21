@@ -22,5 +22,21 @@
 }
 
 .line {
-  @apply fill-muted text-[18.5px];
+  @apply fill-text text-[18.5px];
+}
+
+.detail {
+  @apply fill-muted text-[16px];
+}
+
+.candidate1 {
+  @apply fill-candidate-1;
+}
+
+.candidate2 {
+  @apply fill-candidate-2;
+}
+
+.other {
+  @apply fill-dim;
 }

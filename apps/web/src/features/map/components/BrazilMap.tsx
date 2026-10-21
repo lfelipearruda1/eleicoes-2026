@@ -1,10 +1,12 @@
 import { useState } from 'react'
 
+import type { UfMapResult } from '../ufResults.ts'
 import { CALLOUTS, MAP_GEOMETRY, UFS, type Uf } from '../ufs.ts'
 import styles from './BrazilMap.module.css'
 import { MapTooltip } from './MapTooltip.tsx'
 
 interface BrazilMapProps {
+  results: Record<string, UfMapResult>
   selectedUf: string | undefined
   onSelectUf: (code: string) => void
 }
@@ -12,7 +14,11 @@ interface BrazilMapProps {
 const cx = (...names: (string | false | undefined)[]) =>
   names.filter(Boolean).join(' ')
 
-const describe = (uf: Uf) => `${uf.name} (${uf.code}): dados indisponíveis`
+const describeUf = (uf: Uf, result: UfMapResult | undefined) =>
+  `${uf.name} (${uf.code}): ${result?.description ?? 'dados indisponíveis'}`
+
+const fillClass = (result: UfMapResult | undefined) =>
+  result?.tone ? styles[result.tone] : result?.undecided && styles.undecided
 
 function UfLabel({
   uf,
@@ -83,7 +89,7 @@ function UfLabel({
   )
 }
 
-export function BrazilMap({ selectedUf, onSelectUf }: BrazilMapProps) {
+export function BrazilMap({ results, selectedUf, onSelectUf }: BrazilMapProps) {
   const [hovered, setHovered] = useState<string>()
   const [focused, setFocused] = useState<string>()
   const tooltipUf = UFS.find((uf) => uf.code === (hovered ?? focused))
@@ -118,11 +124,12 @@ export function BrazilMap({ selectedUf, onSelectUf }: BrazilMapProps) {
             fill="url(#pat-na)"
             className={cx(
               styles.uf,
+              fillClass(results[uf.code]),
               selectedUf && selectedUf !== uf.code && styles.ufDimmed,
             )}
             tabIndex={0}
             role="button"
-            aria-label={describe(uf)}
+            aria-label={describeUf(uf, results[uf.code])}
             aria-pressed={selectedUf === uf.code}
             onClick={() => onSelectUf(uf.code)}
             onKeyDown={(event) => {
@@ -155,7 +162,9 @@ export function BrazilMap({ selectedUf, onSelectUf }: BrazilMapProps) {
           />
         ))}
       </g>
-      {tooltipUf && <MapTooltip uf={tooltipUf} />}
+      {tooltipUf && (
+        <MapTooltip uf={tooltipUf} result={results[tooltipUf.code]} />
+      )}
     </svg>
   )
 }

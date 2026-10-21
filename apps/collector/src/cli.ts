@@ -8,6 +8,7 @@ import { publishSnapshot } from './publication/publish.js'
 import { readPublication } from './publication/read.js'
 import { listSnapshots } from './publication/storage.js'
 import { runTseOnce, runTseReplay } from './tse/run.js'
+import { publishUfSummary } from './tse/summary.js'
 import { watchTse } from './tse/watch.js'
 
 type Options = Partial<
@@ -24,7 +25,8 @@ type Options = Partial<
     | 'scope'
     | 'publications'
     | 'channel-prefix'
-    | 'interval-ms',
+    | 'interval-ms'
+    | 'prefix',
     string
   >
 >
@@ -63,6 +65,7 @@ function parseCommandLine(argv: string[]) {
         'channel-prefix': { type: 'string' },
         'interval-ms': { type: 'string' },
         once: { type: 'boolean' },
+        prefix: { type: 'string' },
         help: { type: 'boolean', short: 'h' },
       },
     })
@@ -160,6 +163,18 @@ const commands = {
       process.off('SIGINT', stop)
       process.off('SIGTERM', stop)
     }
+  },
+  'summary-publish': async (options: Options) => {
+    const { publications, prefix, round } = requireOptions(
+      options,
+      'publications',
+      'prefix',
+      'round',
+    )
+    if (round !== '1' && round !== '2') {
+      throw new CollectorError('INVALID_ROUND', round)
+    }
+    return publishUfSummary({ publications, prefix, round: Number(round) })
   },
   'tse-replay': async (options: Options) => {
     const { input, output } = requireOptions(options, 'input', 'output')

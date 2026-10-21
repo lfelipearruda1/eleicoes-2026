@@ -190,6 +190,16 @@ export function readResultsConfig(
   return { status: 'ready', endpoint, staleAfterMs }
 }
 
+export function summarySource(endpoint: ResultsEndpoint): ChannelSource {
+  const channel = `${endpoint.channelPrefix}-mapa-presidente-${endpoint.round}t`
+  return {
+    channelRoot: new URL(`${channel}/`, endpoint.root),
+    channel,
+    office: 'president',
+    scope: 'BR',
+  }
+}
+
 export function resolveInChannel(
   source: ChannelSource,
   relativePath: string,

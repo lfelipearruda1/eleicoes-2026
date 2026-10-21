@@ -24,6 +24,10 @@
   @apply bg-dim;
 }
 
+.undecided {
+  @apply bg-line;
+}
+
 .unavailable {
   @apply bg-[repeating-linear-gradient(45deg,var(--color-surface)_0_2px,var(--color-dim)_2px_3.5px)];
 }

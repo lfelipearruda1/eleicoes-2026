@@ -8,12 +8,8 @@ import { MANIFEST_FILE } from '../../src/constants.js'
 import type { CollectorError } from '../../src/error.js'
 import { parseElectionConfig } from '../../src/tse/ea11.js'
 import type { Transport } from '../../src/tse/http.js'
-import {
-  channelFor,
-  listTargets,
-  watchTse,
-  type WatchEvent,
-} from '../../src/tse/watch.js'
+import { channelFor } from '../../src/tse/channels.js'
+import { listTargets, watchTse, type WatchEvent } from '../../src/tse/watch.js'
 
 const RESULT_PATH =
   /\/ele2026\/(\d+)\/dados\/([a-z]{2})\/[a-z]{2}-c(\d{4})-e\d{6}-u\.json$/
@@ -193,19 +189,16 @@ describe('channelFor', () => {
     expect(channel).toBe('oficial-governador-df-2t')
   })
 
-  it.each(['demo-x', 'Oficial', 'a/b', ''])(
-    'deve recusar o prefixo %j',
-    (prefix) => {
-      let error: CollectorError | undefined
-      try {
-        channelFor(prefix, { office: 'president', scope: 'br' }, 2)
-      } catch (caught) {
-        error = caught as CollectorError
-      }
+  it.each(['Oficial', 'a/b', ''])('deve recusar o prefixo %j', (prefix) => {
+    let error: CollectorError | undefined
+    try {
+      channelFor(prefix, { office: 'president', scope: 'br' }, 2)
+    } catch (caught) {
+      error = caught as CollectorError
+    }
 
-      expect(error?.code).toBe('INVALID_ARGUMENTS')
-    },
-  )
+    expect(error?.code).toBe('INVALID_ARGUMENTS')
+  })
 })
 
 describe('watchTse', () => {
@@ -228,6 +221,36 @@ describe('watchTse', () => {
       office: 'governor',
       scope: 'DF',
     })
+  })
+
+  it('deve publicar o resumo por UF no fim do ciclo', async () => {
+    const { transport } = fakeTse()
+
+    const { run, events } = watch(transport)
+    await run
+
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        event: 'summary',
+        status: 'published',
+        ufs: 27,
+      }),
+    )
+    expect(await manifest('oficial-mapa-presidente-2t')).toMatchObject({
+      office: 'president',
+      scope: 'BR',
+      revision: 1,
+    })
+  })
+
+  it('deve recusar prefixo de demonstração na coleta oficial', async () => {
+    const { transport, calls } = fakeTse()
+
+    const { run } = watch(transport, { channelPrefix: 'demo-x' })
+    const error = await run.catch((caught: CollectorError) => caught)
+
+    expect((error as CollectorError).code).toBe('INVALID_ARGUMENTS')
+    expect(calls).toEqual([])
   })
 
   it('deve registrar verificação sem versão nova quando a origem responde 304', async () => {

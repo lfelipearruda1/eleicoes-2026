@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import type { CandidateTone } from '../../president/candidates.ts'
+import type { UfMapResult } from '../ufResults.ts'
 import { BrazilMap } from './BrazilMap.tsx'
 import { MapLegend } from './MapLegend.tsx'
 import styles from './MapSection.module.css'
@@ -9,12 +10,14 @@ import { ViewToggle, type MapView } from './ViewToggle.tsx'
 
 interface MapSectionProps {
   candidates: { candidateId: string; ballotName: string; tone: CandidateTone }[]
+  ufResults: Record<string, UfMapResult>
   selectedUf: string | undefined
   onSelectUf: (code: string) => void
 }
 
 export function MapSection({
   candidates,
+  ufResults,
   selectedUf,
   onSelectUf,
 }: MapSectionProps) {
@@ -23,12 +26,21 @@ export function MapSection({
     <section aria-label="Mapa do Brasil" className={styles.section}>
       <div className={styles.toolbar}>
         <ViewToggle view={view} onChange={setView} />
-        <MapLegend candidates={candidates} />
+        <MapLegend
+          candidates={candidates}
+          showUndecided={Object.values(ufResults).some(
+            (result) => result.undecided,
+          )}
+        />
       </div>
       {view === 'map' ? (
         <>
           <div className={styles.mapWrap}>
-            <BrazilMap selectedUf={selectedUf} onSelectUf={onSelectUf} />
+            <BrazilMap
+              results={ufResults}
+              selectedUf={selectedUf}
+              onSelectUf={onSelectUf}
+            />
           </div>
           <p className={styles.hint}>
             Selecione uma UF para ver os resultados. O resultado nacional é a
@@ -38,6 +50,7 @@ export function MapSection({
       ) : (
         <UfList
           candidateNames={candidates}
+          results={ufResults}
           selectedUf={selectedUf}
           onSelectUf={onSelectUf}
         />

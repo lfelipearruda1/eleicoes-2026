@@ -1,6 +1,6 @@
 import { setTimeout as sleep } from 'node:timers/promises'
 
-import { BRAZILIAN_STATE_CODES, channelSchema } from '@eleicoes/validation'
+import { BRAZILIAN_STATE_CODES } from '@eleicoes/validation'
 
 import {
   DEMO_CHANNEL_PREFIX,
@@ -10,6 +10,8 @@ import {
 } from '../constants.js'
 import { CollectorError } from '../error.js'
 import { publishResultCapture } from '../president/publish.js'
+import { channelFor } from './channels.js'
+import { publishUfSummary } from './summary.js'
 import type { parseElectionConfig, ResultTarget } from './ea11.js'
 import type { Transport } from './http.js'
 import {
@@ -41,8 +43,6 @@ export interface WatchOptions {
   now?: () => Date
   log?: (event: WatchEvent) => void
 }
-
-const CHANNEL_OFFICE = { president: 'presidente', governor: 'governador' }
 
 const targetKey = (target: ResultTarget) => `${target.office}-${target.scope}`
 
@@ -80,24 +80,6 @@ export function listTargets(
       .filter((scope) => governorScopes.has(scope))
       .map((scope) => ({ office: 'governor' as const, scope })),
   ]
-}
-
-export function channelFor(
-  prefix: string,
-  target: ResultTarget,
-  round: number,
-): string {
-  const channel = `${prefix}-${CHANNEL_OFFICE[target.office]}-${target.scope}-${round}t`
-  if (
-    prefix.startsWith(DEMO_CHANNEL_PREFIX) ||
-    !channelSchema.safeParse(channel).success
-  ) {
-    throw new CollectorError(
-      'INVALID_ARGUMENTS',
-      `prefixo de canal "${prefix}" inválido: minúsculas, dígitos e hífens, sem "${DEMO_CHANNEL_PREFIX}"`,
-    )
-  }
-  return channel
 }
 
 interface CycleContext {
@@ -165,6 +147,15 @@ async function runCycle(context: CycleContext, cycle: number) {
       }
     }
   }
+  await publishUfSummary({
+    publications: context.publications,
+    prefix: context.prefix,
+    round,
+  })
+    .then((summary) => log({ event: 'summary', cycle, ...summary }))
+    .catch((error: unknown) =>
+      log({ event: 'summary_failed', cycle, code: codeOf(error) }),
+    )
   return { status: 'completed' as const, counts }
 }
 
@@ -175,6 +166,12 @@ export async function watchTse(options: WatchOptions) {
   const source = parseSource(options.source)
   const round = parseRound(options.round)
   const prefix = options.channelPrefix ?? TSE_WATCH_DEFAULTS.channelPrefix
+  if (prefix.startsWith(DEMO_CHANNEL_PREFIX)) {
+    throw new CollectorError(
+      'INVALID_ARGUMENTS',
+      `a coleta oficial não publica em canal com o prefixo "${DEMO_CHANNEL_PREFIX}"`,
+    )
+  }
   channelFor(prefix, { office: 'president', scope: TSE_NATIONAL_SCOPE }, round)
   const intervalMs = options.intervalMs ?? TSE_WATCH_DEFAULTS.intervalMs
   const blockPauseMs = options.blockPauseMs ?? TSE_WATCH_DEFAULTS.blockPauseMs

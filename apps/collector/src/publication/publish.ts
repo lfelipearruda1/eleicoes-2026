@@ -4,10 +4,13 @@ import {
   findSnapshotMismatches,
   publishManifestSchema,
   publishResultSnapshotSchema,
+  readResultSnapshotSchema,
   snapshotPathFor,
   type Manifest,
   type ResultSnapshot,
+  type SnapshotEnvelope,
 } from '@eleicoes/validation'
+import type { z } from 'zod'
 
 import { MANIFEST_FILE } from '../constants.js'
 import { CollectorError } from '../error.js'
@@ -30,9 +33,22 @@ export interface PublishRequest {
   beforeManifestSwap?: () => Promise<void>
 }
 
-export type PublishDocumentRequest = Omit<PublishRequest, 'inputPath'> & {
+export interface DocumentSchemas<T extends SnapshotEnvelope> {
+  publish: z.ZodType<T>
+  read: z.ZodType<T>
+}
+
+export const RESULT_SCHEMAS: DocumentSchemas<ResultSnapshot> = {
+  publish: publishResultSnapshotSchema,
+  read: readResultSnapshotSchema,
+}
+
+export type PublishDocumentRequest<
+  T extends SnapshotEnvelope = ResultSnapshot,
+> = Omit<PublishRequest, 'inputPath'> & {
   document: unknown
-  isUnchanged?: (current: ResultSnapshot) => boolean
+  schemas?: DocumentSchemas<T>
+  isUnchanged?: (current: T) => boolean
   checkedAt?: string
   checkedAtMinIntervalMs?: number
 }
@@ -59,8 +75,11 @@ async function readInput(inputPath: string): Promise<unknown> {
   }
 }
 
-function validateDocument(document: unknown): ResultSnapshot {
-  const parsed = publishResultSnapshotSchema.safeParse(document)
+function validateDocument<T extends SnapshotEnvelope>(
+  document: unknown,
+  schemas: DocumentSchemas<T>,
+): T {
+  const parsed = schemas.publish.safeParse(document)
   if (!parsed.success) {
     const fields = parsed.error.issues.map((issue) => issue.path.join('.'))
     throw new CollectorError(
@@ -74,11 +93,11 @@ function validateDocument(document: unknown): ResultSnapshot {
   return parsed.data
 }
 
-async function recordCheck(
+async function recordCheck<T extends SnapshotEnvelope>(
   channelDirectory: string,
   previous: Manifest,
-  current: ResultSnapshot,
-  request: PublishDocumentRequest,
+  current: T,
+  request: PublishDocumentRequest<T>,
 ): Promise<PublishResult> {
   const latestCheck = previous.checkedAt ?? current.collectedAt
   const minIntervalMs = request.checkedAtMinIntervalMs ?? 0
@@ -113,10 +132,12 @@ export async function publishSnapshot({
   return publishDocument({ ...request, document: await readInput(inputPath) })
 }
 
-export async function publishDocument(
-  request: PublishDocumentRequest,
-): Promise<PublishResult> {
-  const snapshot = validateDocument(request.document)
+export async function publishDocument<
+  T extends SnapshotEnvelope = ResultSnapshot,
+>(request: PublishDocumentRequest<T>): Promise<PublishResult> {
+  const schemas = (request.schemas ??
+    RESULT_SCHEMAS) as unknown as DocumentSchemas<T>
+  const snapshot = validateDocument(request.document, schemas)
   const channelDirectory = await resolveChannelDirectory(
     request.root,
     request.channel,
@@ -142,7 +163,7 @@ export async function publishDocument(
     const current =
       previous &&
       request.isUnchanged &&
-      (await loadSnapshot(channelDirectory, previous))
+      (await loadSnapshot(channelDirectory, previous, schemas.read))
     if (previous && current && request.isUnchanged?.(current)) {
       return recordCheck(channelDirectory, previous, current, request)
     }
@@ -184,7 +205,7 @@ export async function publishDocument(
         publishedAt: (request.now?.() ?? new Date()).toISOString(),
       },
     })
-    await loadSnapshot(channelDirectory, manifest)
+    await loadSnapshot(channelDirectory, manifest, schemas.read)
     await request.beforeManifestSwap?.()
     await replaceFile(
       path.join(channelDirectory, MANIFEST_FILE),
