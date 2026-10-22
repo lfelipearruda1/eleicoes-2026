@@ -38,6 +38,23 @@ jobs:
       name: homologacao
       url: https://homologacao.eleicaobrasil2026.com.br
     steps:
+      - name: Conferir a configuração do ambiente
+        env:
+          RESULTS_BASE_URL: ${{ vars.RESULTS_BASE_URL }}
+          RESULTS_CHANNEL: ${{ vars.RESULTS_CHANNEL }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          HAS_CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+        run: |
+          missing=()
+          [[ -n "$RESULTS_BASE_URL" ]] || missing+=(RESULTS_BASE_URL)
+          [[ -n "$RESULTS_CHANNEL" ]] || missing+=(RESULTS_CHANNEL)
+          [[ -n "$CLOUDFLARE_ACCOUNT_ID" ]] || missing+=(CLOUDFLARE_ACCOUNT_ID)
+          [[ "$HAS_CLOUDFLARE_TOKEN" == true ]] || missing+=(CLOUDFLARE_API_TOKEN)
+          if ((${#missing[@]})); then
+            echo "::error::Configuração ausente no GitHub: ${missing[*]}"
+            exit 1
+          fi
+
       - name: Checkout do commit verificado (actions/checkout v7.0.1)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -80,7 +97,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: >-
           pnpm dlx "wrangler@${WRANGLER_VERSION}" deploy
-          --config "$WRANGLER_CONFIG"
+          --config "$WRANGLER_CONFIG" --env ""
           --message "commit ${COMMIT_SHA}"
 
       - name: Conferir o site publicado
@@ -107,7 +124,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   site-producao:
-    if: github.event_name == 'workflow_dispatch' && inputs.alvo == 'site-producao'
+    if: github.event_name == 'workflow_dispatch' && inputs.alvo == 'site-producao' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     concurrency:
@@ -117,6 +134,23 @@ jobs:
       name: producao
       url: https://eleicaobrasil2026.com.br
     steps:
+      - name: Conferir a configuração do ambiente
+        env:
+          RESULTS_BASE_URL: ${{ vars.RESULTS_BASE_URL }}
+          RESULTS_CHANNEL: ${{ vars.RESULTS_CHANNEL }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          HAS_CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+        run: |
+          missing=()
+          [[ -n "$RESULTS_BASE_URL" ]] || missing+=(RESULTS_BASE_URL)
+          [[ -n "$RESULTS_CHANNEL" ]] || missing+=(RESULTS_CHANNEL)
+          [[ -n "$CLOUDFLARE_ACCOUNT_ID" ]] || missing+=(CLOUDFLARE_ACCOUNT_ID)
+          [[ "$HAS_CLOUDFLARE_TOKEN" == true ]] || missing+=(CLOUDFLARE_API_TOKEN)
+          if ((${#missing[@]})); then
+            echo "::error::Configuração ausente no GitHub: ${missing[*]}"
+            exit 1
+          fi
+
       - name: Checkout (actions/checkout v7.0.1)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
