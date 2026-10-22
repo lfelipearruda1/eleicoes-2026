@@ -1,11 +1,11 @@
 @reference '../../../index.css';
 
 .ring {
-  @apply relative size-[52px] flex-none rounded-full border-2 border-solid bg-surface;
+  @apply relative size-[52px] flex-none rounded-full border-2 border-solid border-text bg-surface;
 }
 
 .ahead {
-  @apply border-0 p-0.5;
+  @apply border-0 bg-text p-0.5;
 }
 
 .inner {
@@ -14,28 +14,4 @@
 
 .photo {
   @apply absolute inset-0.5 size-[calc(100%-4px)] rounded-full object-cover object-top;
-}
-
-.candidate1 {
-  @apply border-candidate-1;
-}
-
-.candidate2 {
-  @apply border-candidate-2;
-}
-
-.other {
-  @apply border-dim;
-}
-
-.ahead.candidate1 {
-  @apply bg-candidate-1;
-}
-
-.ahead.candidate2 {
-  @apply bg-candidate-2;
-}
-
-.ahead.other {
-  @apply bg-dim;
 }

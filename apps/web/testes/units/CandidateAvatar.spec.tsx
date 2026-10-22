@@ -43,7 +43,6 @@ describe('CandidateAvatar', () => {
   it('deve mostrar a foto dentro do anel da candidatura', () => {
     const { container } = render(
       <CandidateAvatar
-        tone="candidate1"
         isAhead={false}
         photoUrl="https://dados.example/publicacoes/fotos/1.jpeg"
       />,
@@ -57,7 +56,6 @@ describe('CandidateAvatar', () => {
   it('deve voltar ao círculo sem foto quando a imagem falha', () => {
     const { container } = render(
       <CandidateAvatar
-        tone="candidate2"
         isAhead={true}
         photoUrl="https://dados.example/publicacoes/fotos/2.jpeg"
       />,

@@ -2,7 +2,6 @@ import { nameWithParty, type CandidateSummary } from '../candidates.ts'
 import { AnimatedNumber } from './AnimatedNumber.tsx'
 import { CandidateAvatar } from './CandidateAvatar.tsx'
 import styles from './ResultCard.module.css'
-import { SegmentBar } from './SegmentBar.tsx'
 
 interface PresidentCardProps {
   summary: CandidateSummary
@@ -22,7 +21,6 @@ export function PresidentCard({
         {summary.rows.map((row) => (
           <li key={row.candidateId} className={styles.row}>
             <CandidateAvatar
-              tone={row.tone}
               isAhead={row.isAhead}
               {...(row.photoUrl && { photoUrl: row.photoUrl })}
             />
@@ -38,10 +36,6 @@ export function PresidentCard({
           </li>
         ))}
       </ul>
-      <SegmentBar
-        segments={summary.segments}
-        midline={summary.segments.length === 2}
-      />
     </div>
   )
 }

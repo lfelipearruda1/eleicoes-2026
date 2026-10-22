@@ -33,7 +33,6 @@ export interface BarSegment {
 
 export interface CandidateSummary {
   rows: CandidateRow[]
-  segments: BarSegment[]
 }
 
 type AvailableSnapshot = Extract<ResultSnapshot, { availability: 'available' }>
@@ -88,9 +87,6 @@ export function summarizeCandidates(
     candidate.photo &&
     photoRoot && { photoUrl: new URL(candidate.photo, photoRoot).href }
   if (snapshot.availability === 'pending') {
-    const share = snapshot.candidates.length
-      ? Math.floor(10000 / snapshot.candidates.length)
-      : 0
     return {
       rows: snapshot.candidates.map((candidate, index) => ({
         candidateId: candidate.candidateId,
@@ -101,13 +97,6 @@ export function summarizeCandidates(
         isAhead: false,
         ...(candidate.party && { party: candidate.party }),
         ...photoOf(candidate),
-      })),
-      segments: snapshot.candidates.map((candidate, index) => ({
-        key: candidate.candidateId,
-        tone: toneAt(index),
-        start: fromHundredths(share * index),
-        width: fromHundredths(share),
-        dim: true,
       })),
     }
   }
@@ -128,7 +117,6 @@ export function summarizeCandidates(
       ...(candidate.party && { party: candidate.party }),
       ...photoOf(candidate),
     })),
-    segments: percentageSegments(snapshot.candidates),
   }
 }
 
