@@ -92,7 +92,7 @@ describe('PresidentPage', () => {
     )
     await screen.findByRole('heading', { name: 'São Paulo' })
 
-    expect(window.location.hash).toBe('#/uf/SP')
+    expect(window.location.pathname).toBe('/sp')
     expect(await results().findByText('7.000 votos')).toBeTruthy()
   })
 
@@ -101,13 +101,37 @@ describe('PresidentPage', () => {
     await renderPage()
     const nationalCandidates = results().getAllByRole('listitem')
 
-    window.location.hash = '#/uf/SP'
-    window.dispatchEvent(new HashChangeEvent('hashchange'))
+    window.history.pushState(null, '', '/sp')
+    window.dispatchEvent(new PopStateEvent('popstate'))
     await screen.findByRole('heading', { name: 'São Paulo' })
 
     expect(screen.queryByText('Carregando resultados…')).toBeNull()
     expect(results().getAllByRole('listitem')[0]).toBe(nationalCandidates[0])
     expect(await results().findByText('7.000 votos')).toBeTruthy()
+  })
+
+  it('deve abrir o link antigo #/uf/BA e trocar o endereço por /ba', async () => {
+    publishUf('BA', '5.000')
+    window.history.replaceState(null, '', '/#/uf/BA')
+
+    await renderPage()
+
+    expect(await screen.findByRole('heading', { name: 'Bahia' })).toBeTruthy()
+    expect(window.location.pathname).toBe('/ba')
+    expect(window.location.hash).toBe('')
+  })
+
+  it('deve voltar para a UF anterior pelo botão voltar do navegador', async () => {
+    await renderPage()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Acre (AC): dados indisponíveis' }),
+    )
+    await screen.findByRole('heading', { name: 'Acre' })
+    window.history.back()
+
+    expect(await screen.findByRole('heading', { name: 'Brasil' })).toBeTruthy()
+    expect(window.location.pathname).toBe('/')
   })
 
   it('deve abrir a UF pelo teclado no mapa', async () => {
@@ -119,12 +143,12 @@ describe('PresidentPage', () => {
     )
     await screen.findByRole('heading', { name: 'Acre' })
 
-    expect(window.location.hash).toBe('#/uf/AC')
+    expect(window.location.pathname).toBe('/ac')
   })
 
   it('deve mostrar governador abaixo de presidente na UF com 2º turno', async () => {
     publishUf('DF', '1.111', '2.222')
-    window.location.hash = '#/uf/DF'
+    window.history.replaceState(null, '', '/df')
 
     render(
       <PresidentPage
@@ -152,7 +176,7 @@ describe('PresidentPage', () => {
     publishUf('DF', '1.111', '2.222')
     publishUf('AC', '3.333', '4.444')
     publishUf('SP', '7.000')
-    window.location.hash = '#/uf/DF'
+    window.history.replaceState(null, '', '/df')
     render(
       <PresidentPage
         endpoint={TEST_ENDPOINT}
@@ -164,14 +188,14 @@ describe('PresidentPage', () => {
       name: 'Governador',
     })
 
-    window.location.hash = '#/uf/AC'
-    window.dispatchEvent(new HashChangeEvent('hashchange'))
+    window.history.pushState(null, '', '/ac')
+    window.dispatchEvent(new PopStateEvent('popstate'))
     expect(await screen.findByRole('heading', { name: 'Acre' })).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Governador' })).toBeTruthy()
     expect(await screen.findByText('4.444 votos')).toBeTruthy()
 
-    window.location.hash = '#/uf/SP'
-    window.dispatchEvent(new HashChangeEvent('hashchange'))
+    window.history.pushState(null, '', '/sp')
+    window.dispatchEvent(new PopStateEvent('popstate'))
     await screen.findByText('7.000 votos')
     await vi.waitFor(() =>
       expect(screen.queryByRole('heading', { name: /^Governador/ })).toBeNull(),
@@ -180,7 +204,7 @@ describe('PresidentPage', () => {
 
   it('deve mostrar só presidente, sem mensagem, na UF sem 2º turno de governador', async () => {
     publishUf('SP', '7.000')
-    window.location.hash = '#/uf/SP'
+    window.history.replaceState(null, '', '/sp')
 
     render(
       <PresidentPage
@@ -202,7 +226,7 @@ describe('PresidentPage', () => {
 
   it('deve mostrar as seções apuradas da UF aberta no cabeçalho', async () => {
     publishUf('SP', '7.000')
-    window.location.hash = '#/uf/SP'
+    window.history.replaceState(null, '', '/sp')
 
     render(
       <PresidentPage
@@ -217,7 +241,7 @@ describe('PresidentPage', () => {
 
   it('deve voltar à visão Brasil pelo botão do painel', async () => {
     publishUf('DF', '1.111', '2.222')
-    window.location.hash = '#/uf/DF'
+    window.history.replaceState(null, '', '/df')
     render(
       <PresidentPage
         endpoint={TEST_ENDPOINT}
@@ -232,7 +256,7 @@ describe('PresidentPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Visão Brasil' }))
     await screen.findByRole('heading', { name: 'Brasil' })
 
-    expect(window.location.hash).toBe('#/')
+    expect(window.location.pathname).toBe('/')
     expect(screen.getByRole('heading', { name: 'Presidente' })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: /^Governador/ })).toBeNull()
   })

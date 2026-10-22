@@ -19,7 +19,7 @@ const GOVERNOR_DF_PATH = '/publications/demo-sintetico-governador-df-2t/'
 
 async function renderDistritoFederal() {
   publishUf('DF', '1.111', '2.222')
-  window.location.hash = '#/uf/DF'
+  window.history.replaceState(null, '', '/df')
   render(
     <PresidentPage
       endpoint={TEST_ENDPOINT}

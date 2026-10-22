@@ -107,6 +107,7 @@ export function PresidentPage({
   return (
     <div className={styles.root}>
       <SiteHeader
+        onShowNational={showNational}
         roundLabel={nationalSnapshot && ROUND_LABEL[nationalSnapshot.round]}
         progress={
           <>

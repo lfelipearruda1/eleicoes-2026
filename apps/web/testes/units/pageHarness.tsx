@@ -18,7 +18,7 @@ export function setupPresidentPage() {
     sessionStorage.setItem(DISMISSED_IN_SESSION, 'sim')
     window.matchMedia = (query: string) =>
       ({ matches: query.includes('prefers-reduced-motion') }) as MediaQueryList
-    window.location.hash = ''
+    window.history.replaceState(null, '', '/')
     page.server = fakeServer()
     page.server.publish(manifestFor(availableSnapshot()), availableSnapshot())
   })

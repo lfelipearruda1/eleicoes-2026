@@ -1,7 +1,10 @@
 {
   "name": "eleicoes-2026-web-homologacao",
   "compatibility_date": "2026-10-21",
-  "assets": { "directory": "../../apps/web/dist" },
+  "assets": {
+    "directory": "../../apps/web/dist",
+    "not_found_handling": "single-page-application",
+  },
   "routes": [
     {
       "pattern": "homologacao.eleicaobrasil2026.com.br",
