@@ -36,6 +36,12 @@ describe('summarizeCandidates', () => {
     ])
   })
 
+  it('deve desenhar a barra de pending só em tons apagados', () => {
+    const summary = summarizeCandidates(pendingSnapshot())
+
+    expect(summary.segments.every((segment) => segment.dim)).toBe(true)
+  })
+
   it('deve renderizar todas as candidaturas na ordem do contrato', () => {
     const summary = summarizeCandidates(availableSnapshot())
 
@@ -46,7 +52,7 @@ describe('summarizeCandidates', () => {
     ])
   })
 
-  it('deve manter a cor de cada candidatura para a legenda do mapa', () => {
+  it('deve usar as cores do protótipo pela posição e neutro nas demais', () => {
     const summary = summarizeCandidates(availableSnapshot())
 
     expect(summary.rows.map((row) => row.tone)).toEqual([
@@ -64,6 +70,10 @@ describe('summarizeCandidates', () => {
     expect(summary.rows.map((row) => row.percentage)).toEqual([
       '33,33%',
       '66,67%',
+    ])
+    expect(summary.segments.map((s) => [s.start, s.width])).toEqual([
+      ['0.00', '33.33'],
+      ['33.33', '66.67'],
     ])
   })
 

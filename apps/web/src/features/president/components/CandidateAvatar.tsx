@@ -1,11 +1,14 @@
 import { useState } from 'react'
 
+import type { CandidateTone } from '../candidates.ts'
 import styles from './CandidateAvatar.module.css'
 
 export function CandidateAvatar({
+  tone,
   isAhead,
   photoUrl,
 }: {
+  tone?: CandidateTone
   isAhead: boolean
   photoUrl?: string
 }) {
@@ -14,7 +17,7 @@ export function CandidateAvatar({
   return (
     <span
       aria-hidden="true"
-      className={`${styles.ring} ${isAhead ? styles.ahead : ''}`}
+      className={`${styles.ring} ${tone ? styles[tone] : styles.neutral} ${isAhead ? styles.ahead : ''}`}
     >
       {isAhead && <span className={styles.inner} />}
       {showsPhoto && (

@@ -23,6 +23,7 @@ function ReadyResults({ scope, view }: { scope: Scope; view: ReadyView }) {
       {view.governorSummary && (
         <PresidentCard
           separated
+          neutral
           summary={view.governorSummary}
           title="Governador"
         />

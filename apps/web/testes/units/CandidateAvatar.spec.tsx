@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import { summarizeCandidates } from '../../src/features/president/candidates.ts'
 import { CandidateAvatar } from '../../src/features/president/components/CandidateAvatar.tsx'
+import { PresidentCard } from '../../src/features/president/components/PresidentCard.tsx'
 import { availableSnapshot } from './fixtures.ts'
 
 afterEach(cleanup)
@@ -43,6 +44,7 @@ describe('CandidateAvatar', () => {
   it('deve mostrar a foto dentro do anel da candidatura', () => {
     const { container } = render(
       <CandidateAvatar
+        tone="candidate1"
         isAhead={false}
         photoUrl="https://dados.example/publicacoes/fotos/1.jpeg"
       />,
@@ -56,6 +58,7 @@ describe('CandidateAvatar', () => {
   it('deve voltar ao círculo sem foto quando a imagem falha', () => {
     const { container } = render(
       <CandidateAvatar
+        tone="candidate2"
         isAhead={true}
         photoUrl="https://dados.example/publicacoes/fotos/2.jpeg"
       />,
@@ -65,5 +68,27 @@ describe('CandidateAvatar', () => {
 
     expect(container.querySelector('img')).toBeNull()
     expect(container.firstElementChild?.childElementCount).toBe(1)
+  })
+})
+
+describe('PresidentCard', () => {
+  it('deve mostrar cores e barra de percentuais no card de presidente', () => {
+    const { container } = render(
+      <PresidentCard summary={summarizeCandidates(availableSnapshot())} />,
+    )
+
+    expect(container.querySelector('svg')).not.toBeNull()
+  })
+
+  it('deve tirar a barra de percentuais no card neutro do governador', () => {
+    const { container } = render(
+      <PresidentCard
+        neutral
+        title="Governador"
+        summary={summarizeCandidates(availableSnapshot())}
+      />,
+    )
+
+    expect(container.querySelector('svg')).toBeNull()
   })
 })
