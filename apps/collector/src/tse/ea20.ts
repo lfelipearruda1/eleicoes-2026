@@ -54,6 +54,10 @@ const destinationSchema = z
     return destination
   })
 
+const partyAcronymSchema = z
+  .string()
+  .regex(/^[\p{Lu}\p{N}][\p{Lu}\p{N} -]{0,19}$/u)
+
 const candidateSchema = z.object({
   n: countSchema,
   sqcand: countSchema,
@@ -80,7 +84,12 @@ const resultSchema = z.object({
       cd: z.string(),
       agr: z.array(
         z.object({
-          par: z.array(z.object({ cand: z.array(candidateSchema) })),
+          par: z.array(
+            z.object({
+              sg: partyAcronymSchema.optional().catch(undefined),
+              cand: z.array(candidateSchema),
+            }),
+          ),
         }),
       ),
     }),
@@ -170,11 +179,16 @@ export function parseResult(document: unknown, expected?: ExpectedResult) {
       contestant: result.v.vvc,
     },
     candidates: office.agr
-      .flatMap((group) => group.par.flatMap((party) => party.cand))
+      .flatMap((group) =>
+        group.par.flatMap((party) =>
+          party.cand.map((candidate) => ({ ...candidate, party: party.sg })),
+        ),
+      )
       .map((candidate) => ({
         candidateId: candidate.sqcand,
         number: candidate.n,
         ballotName: candidate.nmu,
+        party: candidate.party,
         votes: candidate.vap,
         contestantVotesPercent: candidate.pvap,
         voteDestination: candidate.dvt,

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { parseResult } from '../../src/tse/ea20.js'
 import { thrownBy } from './failures.js'
+import { itemAt } from './itemAt.js'
 import {
   PRESIDENT_BR,
   syntheticCandidate,
@@ -219,4 +220,31 @@ describe('EA20: cargo, abrangência e situação dos votos', () => {
 
     expect(error.code).toBe('INVALID_TSE_RESULT')
   })
+})
+
+describe('EA20: partido da candidatura', () => {
+  const firstParty = (document: ReturnType<typeof syntheticResult>) =>
+    itemAt(itemAt(itemAt(document.carg, 0).agr, 0).par, 0)
+
+  it('deve ler a sigla do partido de cada candidatura', () => {
+    const document = syntheticResult()
+    Object.assign(firstParty(document), { sg: 'PT' })
+
+    const summary = parseResult(document)
+
+    expect(summary.candidates[0]?.party).toBe('PT')
+    expect(summary.candidates[1]?.party).toBeUndefined()
+  })
+
+  it.each(['', 'pt', 'PT\u0000', 'X'.repeat(21)])(
+    'deve descartar a sigla malformada %j sem recusar o resultado',
+    (sg) => {
+      const document = syntheticResult()
+      Object.assign(firstParty(document), { sg })
+
+      const summary = parseResult(document)
+
+      expect(summary.candidates[0]?.party).toBeUndefined()
+    },
+  )
 })

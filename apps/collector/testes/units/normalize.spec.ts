@@ -21,6 +21,21 @@ const normalize = (summary: ResultSummary) =>
   })
 
 describe('normalizeResult', () => {
+  it('deve levar a sigla do partido para a candidatura publicada', () => {
+    const summary = summaryOf()
+    const withParty = {
+      ...summary,
+      candidates: summary.candidates.map((candidate) => ({
+        ...candidate,
+        party: 'PT',
+      })),
+    }
+
+    const snapshot = normalize(withParty)
+
+    expect(snapshot.candidates.every((c) => c.party === 'PT')).toBe(true)
+  })
+
   it('deve produzir pending sem votos quando a votação não foi liberada', () => {
     const summary = summaryOf({ dv: 'n' })
 

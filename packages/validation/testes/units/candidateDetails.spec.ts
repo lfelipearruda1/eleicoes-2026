@@ -22,13 +22,13 @@ const common = {
   },
 }
 
-const pending = (photo: string) => ({
+const pending = (details: Record<string, string>) => ({
   ...common,
   votesReleased: false,
   availability: 'pending',
   pendingReason: 'votes_not_released',
   candidates: [
-    { candidateId: '900000000001', number: '91', ballotName: 'A', photo },
+    { candidateId: '900000000001', number: '91', ballotName: 'A', ...details },
   ],
 })
 
@@ -41,7 +41,9 @@ const publishPaths = (document: unknown) => {
 
 describe('publishResultSnapshotSchema: foto da candidatura', () => {
   it('deve aceitar a foto dentro da pasta de fotos', () => {
-    expect(publishPaths(pending('fotos/900000000001.jpeg'))).toEqual([])
+    expect(publishPaths(pending({ photo: 'fotos/900000000001.jpeg' }))).toEqual(
+      [],
+    )
   })
 
   it.each([
@@ -50,6 +52,22 @@ describe('publishResultSnapshotSchema: foto da candidatura', () => {
     'https://resultados.tse.jus.br/fotos/900000000001.jpeg',
     'fotos/../manifest.json',
   ])('deve recusar a foto fora do caminho publicado: %s', (photo) => {
-    expect(publishPaths(pending(photo))).toEqual(['candidates.0.photo'])
+    expect(publishPaths(pending({ photo }))).toEqual(['candidates.0.photo'])
   })
+})
+
+describe('publishResultSnapshotSchema: partido da candidatura', () => {
+  it.each(['PT', 'PL', 'PCDOB', 'SOLIDARIEDADE', 'UNIÃO'])(
+    'deve aceitar a sigla %s',
+    (party) => {
+      expect(publishPaths(pending({ party }))).toEqual([])
+    },
+  )
+
+  it.each(['', 'pt', '<b>PT</b>', 'X'.repeat(21)])(
+    'deve recusar a sigla malformada %j',
+    (party) => {
+      expect(publishPaths(pending({ party }))).toEqual(['candidates.0.party'])
+    },
+  )
 })

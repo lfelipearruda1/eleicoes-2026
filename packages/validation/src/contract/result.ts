@@ -40,6 +40,10 @@ function buildSchema(strict: boolean) {
     number: sourceIdSchema,
     ballotName: z.string().min(1),
     photo: candidatePhotoSchema.exactOptional(),
+    party: z
+      .string()
+      .regex(/^[\p{Lu}\p{N}][\p{Lu}\p{N} -]{0,19}$/u)
+      .exactOptional(),
   }
   const common = {
     ...envelopeShape,

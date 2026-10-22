@@ -74,6 +74,7 @@ export function normalizeResult(
       ...(summary.totalizedAt && { totalizedAt: summary.totalizedAt }),
     },
   }
+  const partyOf = (party: string | undefined) => party && { party }
   const photoOf = (candidateId: string) =>
     context.photos?.has(candidateId) && {
       photo: candidatePhotoPath(candidateId),
@@ -84,12 +85,15 @@ export function normalizeResult(
       ...common,
       availability: 'pending',
       pendingReason,
-      candidates: candidates.map(({ candidateId, number, ballotName }) => ({
-        candidateId,
-        number,
-        ballotName,
-        ...photoOf(candidateId),
-      })),
+      candidates: candidates.map(
+        ({ candidateId, number, ballotName, party }) => ({
+          candidateId,
+          number,
+          ballotName,
+          ...partyOf(party),
+          ...photoOf(candidateId),
+        }),
+      ),
     }
   }
   return {
@@ -100,6 +104,7 @@ export function normalizeResult(
       candidateId: candidate.candidateId,
       number: candidate.number,
       ballotName: candidate.ballotName,
+      ...partyOf(candidate.party),
       ...photoOf(candidate.candidateId),
       votes: candidate.votes,
       contestantVotesPercentage: toPercentage(candidate.contestantVotesPercent),
