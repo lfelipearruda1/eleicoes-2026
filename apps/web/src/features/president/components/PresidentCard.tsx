@@ -1,4 +1,4 @@
-import type { CandidateSummary } from '../candidates.ts'
+import { nameWithParty, type CandidateSummary } from '../candidates.ts'
 import { AnimatedNumber } from './AnimatedNumber.tsx'
 import { CandidateAvatar } from './CandidateAvatar.tsx'
 import styles from './ResultCard.module.css'
@@ -27,7 +27,7 @@ export function PresidentCard({
               {...(row.photoUrl && { photoUrl: row.photoUrl })}
             />
             <div className={styles.info}>
-              <span className={styles.name}>{row.ballotName}</span>
+              <span className={styles.name}>{nameWithParty(row)}</span>
               <span className={styles.votes}>
                 <AnimatedNumber value={row.votes} />
               </span>

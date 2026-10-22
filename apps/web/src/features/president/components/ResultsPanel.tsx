@@ -15,15 +15,7 @@ type ReadyView = Extract<PublicationView, { status: 'ready' }>
 
 function ReadyResults({ scope, view }: { scope: Scope; view: ReadyView }) {
   if (scope.kind === 'national') {
-    return (
-      <>
-        <PresidentCard summary={view.summary} />
-        <p className={styles.hint}>
-          Selecione uma UF no mapa, na lista ou no seletor para ver o resultado
-          local e, quando houver, o 2º turno para governador.
-        </p>
-      </>
-    )
+    return <PresidentCard summary={view.summary} />
   }
   return (
     <>

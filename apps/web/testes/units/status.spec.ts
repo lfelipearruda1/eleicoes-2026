@@ -28,15 +28,16 @@ describe('describeHeaderStatus', () => {
     })
   })
 
-  it('deve mostrar a hora da origem como recebida, sem conversão de fuso', () => {
+  it('deve piscar "Apuração em andamento" sem hora nem data', () => {
     const status = describeHeaderStatus({
       ...base,
       snapshot: availableSnapshot(),
     })
 
-    expect(status.text).toBe(
-      'Apuração em andamento · dados de 18:00 · 25/10/2026',
-    )
+    expect(status).toMatchObject({
+      text: 'Apuração em andamento',
+      blinking: true,
+    })
   })
 
   it('deve mostrar as seções apuradas da UF aberta', () => {
@@ -64,17 +65,20 @@ describe('describeHeaderStatus', () => {
     expect(status).not.toHaveProperty('percentage')
   })
 
-  it('deve indicar falha preservando a hora dos dados exibidos', () => {
+  it('deve indicar falha sem hora e sem piscar', () => {
     const status = describeHeaderStatus({
       ...base,
       snapshot: availableSnapshot(),
       hasFailure: true,
     })
 
-    expect(status.text).toBe('Não foi possível atualizar · dados de 18:00')
+    expect(status).toMatchObject({
+      text: 'Não foi possível atualizar',
+      blinking: false,
+    })
   })
 
-  it('deve indicar a verificação manual em andamento', () => {
+  it('deve manter "Apuração em andamento" enquanto verifica atualizações', () => {
     const status = describeHeaderStatus({
       ...base,
       snapshot: availableSnapshot(),
@@ -82,32 +86,24 @@ describe('describeHeaderStatus', () => {
     })
 
     expect(status).toMatchObject({
-      icon: 'spin',
-      text: 'Verificando atualizações.',
+      text: 'Apuração em andamento',
+      blinking: true,
     })
   })
 
-  it('deve diferenciar votação não liberada de apuração não iniciada', () => {
+  it('deve mostrar "Apuração em andamento" antes de a apuração começar', () => {
     const notReleased = describeHeaderStatus({
       ...base,
       snapshot: pendingSnapshot(),
     })
-    const notStarted = describeHeaderStatus({
-      ...base,
-      snapshot: pendingSnapshot({
-        votesReleased: true,
-        pendingReason: 'totalization_not_started',
-        totalization: { status: 'not_started', finalIndicator: false },
-      }),
-    })
 
-    expect(notReleased.text).toBe(
-      'Aguardando liberação dos votos · dados de 18:00',
-    )
-    expect(notStarted.text).toBe('Aguardando apuração')
+    expect(notReleased).toMatchObject({
+      text: 'Apuração em andamento',
+      blinking: true,
+    })
   })
 
-  it('deve indicar apuração concluída só com totalização finalizada', () => {
+  it('deve parar de piscar e indicar "Apuração finalizada" com totalização finalizada', () => {
     const snapshot = availableSnapshot({
       totalization: { status: 'finished', finalIndicator: true },
     })
@@ -116,7 +112,20 @@ describe('describeHeaderStatus', () => {
 
     expect(status).toMatchObject({
       icon: 'full',
-      text: 'Apuração concluída · dados de 18:00',
+      text: 'Apuração finalizada',
+      blinking: false,
+    })
+  })
+
+  it('deve indicar "Apuração finalizada" ao chegar em 100% das seções', () => {
+    const snapshot = availableSnapshot()
+    snapshot.sections.totalizedPercentage = '100.00'
+
+    const status = describeHeaderStatus({ ...base, snapshot })
+
+    expect(status).toMatchObject({
+      text: 'Apuração finalizada',
+      blinking: false,
     })
   })
 })

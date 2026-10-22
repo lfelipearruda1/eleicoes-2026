@@ -4,12 +4,16 @@
   @apply sticky top-0 z-30 flex w-full flex-col bg-page;
 }
 
+.scrolling {
+  @apply flex w-full flex-col bg-page;
+}
+
 .nav {
-  @apply flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 bg-surface px-[clamp(16px,3vw,48px)] py-2.5 md:flex-nowrap;
+  @apply flex min-h-15 w-full items-center bg-surface px-[clamp(16px,3vw,48px)] py-2.5;
 }
 
 .brand {
-  @apply flex flex-[1_1_100%] items-baseline gap-2.5 text-text no-underline md:flex-none;
+  @apply flex items-baseline gap-2.5 text-text no-underline;
 }
 
 .brandName {
@@ -18,21 +22,4 @@
 
 .brandRound {
   @apply text-[14px] text-muted;
-}
-
-.controls {
-  @apply ml-auto flex min-w-0 flex-[1_1_100%] items-center justify-end gap-2 md:flex-[0_1_420px];
-}
-
-.selectSlot {
-  @apply order-1 min-w-0 flex-[1_1_220px] md:max-w-[300px];
-}
-
-.brasil {
-  @apply order-2 min-h-11 flex-none cursor-pointer rounded-full border-0 bg-page px-4 text-[14px] font-semibold text-text md:min-h-10;
-  @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text;
-}
-
-.brasilCurrent {
-  @apply bg-text text-page;
 }

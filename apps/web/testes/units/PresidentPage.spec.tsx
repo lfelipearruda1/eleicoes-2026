@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { PresidentPage } from '../../src/features/president/components/PresidentPage.tsx'
 import {
-  itemAt,
+  availableSnapshot,
   manifestFor,
   pendingSnapshot,
   TEST_ENDPOINT,
@@ -45,24 +45,31 @@ describe('PresidentPage', () => {
     expect(results().queryByText(/%$/)).toBeNull()
   })
 
-  it('deve informar no rodapé, e não no painel, que os dados são fictícios', async () => {
+  it('deve mostrar no rodapé só a fonte, sem procedência nem horários', async () => {
     await renderPage()
 
-    const provenance = 'Demonstração — dados fictícios, sem valor oficial.'
-    expect(results().queryByText(provenance)).toBeNull()
-    expect(
-      within(screen.getByRole('contentinfo')).getByText(provenance),
-    ).toBeTruthy()
+    const footer = screen.getByRole('contentinfo')
+    expect(footer.textContent).toBe(
+      'Fonte: dados sintéticos de demonstração, sem valor oficial',
+    )
+    expect(footer.querySelector('a')).toBeNull()
   })
 
-  it('deve mostrar os horários de publicação e de coleta no horário de Brasília', async () => {
+  it('deve apontar no rodapé a divulgação oficial do TSE para dado oficial', async () => {
+    const official = availableSnapshot({ sourceEnvironment: 'official' })
+    page.server.publish(manifestFor(official), official)
+
     await renderPage()
 
+    const footer = screen.getByRole('contentinfo')
+    expect(footer.textContent).toContain(
+      'Tribunal Superior Eleitoral (TSE), divulgação oficial dos resultados',
+    )
     expect(
-      screen.getByText(
-        'Publicação: 25/10/2026, 18:01:00 (horário de Brasília) · Coleta: 25/10/2026, 18:00:05 (horário de Brasília)',
-      ),
-    ).toBeTruthy()
+      within(footer)
+        .getByRole('link', { name: /resultados\.tse\.jus\.br/ })
+        .getAttribute('href'),
+    ).toBe('https://resultados.tse.jus.br/')
   })
 
   it('deve mostrar as 27 UFs do mapa como indisponíveis', async () => {
@@ -209,7 +216,7 @@ describe('PresidentPage', () => {
     expect(await screen.findByText('seções apuradas · São Paulo')).toBeTruthy()
   })
 
-  it('deve voltar à visão Brasil pelo botão do cabeçalho', async () => {
+  it('deve voltar à visão Brasil pelo botão do painel', async () => {
     publishUf('DF', '1.111', '2.222')
     window.location.hash = '#/uf/DF'
     render(
@@ -223,9 +230,7 @@ describe('PresidentPage', () => {
       name: 'Presidente em Distrito Federal',
     })
 
-    fireEvent.click(
-      itemAt(screen.getAllByRole('button', { name: 'Visão Brasil' }), 0),
-    )
+    fireEvent.click(screen.getByRole('button', { name: 'Visão Brasil' }))
     await screen.findByRole('heading', { name: 'Brasil' })
 
     expect(window.location.hash).toBe('#/')
@@ -244,6 +249,7 @@ describe('PresidentPage', () => {
     expect(
       screen.getAllByRole('row', { name: /: dados indisponíveis$/ }),
     ).toHaveLength(27)
+    expect(screen.queryByRole('list', { name: 'Legenda' })).toBeNull()
   })
 
   it('deve avisar quando não há resultado para mostrar e a leitura falha', async () => {
@@ -277,7 +283,7 @@ describe('PresidentPage', () => {
 
     const { container } = await renderPage()
 
-    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('main img')).toBeNull()
     expect(results().getByText('<img src=x onerror=alert(1)>')).toBeTruthy()
   })
 

@@ -1,7 +1,7 @@
 @reference '../../../index.css';
 
 .panel {
-  @apply static order-1 flex min-w-0 flex-[1_1_360px] flex-col gap-10 wide:sticky wide:top-[140px] wide:order-2;
+  @apply static order-1 flex min-w-0 flex-[1_1_360px] flex-col gap-10 wide:sticky wide:top-[88px] wide:order-2;
 }
 
 .heading {

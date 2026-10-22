@@ -16,42 +16,35 @@ export interface HeaderStatus {
   label: string
   icon: StatusIcon
   text: string
+  blinking: boolean
 }
 
-const sourceClock = (snapshot: ResultSnapshot) => {
-  const clock = snapshot.origin.totalizedAt ?? snapshot.origin.generatedAt
-  return { time: clock.time.slice(0, 5), date: clock.date }
-}
+const COMPLETE_PERCENTAGE = 100
 
-function indicator(input: StatusInput): Pick<HeaderStatus, 'icon' | 'text'> {
+const isFinished = (snapshot: ResultSnapshot) =>
+  snapshot.totalization.status === 'finished' ||
+  Number(snapshot.sections.totalizedPercentage) >= COMPLETE_PERCENTAGE
+
+function indicator(
+  input: StatusInput,
+): Pick<HeaderStatus, 'icon' | 'text' | 'blinking'> {
   const { snapshot } = input
-  if (input.isChecking || (!snapshot && !input.hasFailure)) {
-    return { icon: 'spin', text: 'Verificando atualizações.' }
-  }
-  if (!snapshot)
-    return { icon: 'ring', text: 'Não foi possível carregar os dados' }
-  const { time, date } = sourceClock(snapshot)
-  if (input.hasFailure) {
-    return {
-      icon: 'ring',
-      text: `Não foi possível atualizar · dados de ${time}`,
-    }
-  }
-  if (snapshot.availability === 'pending') {
-    return snapshot.pendingReason === 'votes_not_released'
+  if (!snapshot) {
+    return input.hasFailure
       ? {
           icon: 'ring',
-          text: `Aguardando liberação dos votos · dados de ${time}`,
+          text: 'Não foi possível carregar os dados',
+          blinking: false,
         }
-      : { icon: 'ring', text: 'Aguardando apuração' }
+      : { icon: 'spin', text: 'Verificando atualizações.', blinking: false }
   }
-  if (snapshot.totalization.status === 'finished') {
-    return { icon: 'full', text: `Apuração concluída · dados de ${time}` }
+  if (input.hasFailure) {
+    return { icon: 'ring', text: 'Não foi possível atualizar', blinking: false }
   }
-  return {
-    icon: 'ring',
-    text: `Apuração em andamento · dados de ${time} · ${date}`,
+  if (isFinished(snapshot)) {
+    return { icon: 'full', text: 'Apuração finalizada', blinking: false }
   }
+  return { icon: 'full', text: 'Apuração em andamento', blinking: true }
 }
 
 export function describeHeaderStatus(input: StatusInput): HeaderStatus {
@@ -74,16 +67,26 @@ export function describeHeaderStatus(input: StatusInput): HeaderStatus {
 
 export const ROUND_LABEL = { 1: 'Primeiro turno', 2: 'Segundo turno' } as const
 
-export const PROVENANCE: Record<ResultSnapshot['sourceEnvironment'], string> = {
-  synthetic: 'Demonstração — dados fictícios, sem valor oficial.',
-  official:
-    'Captura oficial do TSE reprocessada localmente; autenticidade não verificada.',
-  simulated: 'Ambiente simulado do TSE, sem valor oficial.',
+export interface ResultSource {
+  description: string
+  site?: string
 }
 
-export const SOURCE_LABEL: Record<ResultSnapshot['sourceEnvironment'], string> =
-  {
-    synthetic: 'dados sintéticos',
-    official: 'TSE',
-    simulated: 'TSE (simulado)',
-  }
+export const RESULT_SOURCES: Record<
+  ResultSnapshot['sourceEnvironment'],
+  ResultSource
+> = {
+  synthetic: {
+    description: 'dados sintéticos de demonstração, sem valor oficial',
+  },
+  official: {
+    description:
+      'Tribunal Superior Eleitoral (TSE), divulgação oficial dos resultados das Eleições 2026',
+    site: 'https://resultados.tse.jus.br/',
+  },
+  simulated: {
+    description:
+      'ambiente de simulação da divulgação do TSE, sem valor oficial',
+    site: 'https://resultados-sim.tse.jus.br/',
+  },
+}

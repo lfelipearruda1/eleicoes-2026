@@ -12,7 +12,16 @@ export interface CandidateRow {
   votes: string
   isAhead: boolean
   photoUrl?: string
+  party?: string
 }
+
+export const nameWithParty = (candidate: {
+  ballotName: string
+  party?: string
+}) =>
+  candidate.party
+    ? `${candidate.ballotName} (${candidate.party})`
+    : candidate.ballotName
 
 export interface BarSegment {
   key: string
@@ -90,6 +99,7 @@ export function summarizeCandidates(
         percentage: '—',
         votes: 'Aguardando votos',
         isAhead: false,
+        ...(candidate.party && { party: candidate.party }),
         ...photoOf(candidate),
       })),
       segments: snapshot.candidates.map((candidate, index) => ({
@@ -115,6 +125,7 @@ export function summarizeCandidates(
           : 'votos'
       }`,
       isAhead: candidate.candidateId === ahead,
+      ...(candidate.party && { party: candidate.party }),
       ...photoOf(candidate),
     })),
     segments: percentageSegments(snapshot.candidates),

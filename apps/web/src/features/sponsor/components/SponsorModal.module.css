@@ -1,0 +1,62 @@
+@reference '../../../index.css';
+
+.dialog {
+  @apply relative m-auto flex max-h-[calc(100vh-32px)] w-[min(500px,calc(100%-32px))] flex-col overflow-x-hidden overflow-y-auto rounded-[20px] border-0 bg-[rgb(250,244,230)] p-0 text-[rgb(42,38,34)] outline-none [scrollbar-width:none];
+}
+
+.dialog:not([open]) {
+  @apply hidden;
+}
+
+.dialog::backdrop {
+  @apply bg-[rgba(10,10,10,0.72)];
+}
+
+.cover {
+  @apply relative h-[clamp(190px,32vh,260px)] flex-none;
+  background: url('../assets/casa-sarto-perfume.jpg') 0 0 / 500px auto no-repeat
+    rgb(243 234 214);
+}
+
+.fade {
+  @apply absolute inset-x-0 bottom-0 h-16;
+  background: linear-gradient(rgb(250 244 230 / 0) 0%, rgb(250 244 230) 100%);
+}
+
+.glow {
+  @apply absolute inset-0 flex items-center justify-center px-6 py-4;
+  background: radial-gradient(
+    54% 44%,
+    rgb(250 244 230 / 0.92) 0%,
+    rgb(250 244 230 / 0.66) 55%,
+    rgb(250 244 230 / 0) 100%
+  );
+}
+
+.logo {
+  @apply block h-auto w-[210px] max-w-[56%];
+}
+
+.body {
+  @apply flex min-h-[clamp(260px,40vh,340px)] flex-col items-center justify-center gap-[22px] px-[clamp(24px,8vw,48px)] pt-8 pb-10 text-center;
+}
+
+.title {
+  @apply m-0 pl-[0.3em] font-[Cormorant_Garamond,Georgia,serif] text-[28px] leading-none font-semibold tracking-[0.3em] text-[rgb(90,52,24)] uppercase;
+}
+
+.rule {
+  @apply mt-[-14px] mb-[-2px] h-px w-9 bg-[rgb(185,165,122)];
+}
+
+.tagline {
+  @apply m-0 max-w-[440px] font-[Cormorant_Garamond,Georgia,serif] text-[31px] leading-[1.22] [font-weight:400] text-[rgb(42,38,34)] [text-wrap:balance];
+}
+
+.cta {
+  @apply mt-1.5 inline-flex min-h-11 items-center gap-2 rounded-full border border-solid border-[rgba(42,38,34,0.28)] bg-transparent px-5 text-[14px] [font-weight:500] text-[rgb(74,66,56)] no-underline transition-colors hover:border-[rgb(90,52,24)] hover:bg-[rgb(90,52,24)] hover:text-[rgb(250,244,230)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(42,38,34)];
+}
+
+.close {
+  @apply absolute top-1.5 right-1.5 grid size-11 cursor-pointer place-items-center border-0 bg-transparent text-[26px] leading-none [font-weight:300] text-[rgba(255,255,255,0.88)] [text-shadow:0_0_6px_rgba(42,38,34,0.55)] focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-text;
+}

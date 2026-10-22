@@ -1,11 +1,19 @@
-import type { CandidateTone } from '../../president/candidates.ts'
+import {
+  nameWithParty,
+  type CandidateTone,
+} from '../../president/candidates.ts'
 import styles from './MapLegend.module.css'
 
 export function MapLegend({
   candidates,
   showUndecided,
 }: {
-  candidates: { candidateId: string; ballotName: string; tone: CandidateTone }[]
+  candidates: {
+    candidateId: string
+    ballotName: string
+    party?: string
+    tone: CandidateTone
+  }[]
   showUndecided: boolean
 }) {
   return (
@@ -16,7 +24,7 @@ export function MapLegend({
             aria-hidden="true"
             className={`${styles.swatch} ${styles[candidate.tone]}`}
           />
-          {candidate.ballotName}
+          {nameWithParty(candidate)}
         </li>
       ))}
       {showUndecided && (

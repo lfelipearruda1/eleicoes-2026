@@ -57,19 +57,17 @@ describe('PresidentPage — painel sem avisos', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
-  it('deve manter "aguardando" no cabeçalho em pending', async () => {
+  it('deve mostrar "Apuração em andamento" no cabeçalho em pending', async () => {
     page.server.publish(manifestFor(pendingSnapshot()), pendingSnapshot())
 
     await renderPage()
 
-    expect(
-      screen.getByText('Aguardando liberação dos votos · dados de 18:00'),
-    ).toBeTruthy()
+    expect(screen.getByText('Apuração em andamento')).toBeTruthy()
     expect(results().queryByRole('status')).toBeNull()
     expect(results().queryByText(/%$/)).toBeNull()
   })
 
-  it('deve manter "apuração concluída" no cabeçalho em finished', async () => {
+  it('deve mostrar "Apuração finalizada" no cabeçalho em finished', async () => {
     const finished = availableSnapshot({
       totalization: { status: 'finished', finalIndicator: true },
     })
@@ -77,21 +75,7 @@ describe('PresidentPage — painel sem avisos', () => {
 
     await renderPage()
 
-    expect(screen.getByText('Apuração concluída · dados de 18:00')).toBeTruthy()
-  })
-
-  it('deve mostrar a verificação da origem no rodapé', async () => {
-    const checkedAt = '2026-10-25T21:00:30Z'
-    page.server.publish(
-      manifestFor(availableSnapshot(), 1, { checkedAt }),
-      availableSnapshot(),
-    )
-
-    await renderPage()
-
-    expect(
-      screen.getByText(/Verificação da origem: 25\/10\/2026, 18:00:30/),
-    ).toBeTruthy()
+    expect(screen.getByText('Apuração finalizada')).toBeTruthy()
   })
 
   it('deve indicar a falha só no cabeçalho e manter os números', async () => {
@@ -99,18 +83,9 @@ describe('PresidentPage — painel sem avisos', () => {
 
     breakConnection(NATIONAL_PATH)
 
-    expect(
-      await screen.findByText('Não foi possível atualizar · dados de 18:00'),
-    ).toBeTruthy()
+    expect(await screen.findByText('Não foi possível atualizar')).toBeTruthy()
     expect(screen.queryByRole('alert')).toBeNull()
     expect(results().getByText('60,00%')).toBeTruthy()
-  })
-
-  it('deve rotular a leitura do navegador sem chamá-la de verificação da origem', async () => {
-    await renderPage()
-
-    expect(screen.getByText(/Última leitura pelo navegador:/)).toBeTruthy()
-    expect(screen.queryByText(/Última verificação/)).toBeNull()
   })
 
   it('deve manter o governador sem aviso com coleta antiga', async () => {

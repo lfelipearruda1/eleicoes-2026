@@ -1,3 +1,4 @@
+import { ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 
 import type { CandidateTone } from '../../president/candidates.ts'
@@ -10,10 +11,16 @@ import { UfList } from './UfList.tsx'
 import { ViewToggle, type MapView } from './ViewToggle.tsx'
 
 interface MapSectionProps {
-  candidates: { candidateId: string; ballotName: string; tone: CandidateTone }[]
+  candidates: {
+    candidateId: string
+    ballotName: string
+    party?: string
+    tone: CandidateTone
+  }[]
   ufResults: Record<string, UfMapResult>
   scope: Scope
   onSelectUf: (code: string) => void
+  onShowNational: () => void
 }
 
 export function MapSection({
@@ -21,46 +28,47 @@ export function MapSection({
   ufResults,
   scope,
   onSelectUf,
+  onShowNational,
 }: MapSectionProps) {
+  const isBrasil = scope.kind === 'national'
   const [view, setView] = useState<MapView>('map')
-  const legend = (
-    <MapLegend
-      candidates={candidates}
-      showUndecided={Object.values(ufResults).some(
-        (result) => result.undecided,
-      )}
-    />
-  )
   return (
     <section aria-label="Mapa do Brasil" className={styles.section}>
       <div className={styles.toolbar}>
         <ViewToggle view={view} onChange={setView} />
+        <button
+          type="button"
+          onClick={onShowNational}
+          aria-current={isBrasil ? 'page' : 'false'}
+          className={`${styles.brasil} ${isBrasil ? styles.brasilCurrent : ''}`}
+        >
+          <ArrowLeft aria-hidden="true" size={15} strokeWidth={2.4} />
+          Visão Brasil
+        </button>
       </div>
       {view === 'map' ? (
-        <>
-          <div className={styles.mapWrap}>
-            <BrazilMap
-              results={ufResults}
-              scope={scope}
-              onSelectUf={onSelectUf}
-            />
-            <div className={styles.legendSlot}>{legend}</div>
-          </div>
-          <p className={styles.hint}>
-            Selecione uma UF para ver os resultados. O resultado nacional é a
-            soma dos votos, não a área do mapa.
-          </p>
-        </>
-      ) : (
-        <>
-          {legend}
-          <UfList
-            candidateNames={candidates}
+        <div className={styles.mapWrap}>
+          <BrazilMap
             results={ufResults}
             scope={scope}
             onSelectUf={onSelectUf}
           />
-        </>
+          <div className={styles.legendSlot}>
+            <MapLegend
+              candidates={candidates}
+              showUndecided={Object.values(ufResults).some(
+                (result) => result.undecided,
+              )}
+            />
+          </div>
+        </div>
+      ) : (
+        <UfList
+          candidateNames={candidates}
+          results={ufResults}
+          scope={scope}
+          onSelectUf={onSelectUf}
+        />
       )}
     </section>
   )

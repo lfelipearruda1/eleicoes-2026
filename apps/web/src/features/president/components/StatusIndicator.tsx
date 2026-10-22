@@ -14,15 +14,21 @@ const ICONS = {
 export function StatusIndicator({
   icon,
   text,
+  blinking,
 }: {
   icon: StatusIcon
   text: string
+  blinking: boolean
 }) {
   const Icon = ICONS[icon]
   const variant =
     icon === 'spin' ? styles.spin : icon === 'full' ? styles.full : ''
   return (
-    <div role="status" aria-live="polite" className={styles.status}>
+    <div
+      role="status"
+      aria-live="polite"
+      className={`${styles.status} ${blinking ? styles.live : ''}`}
+    >
       <Icon
         aria-hidden="true"
         className={`${styles.icon} ${variant}`}

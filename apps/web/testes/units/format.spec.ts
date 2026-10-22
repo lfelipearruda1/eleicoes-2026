@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import {
   formatCount,
-  formatInstant,
   formatPercentage,
   formatSourceClock,
 } from '../../src/features/president/format.ts'
@@ -31,14 +30,6 @@ describe('formatPercentage', () => {
     const result = formatPercentage('33.33')
 
     expect(result).toBe('33,33%')
-  })
-})
-
-describe('formatInstant', () => {
-  it('deve converter o horário UTC do contrato para o horário de Brasília', () => {
-    const result = formatInstant('2026-10-25T21:00:05Z')
-
-    expect(result).toBe('25/10/2026, 18:00:05 (horário de Brasília)')
   })
 })
 

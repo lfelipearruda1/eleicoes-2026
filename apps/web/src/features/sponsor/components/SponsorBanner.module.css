@@ -1,0 +1,23 @@
+@reference '../../../index.css';
+
+.slot {
+  @apply w-full px-[clamp(16px,3vw,48px)] pt-6;
+}
+
+.banner {
+  @apply flex min-h-[92px] flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-2xl px-[clamp(16px,2.5vw,32px)] py-3.5 text-[rgb(42,38,34)];
+  background: url('../assets/casa-sarto-costa.jpg') 0% 62% / cover no-repeat
+    rgb(243 234 214);
+}
+
+.logo {
+  @apply ml-[clamp(0px,18vw,300px)] block h-auto w-[150px] flex-none;
+}
+
+.tagline {
+  @apply min-w-[220px] flex-1 text-center font-[Cormorant_Garamond,Georgia,serif] text-[clamp(22px,2vw,27px)] leading-[1.2] [font-weight:400] [text-wrap:balance];
+}
+
+.cta {
+  @apply inline-flex min-h-11 items-center gap-2 rounded-full bg-[rgb(42,38,34)] px-5 text-[14px] font-semibold whitespace-nowrap text-[rgb(250,244,230)] no-underline transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[rgb(42,38,34)];
+}

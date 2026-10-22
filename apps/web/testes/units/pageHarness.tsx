@@ -1,6 +1,7 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach } from 'vitest'
 
+import { DISMISSED_IN_SESSION } from '../../src/features/sponsor/dismissal.ts'
 import { PresidentPage } from '../../src/features/president/components/PresidentPage.tsx'
 import {
   availableSnapshot,
@@ -14,6 +15,7 @@ export function setupPresidentPage() {
   const page = { server: fakeServer() }
 
   beforeEach(() => {
+    sessionStorage.setItem(DISMISSED_IN_SESSION, 'sim')
     window.matchMedia = (query: string) =>
       ({ matches: query.includes('prefers-reduced-motion') }) as MediaQueryList
     window.location.hash = ''

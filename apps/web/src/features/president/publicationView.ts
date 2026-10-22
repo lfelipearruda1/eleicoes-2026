@@ -1,18 +1,12 @@
 import type { ResultSnapshot } from '@eleicoes/validation'
 
 import { summarizeCandidates, type CandidateSummary } from './candidates.ts'
-import { formatClockTime, formatInstant } from './format.ts'
 import type { usePublication } from './hooks/usePublication.ts'
 import type { AcceptedPublication } from './publication.ts'
-import { PROVENANCE, SOURCE_LABEL } from './status.ts'
+import { RESULT_SOURCES, type ResultSource } from './status.ts'
 
 export interface PublishedDetails {
-  provenance: string
-  source: string
-  publishedAt: string
-  collectedAt: string
-  checkedAt?: string
-  lastCheck?: string
+  source: ResultSource
 }
 
 export type PublicationView =
@@ -27,23 +21,13 @@ export type PublicationView =
 
 type PublicationRead = ReturnType<typeof usePublication<ResultSnapshot>>
 
-type PublicationViewInput = Pick<
-  PublicationRead,
-  'accepted' | 'failure' | 'lastReadAt'
-> & { governor?: Pick<PublicationRead, 'accepted'>; photoRoot?: URL }
+type PublicationViewInput = Pick<PublicationRead, 'accepted' | 'failure'> & {
+  governor?: Pick<PublicationRead, 'accepted'>
+  photoRoot?: URL
+}
 
-function describeDetails(
-  { manifest, snapshot }: AcceptedPublication,
-  lastReadAt: Date | undefined,
-): PublishedDetails {
-  return {
-    provenance: PROVENANCE[snapshot.sourceEnvironment],
-    source: SOURCE_LABEL[snapshot.sourceEnvironment],
-    publishedAt: formatInstant(manifest.current.publishedAt),
-    collectedAt: formatInstant(snapshot.collectedAt),
-    ...(manifest.checkedAt && { checkedAt: formatInstant(manifest.checkedAt) }),
-    ...(lastReadAt && { lastCheck: formatClockTime(lastReadAt) }),
-  }
+function describeDetails({ snapshot }: AcceptedPublication): PublishedDetails {
+  return { source: RESULT_SOURCES[snapshot.sourceEnvironment] }
 }
 
 export function describePublication(
@@ -60,6 +44,6 @@ export function describePublication(
     ...(governor && {
       governorSummary: summarizeCandidates(governor, input.photoRoot),
     }),
-    details: describeDetails(accepted, input.lastReadAt),
+    details: describeDetails(accepted),
   }
 }

@@ -1,10 +1,15 @@
+import { nameWithParty } from '../../president/candidates.ts'
 import { SegmentBar } from '../../president/components/SegmentBar.tsx'
 import type { UfMapResult } from '../ufResults.ts'
 import { isSelectedUf, UFS, type Scope } from '../ufs.ts'
 import styles from './UfList.module.css'
 
 interface UfListProps {
-  candidateNames: { candidateId: string; ballotName: string }[]
+  candidateNames: {
+    candidateId: string
+    ballotName: string
+    party?: string
+  }[]
   results: Record<string, UfMapResult>
   scope: Scope
   onSelectUf: (code: string) => void
@@ -32,7 +37,7 @@ export function UfList({
             role="columnheader"
             className={styles.value}
           >
-            {candidate.ballotName}
+            {nameWithParty(candidate)}
           </span>
         ))}
       </div>

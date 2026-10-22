@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { summarizeCandidates } from '../../src/features/president/candidates.ts'
+import {
+  nameWithParty,
+  summarizeCandidates,
+} from '../../src/features/president/candidates.ts'
 import { availableSnapshot, pendingSnapshot } from './fixtures.ts'
 
 const twoCandidates = (a: [string, string], b: [string, string]) =>
@@ -146,4 +149,21 @@ describe('summarizeCandidates: situação dos votos (Res. 23.751, art. 265, § 2
       expect(summary.rows.map((row) => row.isAhead)).toEqual([false, true])
     },
   )
+})
+
+describe('nameWithParty', () => {
+  it('deve mostrar o partido entre parênteses depois do nome de urna', () => {
+    const snapshot = availableSnapshot()
+    const withParty = {
+      ...snapshot,
+      candidates: snapshot.candidates.map((candidate, index) =>
+        index === 0 ? { ...candidate, party: 'PT' } : candidate,
+      ),
+    } as typeof snapshot
+
+    const [first, second] = summarizeCandidates(withParty).rows
+
+    expect(first && nameWithParty(first)).toBe('CANDIDATURA SINTÉTICA A (PT)')
+    expect(second && nameWithParty(second)).toBe('CANDIDATURA SINTÉTICA B')
+  })
 })

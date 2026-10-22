@@ -22,6 +22,14 @@ interface BrazilMapProps {
 const cx = (...names: (string | false | undefined)[]) =>
   names.filter(Boolean).join(' ')
 
+const isKeyboardFocus = (element: Element) => {
+  try {
+    return element.matches(':focus-visible')
+  } catch {
+    return true
+  }
+}
+
 const describeUf = (uf: Uf, result: UfMapResult | undefined) =>
   `${uf.name} (${uf.code}): ${result?.description ?? 'dados indisponíveis'}`
 
@@ -152,7 +160,9 @@ export function BrazilMap({ results, scope, onSelectUf }: BrazilMapProps) {
             }}
             onMouseEnter={() => setHovered(uf.code)}
             onMouseLeave={() => setHovered(undefined)}
-            onFocus={() => setFocused(uf.code)}
+            onFocus={(event) => {
+              if (isKeyboardFocus(event.currentTarget)) setFocused(uf.code)
+            }}
             onBlur={() => setFocused(undefined)}
           />
         ))}

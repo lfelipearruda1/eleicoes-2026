@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import { useUfRoute } from '../../map/hooks/useUfRoute.ts'
 import { MapSection } from '../../map/components/MapSection.tsx'
 import { describeUfResults } from '../../map/ufResults.ts'
+import { SponsorBanner } from '../../sponsor/components/SponsorBanner.tsx'
+import { SponsorModal } from '../../sponsor/components/SponsorModal.tsx'
 import { scopeName } from '../../map/ufs.ts'
 import { summarizeCandidates } from '../candidates.ts'
 import {
@@ -106,14 +108,20 @@ export function PresidentPage({
     <div className={styles.root}>
       <SiteHeader
         roundLabel={nationalSnapshot && ROUND_LABEL[nationalSnapshot.round]}
-        scope={scope}
-        onShowNational={showNational}
-        onShowUf={showUf}
         progress={
-          <SectionsProgress
-            progress={status}
-            status={<StatusIndicator icon={status.icon} text={status.text} />}
-          />
+          <>
+            <SponsorBanner />
+            <SectionsProgress
+              progress={status}
+              status={
+                <StatusIndicator
+                  icon={status.icon}
+                  text={status.text}
+                  blinking={status.blinking}
+                />
+              }
+            />
+          </>
         }
       />
       <main className={styles.main}>
@@ -125,10 +133,12 @@ export function PresidentPage({
           )}
           scope={scope}
           onSelectUf={showUf}
+          onShowNational={showNational}
         />
         <ResultsPanel scope={scope} view={view} onRetry={active.refresh} />
       </main>
       <SiteFooter view={view} />
+      <SponsorModal />
     </div>
   )
 }

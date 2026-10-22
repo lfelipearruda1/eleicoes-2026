@@ -37,7 +37,7 @@
 }
 
 .label {
-  @apply pointer-events-none fill-muted text-[19px] font-semibold md:text-[19px];
+  @apply pointer-events-none fill-text text-[19px] font-semibold md:text-[19px];
   dominant-baseline: central;
   text-anchor: middle;
 }

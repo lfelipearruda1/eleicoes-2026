@@ -8,14 +8,19 @@
   @apply flex flex-wrap items-center justify-between gap-3;
 }
 
+.brasil {
+  @apply inline-flex min-h-10 flex-none cursor-pointer items-center gap-1.5 rounded-full border border-solid border-line bg-surface pr-[18px] pl-3.5 text-[14px] font-semibold text-text transition-colors hover:border-text hover:bg-track md:min-h-[34px];
+  @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text;
+}
+
+.brasilCurrent {
+  @apply border-text bg-text text-page hover:bg-text;
+}
+
 .mapWrap {
   @apply relative flex flex-col gap-4;
 }
 
 .legendSlot {
   @apply md:pointer-events-none md:absolute md:top-[60%] md:left-0;
-}
-
-.hint {
-  @apply m-0 text-[12px] leading-[1.33] text-muted;
 }
