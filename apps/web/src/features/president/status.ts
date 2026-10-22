@@ -21,6 +21,11 @@ export interface HeaderStatus {
 
 const COMPLETE_PERCENTAGE = 100
 
+const hasNotStarted = (snapshot: ResultSnapshot) =>
+  snapshot.availability === 'pending' ||
+  (snapshot.totalization.status === 'not_started' &&
+    Number(snapshot.sections.totalizedPercentage) === 0)
+
 const isFinished = (snapshot: ResultSnapshot) =>
   snapshot.totalization.status === 'finished' ||
   Number(snapshot.sections.totalizedPercentage) >= COMPLETE_PERCENTAGE
@@ -40,6 +45,9 @@ function indicator(
   }
   if (input.hasFailure) {
     return { icon: 'ring', text: 'Não foi possível atualizar', blinking: false }
+  }
+  if (hasNotStarted(snapshot)) {
+    return { icon: 'ring', text: 'Apuração não iniciada', blinking: false }
   }
   if (isFinished(snapshot)) {
     return { icon: 'full', text: 'Apuração finalizada', blinking: false }

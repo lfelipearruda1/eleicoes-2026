@@ -57,12 +57,12 @@ describe('PresidentPage — painel sem avisos', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
-  it('deve mostrar "Apuração em andamento" no cabeçalho em pending', async () => {
+  it('deve mostrar "Apuração não iniciada" no cabeçalho em pending', async () => {
     page.server.publish(manifestFor(pendingSnapshot()), pendingSnapshot())
 
     await renderPage()
 
-    expect(screen.getByText('Apuração em andamento')).toBeTruthy()
+    expect(screen.getByText('Apuração não iniciada')).toBeTruthy()
     expect(results().queryByRole('status')).toBeNull()
     expect(results().queryByText(/%$/)).toBeNull()
   })

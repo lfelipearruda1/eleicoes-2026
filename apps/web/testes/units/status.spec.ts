@@ -91,16 +91,27 @@ describe('describeHeaderStatus', () => {
     })
   })
 
-  it('deve mostrar "Apuração em andamento" antes de a apuração começar', () => {
+  it('deve indicar "Apuração não iniciada", sem piscar, antes de a apuração começar', () => {
     const notReleased = describeHeaderStatus({
       ...base,
       snapshot: pendingSnapshot(),
     })
-
-    expect(notReleased).toMatchObject({
-      text: 'Apuração em andamento',
-      blinking: true,
+    const notStarted = describeHeaderStatus({
+      ...base,
+      snapshot: pendingSnapshot({
+        votesReleased: true,
+        pendingReason: 'totalization_not_started',
+        totalization: { status: 'not_started', finalIndicator: false },
+      }),
     })
+
+    for (const status of [notReleased, notStarted]) {
+      expect(status).toMatchObject({
+        icon: 'ring',
+        text: 'Apuração não iniciada',
+        blinking: false,
+      })
+    }
   })
 
   it('deve parar de piscar e indicar "Apuração finalizada" com totalização finalizada', () => {
