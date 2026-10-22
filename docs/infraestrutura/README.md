@@ -12,17 +12,18 @@ A conta da AWS estava suspensa por fim do plano gratuito, e o prazo do 2º turno
 | ------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | VPS do coletor                  | Hostinger KVM 1, Ubuntu 24.04, `srv2083120`, contratada até 21/11/2026                         | `infra/coletor/`                                               |
 | Coleta                          | serviço `coletor-watch` (systemd), usuário `coletor`, reinício automático                      | `infra/coletor/coletor-watch.service`                          |
-| Envio para o R2                 | serviço `coletor-sync@<ambiente>` com rclone; snapshots antes do manifesto                     | `infra/coletor/coletor-sync@.service`, `infra/coletor/sync.sh` |
+| Envio para o R2                 | serviço `coletor-sync@<ambiente>` com rclone; fotos, depois snapshots, depois manifesto        | `infra/coletor/coletor-sync@.service`, `infra/coletor/sync.sh` |
 | Deploy do coletor               | comando restrito `/opt/coletor/deploy.sh`; volta à versão anterior se falhar                   | `infra/coletor/deploy.sh`                                      |
 | Buckets R2                      | `eleicoes-2026-homologacao` e `eleicoes-2026-producao`, privados                               | CORS em `infra/coletor/cors-homologacao.json`                  |
 | Domínio dos dados (homologação) | `dados-homologacao.eleicaobrasil2026.com.br`                                                   | —                                                              |
+| Domínio dos dados (produção)    | `dados.eleicaobrasil2026.com.br`, CORS só para `eleicaobrasil2026.com.br` e `www`              | `infra/coletor/cors-producao.json`                             |
 | Site (homologação)              | Worker só de assets `eleicoes-2026-web-homologacao`, em `homologacao.eleicaobrasil2026.com.br` | `infra/cloudflare/wrangler.jsonc`                              |
 | Site (produção)                 | Worker `eleicoes-2026-web`, em `eleicaobrasil2026.com.br` e `www`; ainda não publicado         | `infra/cloudflare/wrangler.jsonc`, ambiente `producao`         |
 | CI/CD                           | `Verificação` em todo push e PR; `Deploy` depois da verificação verde na `main`                | `.github/workflows/`                                           |
 
-Cache: manifesto com `Cache-Control: public, max-age=10`; snapshots com `max-age=31536000, immutable`. O domínio dos dados ainda responde `cf-cache-status: DYNAMIC`, porque falta a regra de cache para JSON.
+Cache: manifesto com `Cache-Control: public, max-age=10`; snapshots com `max-age=31536000, immutable`. A regra de cache `JSON de resultados` (Caching → Cache Rules) torna os dois domínios de dados elegíveis para cache, respeita o `Cache-Control` do objeto e ignora query string. Verificado: segunda leitura `HIT`, inclusive com `Cache-Control: no-cache` na requisição e com query string aleatória. O público não alcança o TSE: só o coletor consulta a origem, em ritmo fixo.
 
-Credenciais: a chave R2 de cada ambiente fica em `/etc/coletor/r2-<ambiente>.env` na VPS, legível só por root e `coletor`. A de homologação não escreve em produção (verificado: 403). Acesso à VPS só por chave SSH; login por senha desligado.
+Credenciais: a chave R2 de cada ambiente fica em `/etc/coletor/r2-<ambiente>.env` na VPS, legível só por root e `coletor`. Cada chave só acessa o próprio bucket (verificado: 403 no outro). O mesmo coletor publica nos dois buckets, por `coletor-sync@homologacao` e `coletor-sync@producao`. Acesso à VPS só por chave SSH; login por senha desligado.
 
 **Docker.** Não é usado nesta entrega. O coletor vai para a VPS como um arquivo único gerado por `pnpm --filter @eleicoes/collector run bundle`, e o systemd faz o papel de reinício que a política do container faria. Uma imagem acrescentaria registro, build de imagem e daemon sem resolver nenhum problema atual. ET-09 continua válida para depois da eleição, se a mesma imagem precisar rodar em outro lugar.
 
