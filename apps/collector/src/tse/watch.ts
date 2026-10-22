@@ -11,6 +11,7 @@ import {
 } from '../constants.js'
 import { CollectorError } from '../error.js'
 import { publishResultCapture } from '../president/publish.js'
+import { storeCandidatePhotos } from './photos.js'
 import { channelFor } from './channels.js'
 import { publishUfSummary } from './summary.js'
 import type { parseElectionConfig, ResultTarget, SourceName } from './ea11.js'
@@ -89,6 +90,7 @@ interface CycleContext {
   prefix: string
   publications: string
   disabled: Set<string>
+  photoAttempts: Map<string, number>
   options: WatchOptions
   log: (event: WatchEvent) => void
 }
@@ -120,10 +122,20 @@ async function runCycle(context: CycleContext, cycle: number) {
     }
     try {
       const run = await collectTarget(session, configCopy, round, target)
+      const photos = await storeCandidatePhotos({
+        session,
+        config: configCopy.config,
+        selection: run.election,
+        target,
+        candidateIds: run.candidateIds,
+        publications: context.publications,
+        lastAttempts: context.photoAttempts,
+      })
       const published = await publishResultCapture({
         capture: run.runDirectory,
         output: context.publications,
         channel: channelFor(context.prefix, target, round),
+        photos,
         ...(context.options.checkedAtMinIntervalMs !== undefined && {
           checkedAtMinIntervalMs: context.options.checkedAtMinIntervalMs,
         }),
@@ -201,6 +213,7 @@ export async function watchTse(options: WatchOptions) {
     prefix,
     publications: options.publications,
     disabled: new Set(),
+    photoAttempts: new Map(),
     options: {
       ...options,
       checkedAtMinIntervalMs:

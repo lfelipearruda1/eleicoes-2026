@@ -16,10 +16,6 @@
   @apply m-0 truncate text-[clamp(32px,3vw,40px)] leading-[1.1] font-heading;
 }
 
-.provenance {
-  @apply m-0 self-start rounded-full bg-surface px-4 py-2 text-[14px] leading-[1.43];
-}
-
 .hint {
   @apply m-0 text-[14px] leading-[1.43] text-muted [text-wrap:pretty];
 }

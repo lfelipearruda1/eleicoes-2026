@@ -1,0 +1,16 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://eleicaobrasil2026.com.br",
+          "https://www.eleicaobrasil2026.com.br"
+        ],
+        "methods": ["GET", "HEAD"],
+        "headers": ["If-None-Match", "If-Modified-Since"]
+      },
+      "exposeHeaders": ["ETag", "Last-Modified", "Cache-Control"],
+      "maxAgeSeconds": 3600
+    }
+  ]
+}

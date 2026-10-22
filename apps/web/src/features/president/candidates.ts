@@ -11,6 +11,7 @@ export interface CandidateRow {
   percentage: string
   votes: string
   isAhead: boolean
+  photoUrl?: string
 }
 
 export interface BarSegment {
@@ -24,7 +25,6 @@ export interface BarSegment {
 export interface CandidateSummary {
   rows: CandidateRow[]
   segments: BarSegment[]
-  note: string
 }
 
 type AvailableSnapshot = Extract<ResultSnapshot, { availability: 'available' }>
@@ -73,7 +73,11 @@ export function leadingCandidateId(candidates: VotedCandidate[]) {
 
 export function summarizeCandidates(
   snapshot: ResultSnapshot,
+  photoRoot?: URL,
 ): CandidateSummary {
+  const photoOf = (candidate: { photo?: string }) =>
+    candidate.photo &&
+    photoRoot && { photoUrl: new URL(candidate.photo, photoRoot).href }
   if (snapshot.availability === 'pending') {
     const share = snapshot.candidates.length
       ? Math.floor(10000 / snapshot.candidates.length)
@@ -86,6 +90,7 @@ export function summarizeCandidates(
         percentage: '—',
         votes: 'Aguardando votos',
         isAhead: false,
+        ...photoOf(candidate),
       })),
       segments: snapshot.candidates.map((candidate, index) => ({
         key: candidate.candidateId,
@@ -94,7 +99,6 @@ export function summarizeCandidates(
         width: fromHundredths(share),
         dim: true,
       })),
-      note: 'Os percentuais aparecem quando houver votos apurados.',
     }
   }
 
@@ -111,9 +115,9 @@ export function summarizeCandidates(
           : 'votos'
       }`,
       isAhead: candidate.candidateId === ahead,
+      ...photoOf(candidate),
     })),
     segments: percentageSegments(snapshot.candidates),
-    note: differenceNote(snapshot.candidates),
   }
 }
 
@@ -131,22 +135,4 @@ export function percentageSegments(candidates: VotedCandidate[]): BarSegment[] {
     offset += width
     return segment
   })
-}
-
-const PERCENTAGE_BASE =
-  'Percentuais sobre os votos a candidaturas concorrentes.'
-
-function differenceNote(
-  candidates: { contestantVotesPercentage: string }[],
-): string {
-  const [first, second] = candidates
-  if (candidates.length !== 2 || !first || !second) return PERCENTAGE_BASE
-  const a = toHundredths(first.contestantVotesPercentage)
-  const b = toHundredths(second.contestantVotesPercentage)
-  if (a === b) return `${PERCENTAGE_BASE} Empate nos números apresentados.`
-  const difference = formatPercentage(fromHundredths(Math.abs(a - b))).slice(
-    0,
-    -1,
-  )
-  return `${PERCENTAGE_BASE} Diferença de ${difference} p.p.`
 }

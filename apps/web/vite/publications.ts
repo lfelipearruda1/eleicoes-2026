@@ -11,6 +11,8 @@ const CHANNEL_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const CHANNEL_MAX_LENGTH = 64
 const ALLOWED_FILE =
   /^(manifest\.json|snapshots\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.json)$/
+const PHOTO_CHANNEL = 'fotos'
+const PHOTO_FILE = /^\d{1,20}\.jpeg$/
 const MAX_BYTES = 1024 * 1024
 
 type Handler = (
@@ -19,12 +21,17 @@ type Handler = (
   next: () => void,
 ) => void
 
-function reply(response: ServerResponse, status: number, body?: Buffer) {
+function reply(
+  response: ServerResponse,
+  status: number,
+  body?: Buffer,
+  contentType = 'application/json; charset=utf-8',
+) {
   response.statusCode = status
   response.setHeader('Cache-Control', 'no-store')
   response.setHeader('X-Content-Type-Options', 'nosniff')
   if (body) {
-    response.setHeader('Content-Type', 'application/json; charset=utf-8')
+    response.setHeader('Content-Type', contentType)
   }
   response.end(body)
 }
@@ -69,17 +76,20 @@ export function createPublicationsHandler(root: string): Handler {
     const separator = relative.indexOf('/')
     const channel = relative.slice(0, separator)
     const file = relative.slice(separator + 1)
+    const isPhoto = channel === PHOTO_CHANNEL && PHOTO_FILE.test(file)
     const isAllowed =
-      separator > 0 &&
-      channel.length <= CHANNEL_MAX_LENGTH &&
-      CHANNEL_PATTERN.test(channel) &&
-      ALLOWED_FILE.test(file)
+      isPhoto ||
+      (separator > 0 &&
+        channel.length <= CHANNEL_MAX_LENGTH &&
+        CHANNEL_PATTERN.test(channel) &&
+        ALLOWED_FILE.test(file))
     if (!isAllowed) {
       reply(response, 404)
       return
     }
+    const contentType = isPhoto ? 'image/jpeg' : undefined
     void readChannelFile(root, channel, file).then((body) =>
-      body ? reply(response, 200, body) : reply(response, 404),
+      body ? reply(response, 200, body, contentType) : reply(response, 404),
     )
   }
 }

@@ -398,21 +398,43 @@ describe('usePublication — canais de UF', () => {
     expect(server.calls).toEqual([])
   })
 
-  it('deve parar de consultar o canal ausente quando pedido', async () => {
+  it('deve espaçar as consultas ao canal ainda ausente', async () => {
     const { result } = renderHook(() =>
       usePublication({
         source: GOVERNOR_SP,
         staleAfterMs: TEST_STALE_AFTER_MS,
         fetcher: server.fetcher,
-        stopWhenMissing: true,
+        missingIntervalMs: LOCAL_POLL_INTERVAL_MS * 4,
       }),
     )
     await settle()
 
     await advance(LOCAL_POLL_INTERVAL_MS * 3)
-
     expect(channelCalls(GOVERNOR_SP.channel)).toBe(1)
+
+    await advance(LOCAL_POLL_INTERVAL_MS)
+    expect(channelCalls(GOVERNOR_SP.channel)).toBe(2)
     expect(result.current.accepted).toBeUndefined()
+  })
+
+  it('deve mostrar o canal que aparece depois e voltar ao intervalo normal', async () => {
+    const { result } = renderHook(() =>
+      usePublication({
+        source: GOVERNOR_SP,
+        staleAfterMs: TEST_STALE_AFTER_MS,
+        fetcher: server.fetcher,
+        missingIntervalMs: LOCAL_POLL_INTERVAL_MS * 4,
+      }),
+    )
+    await settle()
+    const governor = availableSnapshot({ office: 'governor', scope: 'SP' })
+    server.publish(manifestFor(governor), governor)
+
+    await advance(LOCAL_POLL_INTERVAL_MS * 4)
+    expect(result.current.accepted?.snapshot.office).toBe('governor')
+
+    await advance(LOCAL_POLL_INTERVAL_MS)
+    expect(channelCalls(GOVERNOR_SP.channel)).toBe(3)
   })
 
   it('deve continuar consultando o canal ausente sem a opção', async () => {

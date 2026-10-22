@@ -12,6 +12,7 @@ import {
 import { LOCAL_POLL_INTERVAL_MS, type ChannelSource } from '../resultsConfig.ts'
 
 export const FRESHNESS_RECHECK_MAX_MS = 60_000
+export const MISSING_CHANNEL_POLL_INTERVAL_MS = 60_000
 
 export type FailureReason = RejectionReason | 'unreachable'
 
@@ -32,14 +33,14 @@ export function usePublication<T extends SnapshotEnvelope = ResultSnapshot>({
   staleAfterMs,
   intervalMs = LOCAL_POLL_INTERVAL_MS,
   fetcher = fetch,
-  stopWhenMissing = false,
+  missingIntervalMs = intervalMs,
   schema,
 }: {
   source: ChannelSource | undefined
   staleAfterMs: number
   intervalMs?: number
   fetcher?: typeof fetch
-  stopWhenMissing?: boolean
+  missingIntervalMs?: number
   schema?: SnapshotSchema<T>
 }) {
   const [read, setRead] = useState<ChannelRead<T>>()
@@ -69,17 +70,16 @@ export function usePublication<T extends SnapshotEnvelope = ResultSnapshot>({
         }
       })
     let disposed = false
-    let stopped = false
+    let awaitingChannel = false
     let inFlight: AbortController | undefined
     let timer: ReturnType<typeof setTimeout> | undefined
     let current: AcceptedPublication<T> | undefined
 
     const schedule = () => {
       clearTimeout(timer)
-      if (disposed || stopped || document.visibilityState !== 'visible') {
-        return
-      }
-      timer = setTimeout(() => void attempt(), intervalMs)
+      if (disposed || document.visibilityState !== 'visible') return
+      const wait = awaitingChannel ? missingIntervalMs : intervalMs
+      timer = setTimeout(() => void attempt(), wait)
     }
 
     const attempt = async (manual = false) => {
@@ -100,11 +100,11 @@ export function usePublication<T extends SnapshotEnvelope = ResultSnapshot>({
         if (controller.signal.aborted) return
         setNowMs(Date.now())
         if (result.outcome === 'rejected') {
-          stopped =
-            stopWhenMissing && !current && result.reason === 'manifest_missing'
+          awaitingChannel = !current && result.reason === 'manifest_missing'
           fail({ reason: result.reason, at: new Date() })
           return
         }
+        awaitingChannel = false
         if (result.outcome === 'same') return succeed()
         current = result.publication
         succeed(result.publication)
@@ -142,7 +142,7 @@ export function usePublication<T extends SnapshotEnvelope = ResultSnapshot>({
       document.removeEventListener('visibilitychange', onVisibilityChange)
       attemptRef.current = () => {}
     }
-  }, [source, intervalMs, fetcher, stopWhenMissing, schema])
+  }, [source, intervalMs, missingIntervalMs, fetcher, schema])
 
   const freshness = accepted && assessFreshness(accepted, nowMs, staleAfterMs)
   const changesAt = freshness && nextFreshnessChangeAt(freshness, staleAfterMs)

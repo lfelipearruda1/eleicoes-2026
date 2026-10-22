@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { act, fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 
 import { PresidentPage } from '../../src/features/president/components/PresidentPage.tsx'
 import {
@@ -45,11 +45,13 @@ describe('PresidentPage', () => {
     expect(results().queryByText(/%$/)).toBeNull()
   })
 
-  it('deve avisar junto do resultado que os dados são fictícios', async () => {
+  it('deve informar no rodapé, e não no painel, que os dados são fictícios', async () => {
     await renderPage()
 
+    const provenance = 'Demonstração — dados fictícios, sem valor oficial.'
+    expect(results().queryByText(provenance)).toBeNull()
     expect(
-      results().getByText('Demonstração — dados fictícios, sem valor oficial.'),
+      within(screen.getByRole('contentinfo')).getByText(provenance),
     ).toBeTruthy()
   })
 
@@ -84,7 +86,21 @@ describe('PresidentPage', () => {
     await screen.findByRole('heading', { name: 'Presidente em São Paulo' })
 
     expect(window.location.hash).toBe('#/uf/SP')
-    expect(results().getByText('7.000 votos')).toBeTruthy()
+    expect(await results().findByText('7.000 votos')).toBeTruthy()
+  })
+
+  it('deve trocar de UF sem passar pelo carregamento nem desmontar as candidaturas', async () => {
+    publishUf('SP', '7.000')
+    await renderPage()
+    const nationalCandidates = results().getAllByRole('listitem')
+
+    window.location.hash = '#/uf/SP'
+    window.dispatchEvent(new HashChangeEvent('hashchange'))
+    await screen.findByRole('heading', { name: 'Presidente em São Paulo' })
+
+    expect(screen.queryByText('Carregando resultados…')).toBeNull()
+    expect(results().getAllByRole('listitem')[0]).toBe(nationalCandidates[0])
+    expect(await results().findByText('7.000 votos')).toBeTruthy()
   })
 
   it('deve abrir a UF pelo teclado no mapa', async () => {
@@ -123,6 +139,37 @@ describe('PresidentPage', () => {
     ).toBeTruthy()
     expect(results().getByText('1.111 votos')).toBeTruthy()
     expect(results().getByText('2.222 votos')).toBeTruthy()
+  })
+
+  it('deve manter o card de governador entre UFs com disputa e tirá-lo na UF sem disputa', async () => {
+    publishUf('DF', '1.111', '2.222')
+    publishUf('AC', '3.333', '4.444')
+    publishUf('SP', '7.000')
+    window.location.hash = '#/uf/DF'
+    render(
+      <PresidentPage
+        endpoint={TEST_ENDPOINT}
+        staleAfterMs={TEST_STALE_AFTER_MS}
+        fetcher={page.server.fetcher}
+      />,
+    )
+    await screen.findByRole('heading', {
+      name: 'Governador em Distrito Federal',
+    })
+
+    window.location.hash = '#/uf/AC'
+    window.dispatchEvent(new HashChangeEvent('hashchange'))
+    expect(
+      await screen.findByRole('heading', { name: 'Governador em Acre' }),
+    ).toBeTruthy()
+    expect(await screen.findByText('4.444 votos')).toBeTruthy()
+
+    window.location.hash = '#/uf/SP'
+    window.dispatchEvent(new HashChangeEvent('hashchange'))
+    await screen.findByText('7.000 votos')
+    await vi.waitFor(() =>
+      expect(screen.queryByRole('heading', { name: /^Governador/ })).toBeNull(),
+    )
   })
 
   it('deve mostrar só presidente, sem mensagem, na UF sem 2º turno de governador', async () => {
@@ -199,19 +246,21 @@ describe('PresidentPage', () => {
     ).toHaveLength(27)
   })
 
-  it('deve preservar o resultado e avisar quando a atualização falha', async () => {
-    await renderPage()
+  it('deve avisar quando não há resultado para mostrar e a leitura falha', async () => {
     page.server.files[`${NATIONAL_PATH}manifest.json`] = new TypeError('rede')
 
-    act(() => {
-      document.dispatchEvent(new Event('visibilitychange'))
-    })
+    render(
+      <PresidentPage
+        endpoint={TEST_ENDPOINT}
+        staleAfterMs={TEST_STALE_AFTER_MS}
+        fetcher={page.server.fetcher}
+      />,
+    )
     const notice = await screen.findByRole('alert')
 
     expect(notice.textContent).toContain(
-      'Não foi possível consultar os resultados. Exibindo a última versão válida.',
+      'Não foi possível carregar os resultados.',
     )
-    expect(results().getByText('60,00%')).toBeTruthy()
   })
 
   it('deve renderizar nome com marcação como texto', async () => {

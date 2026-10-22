@@ -1,0 +1,250 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [Verificação]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      alvo:
+        description: O que publicar
+        type: choice
+        options:
+          - site-homologacao
+          - site-producao
+          - coletor
+        default: site-homologacao
+
+permissions:
+  contents: read
+
+env:
+  WRANGLER_VERSION: 4.151.3
+  WRANGLER_CONFIG: infra/cloudflare/wrangler.jsonc
+  COMMIT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+jobs:
+  site-homologacao:
+    if: >-
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') ||
+      (github.event_name == 'workflow_dispatch' && inputs.alvo == 'site-homologacao')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    concurrency:
+      group: deploy-site-homologacao
+      cancel-in-progress: false
+    environment:
+      name: homologacao
+      url: https://homologacao.eleicaobrasil2026.com.br
+    steps:
+      - name: Checkout do commit verificado (actions/checkout v7.0.1)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.COMMIT_SHA }}
+          persist-credentials: false
+
+      - name: pnpm (pnpm/action-setup v6.1.0)
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+
+      - name: Node (actions/setup-node v7.1.0)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Build do site apontando para os dados de homologação
+        env:
+          VITE_RESULTS_BASE_URL: ${{ vars.RESULTS_BASE_URL }}
+          VITE_RESULTS_CHANNEL: ${{ vars.RESULTS_CHANNEL }}
+          VITE_RESULTS_STALE_AFTER_MS: '120000'
+          VITE_RESULTS_POLL_INTERVAL_MS: '15000'
+          VITE_RESULTS_LOOPBACK_HOSTS: 127.0.0.1,[::1]
+          VITE_RESULTS_BLOCKED_DOMAINS: tse.jus.br
+        run: pnpm --filter @eleicoes/web... run build
+
+      - name: Verificar o bundle
+        run: |
+          if grep -rnE '/Users/|/home/runner|node:fs|node:path|ELEICOES_|sqcand' apps/web/dist; then
+            echo '::error::O bundle do web contém caminho local, módulo de Node ou nome interno.'
+            exit 1
+          fi
+          grep -q "${{ vars.RESULTS_BASE_URL }}" apps/web/dist/assets/*.js
+
+      - name: Publicar na Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: >-
+          pnpm dlx "wrangler@${WRANGLER_VERSION}" deploy
+          --config "$WRANGLER_CONFIG"
+          --message "commit ${COMMIT_SHA}"
+
+      - name: Conferir o site publicado
+        run: |
+          url=https://homologacao.eleicaobrasil2026.com.br/
+          for _ in 1 2 3 4 5 6; do
+            if curl -fsS "$url" | grep -q '<div id="root"'; then
+              break
+            fi
+            sleep 10
+          done
+          curl -fsS "$url" | grep -q '<div id="root"'
+          manifest="${{ vars.RESULTS_BASE_URL }}${{ vars.RESULTS_CHANNEL }}/manifest.json"
+          checked_at=$(curl -fsS "$manifest" | jq -r '.checkedAt // .current.publishedAt')
+          {
+            echo "## Site de homologação publicado"
+            echo
+            echo "| Item | Valor |"
+            echo "| --- | --- |"
+            echo "| Commit | \`${COMMIT_SHA}\` |"
+            echo "| Site | $url |"
+            echo "| Dados | ${{ vars.RESULTS_BASE_URL }} |"
+            echo "| Última verificação do coletor | $checked_at |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  site-producao:
+    if: github.event_name == 'workflow_dispatch' && inputs.alvo == 'site-producao'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    concurrency:
+      group: deploy-site-producao
+      cancel-in-progress: false
+    environment:
+      name: producao
+      url: https://eleicaobrasil2026.com.br
+    steps:
+      - name: Checkout (actions/checkout v7.0.1)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: pnpm (pnpm/action-setup v6.1.0)
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+
+      - name: Node (actions/setup-node v7.1.0)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Tipos, testes e build apontando para os dados de produção
+        env:
+          VITE_RESULTS_BASE_URL: ${{ vars.RESULTS_BASE_URL }}
+          VITE_RESULTS_CHANNEL: ${{ vars.RESULTS_CHANNEL }}
+          VITE_RESULTS_STALE_AFTER_MS: '120000'
+          VITE_RESULTS_POLL_INTERVAL_MS: '15000'
+          VITE_RESULTS_LOOPBACK_HOSTS: 127.0.0.1,[::1]
+          VITE_RESULTS_BLOCKED_DOMAINS: tse.jus.br
+        run: |
+          pnpm typecheck
+          pnpm test
+          pnpm --filter @eleicoes/web... run build
+
+      - name: Verificar o bundle
+        run: |
+          if grep -rnE '/Users/|/home/runner|node:fs|node:path|ELEICOES_|sqcand' apps/web/dist; then
+            echo '::error::O bundle do web contém caminho local, módulo de Node ou nome interno.'
+            exit 1
+          fi
+          grep -q "${{ vars.RESULTS_BASE_URL }}" apps/web/dist/assets/*.js
+
+      - name: Publicar na Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: >-
+          pnpm dlx "wrangler@${WRANGLER_VERSION}" deploy
+          --config "$WRANGLER_CONFIG" --env producao
+          --message "commit ${GITHUB_SHA}"
+
+      - name: Conferir o site publicado
+        run: |
+          url=https://eleicaobrasil2026.com.br/
+          for _ in 1 2 3 4 5 6; do
+            if curl -fsS "$url" | grep -q '<div id="root"'; then
+              break
+            fi
+            sleep 10
+          done
+          curl -fsS "$url" | grep -q '<div id="root"'
+          {
+            echo "## Site de produção publicado"
+            echo
+            echo "| Item | Valor |"
+            echo "| --- | --- |"
+            echo "| Commit | \`${GITHUB_SHA}\` |"
+            echo "| Site | $url |"
+            echo "| Dados | ${{ vars.RESULTS_BASE_URL }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  coletor:
+    if: github.event_name == 'workflow_dispatch' && inputs.alvo == 'coletor'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    concurrency:
+      group: deploy-coletor
+      cancel-in-progress: false
+    environment:
+      name: coletor
+    steps:
+      - name: Checkout (actions/checkout v7.0.1)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: pnpm (pnpm/action-setup v6.1.0)
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+
+      - name: Node (actions/setup-node v7.1.0)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Tipos e testes do coletor
+        run: |
+          pnpm --filter @eleicoes/collector... run typecheck
+          pnpm exec vitest run apps/collector packages
+
+      - name: Empacotar o coletor em um arquivo
+        run: |
+          pnpm --filter @eleicoes/collector run bundle
+          node apps/collector/dist/collector.mjs --help | head -n 1 | grep -q '^Uso: collector'
+
+      - name: Enviar para a VPS e aguardar um ciclo completo
+        env:
+          DEPLOY_KEY: ${{ secrets.COLETOR_DEPLOY_KEY }}
+          KNOWN_HOSTS: ${{ vars.COLETOR_KNOWN_HOSTS }}
+          HOST: ${{ vars.COLETOR_HOST }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy
+          chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            "root@${HOST}" "deploy ${GITHUB_SHA}" \
+            < apps/collector/dist/collector.mjs | tee deploy.log
+
+      - name: Resumo
+        if: always()
+        run: |
+          {
+            echo "## Deploy do coletor"
+            echo
+            echo "Commit: \`${GITHUB_SHA}\`"
+            echo
+            echo '```'
+            cat deploy.log 2>/dev/null || echo "sem saída do servidor"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          rm -f ~/.ssh/deploy

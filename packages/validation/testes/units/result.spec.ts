@@ -309,7 +309,7 @@ describe('readResultSnapshotSchema', () => {
   it('deve descartar chaves extras e manter o payload validado', () => {
     const document = available({
       winner: '900000000001',
-      candidates: [{ ...candidate('1', '10000', '100.00'), photo: 'x.png' }],
+      candidates: [{ ...candidate('1', '10000', '100.00'), portrait: 'x.png' }],
     })
 
     const result = readResultSnapshotSchema.parse(document)

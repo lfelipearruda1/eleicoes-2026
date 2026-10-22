@@ -1,22 +1,44 @@
 // @vitest-environment jsdom
-import { act, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { PresidentPage } from '../../src/features/president/components/PresidentPage.tsx'
 import {
   availableSnapshot,
   manifestFor,
   pendingSnapshot,
+  TEST_ENDPOINT,
   TEST_STALE_AFTER_MS,
   NATIONAL_PATH,
 } from './fixtures.ts'
 import { setupPresidentPage } from './pageHarness.tsx'
 
-const { page, renderPage, results } = setupPresidentPage()
+const { page, renderPage, results, publishUf } = setupPresidentPage()
 
-describe('PresidentPage — atualidade e comunicação', () => {
+const GOVERNOR_DF_PATH = '/publications/demo-sintetico-governador-df-2t/'
+
+async function renderDistritoFederal() {
+  publishUf('DF', '1.111', '2.222')
+  window.location.hash = '#/uf/DF'
+  render(
+    <PresidentPage
+      endpoint={TEST_ENDPOINT}
+      staleAfterMs={TEST_STALE_AFTER_MS}
+      fetcher={page.server.fetcher}
+    />,
+  )
+  await screen.findByRole('heading', { name: 'Governador em Distrito Federal' })
+}
+
+const breakConnection = (manifestPath: string) => {
+  page.server.files[`${manifestPath}manifest.json`] = new TypeError('rede')
+  act(() => {
+    document.dispatchEvent(new Event('visibilitychange'))
+  })
+}
+
+describe('PresidentPage — painel sem avisos', () => {
   const COLLECTED_MS = Date.parse(availableSnapshot().collectedAt)
-  const STALE_COLLECTION =
-    'A última coleta registrada ocorreu há mais de 2 minutos. Não há confirmação de atualização posterior.'
 
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] })
@@ -27,23 +49,15 @@ describe('PresidentPage — atualidade e comunicação', () => {
     vi.useRealTimers()
   })
 
-  it('deve manter os números e mostrar o aviso de coleta antiga como status', async () => {
+  it('deve mostrar os números sem aviso no painel com coleta antiga', async () => {
     await renderPage()
 
-    expect(results().getByRole('status').textContent).toBe(STALE_COLLECTION)
     expect(results().getByText('60,00%')).toBeTruthy()
+    expect(results().queryByRole('status')).toBeNull()
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
-  it('deve não mostrar aviso de atualidade com coleta recente', async () => {
-    vi.setSystemTime(COLLECTED_MS + 1_000)
-
-    await renderPage()
-
-    expect(results().queryByRole('status')).toBeNull()
-  })
-
-  it('deve manter "aguardando" em pending e acrescentar o aviso sem votos', async () => {
+  it('deve manter "aguardando" no cabeçalho em pending', async () => {
     page.server.publish(manifestFor(pendingSnapshot()), pendingSnapshot())
 
     await renderPage()
@@ -51,11 +65,11 @@ describe('PresidentPage — atualidade e comunicação', () => {
     expect(
       screen.getByText('Aguardando liberação dos votos · dados de 18:00'),
     ).toBeTruthy()
-    expect(results().getByRole('status').textContent).toBe(STALE_COLLECTION)
+    expect(results().queryByRole('status')).toBeNull()
     expect(results().queryByText(/%$/)).toBeNull()
   })
 
-  it('deve manter "apuração concluída" em finished e só avisar a idade', async () => {
+  it('deve manter "apuração concluída" no cabeçalho em finished', async () => {
     const finished = availableSnapshot({
       totalization: { status: 'finished', finalIndicator: true },
     })
@@ -64,12 +78,10 @@ describe('PresidentPage — atualidade e comunicação', () => {
     await renderPage()
 
     expect(screen.getByText('Apuração concluída · dados de 18:00')).toBeTruthy()
-    expect(results().getByRole('status').textContent).toBe(STALE_COLLECTION)
   })
 
-  it('deve falar de verificação da origem quando há checkedAt antigo', async () => {
+  it('deve mostrar a verificação da origem no rodapé', async () => {
     const checkedAt = '2026-10-25T21:00:30Z'
-    vi.setSystemTime(Date.parse(checkedAt) + TEST_STALE_AFTER_MS)
     page.server.publish(
       manifestFor(availableSnapshot(), 1, { checkedAt }),
       availableSnapshot(),
@@ -77,27 +89,20 @@ describe('PresidentPage — atualidade e comunicação', () => {
 
     await renderPage()
 
-    expect(results().getByRole('status').textContent).toBe(
-      'Sem verificação recente da origem. Exibindo o último resultado disponível.',
-    )
     expect(
       screen.getByText(/Verificação da origem: 25\/10\/2026, 18:00:30/),
     ).toBeTruthy()
   })
 
-  it('deve mostrar falha de comunicação e idade como avisos separados', async () => {
+  it('deve indicar a falha só no cabeçalho e manter os números', async () => {
     await renderPage()
-    page.server.files[`${NATIONAL_PATH}manifest.json`] = new TypeError('rede')
 
-    act(() => {
-      document.dispatchEvent(new Event('visibilitychange'))
-    })
-    const alert = await screen.findByRole('alert')
+    breakConnection(NATIONAL_PATH)
 
-    expect(alert.textContent).toContain(
-      'Não foi possível consultar os resultados. Exibindo a última versão válida.',
-    )
-    expect(results().getByRole('status').textContent).toBe(STALE_COLLECTION)
+    expect(
+      await screen.findByText('Não foi possível atualizar · dados de 18:00'),
+    ).toBeTruthy()
+    expect(screen.queryByRole('alert')).toBeNull()
     expect(results().getByText('60,00%')).toBeTruthy()
   })
 
@@ -106,5 +111,26 @@ describe('PresidentPage — atualidade e comunicação', () => {
 
     expect(screen.getByText(/Última leitura pelo navegador:/)).toBeTruthy()
     expect(screen.queryByText(/Última verificação/)).toBeNull()
+  })
+
+  it('deve manter o governador sem aviso com coleta antiga', async () => {
+    await renderDistritoFederal()
+
+    expect(results().getByText('2.222 votos')).toBeTruthy()
+    expect(results().queryByRole('status')).toBeNull()
+  })
+
+  it('deve manter o último resultado do governador quando a leitura falha', async () => {
+    await renderDistritoFederal()
+    const governorReads = () =>
+      page.server.calls.filter((url) => url.startsWith(GOVERNOR_DF_PATH)).length
+    const before = governorReads()
+
+    breakConnection(GOVERNOR_DF_PATH)
+    await vi.waitFor(() => expect(governorReads()).toBeGreaterThan(before))
+
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(results().getByText('2.222 votos')).toBeTruthy()
+    expect(results().getByText('1.111 votos')).toBeTruthy()
   })
 })

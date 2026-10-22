@@ -1,0 +1,20 @@
+[Unit]
+Description=Coleta contínua do TSE (tse-watch)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=coletor
+Group=coletor
+WorkingDirectory=/var/lib/coletor
+ExecStart=/usr/local/bin/node /opt/coletor/collector.mjs tse-watch --source official --round 2 --output /var/lib/coletor/tse --publications /var/lib/coletor/publications
+Restart=always
+RestartSec=10
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/coletor
+
+[Install]
+WantedBy=multi-user.target

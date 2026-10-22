@@ -1,0 +1,24 @@
+{
+  "name": "eleicoes-2026-web-homologacao",
+  "compatibility_date": "2026-10-21",
+  "assets": { "directory": "../../apps/web/dist" },
+  "routes": [
+    {
+      "pattern": "homologacao.eleicaobrasil2026.com.br",
+      "custom_domain": true,
+    },
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
+  "env": {
+    "producao": {
+      "name": "eleicoes-2026-web",
+      "routes": [
+        { "pattern": "eleicaobrasil2026.com.br", "custom_domain": true },
+        { "pattern": "www.eleicaobrasil2026.com.br", "custom_domain": true },
+      ],
+      "workers_dev": false,
+      "preview_urls": false,
+    },
+  },
+}

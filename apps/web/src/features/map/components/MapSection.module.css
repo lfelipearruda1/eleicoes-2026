@@ -9,7 +9,11 @@
 }
 
 .mapWrap {
-  @apply relative;
+  @apply relative flex flex-col gap-4;
+}
+
+.legendSlot {
+  @apply md:pointer-events-none md:absolute md:top-[60%] md:left-0;
 }
 
 .hint {

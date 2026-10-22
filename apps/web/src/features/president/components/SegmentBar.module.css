@@ -4,6 +4,10 @@
   @apply relative block w-full overflow-hidden rounded-full bg-track;
 }
 
+.segment {
+  @apply transition-[width,x] duration-500 ease-out motion-reduce:transition-none starting:[width:0];
+}
+
 .regular {
   @apply h-2;
 }

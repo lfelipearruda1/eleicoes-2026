@@ -1,4 +1,4 @@
-import type { ResultSnapshot } from '@eleicoes/validation'
+import { candidatePhotoPath, type ResultSnapshot } from '@eleicoes/validation'
 
 import { CollectorError } from '../error.js'
 import type { ResultSummary } from '../tse/ea20.js'
@@ -8,6 +8,7 @@ export interface NormalizationContext {
   sourceEnvironment: 'official' | 'synthetic'
   collectedAt: string
   sourceFile: string
+  photos?: ReadonlySet<string>
 }
 
 const toPercentage = (value: string) => value.replace(',', '.')
@@ -73,6 +74,10 @@ export function normalizeResult(
       ...(summary.totalizedAt && { totalizedAt: summary.totalizedAt }),
     },
   }
+  const photoOf = (candidateId: string) =>
+    context.photos?.has(candidateId) && {
+      photo: candidatePhotoPath(candidateId),
+    }
   const pendingReason = decidePendingReason(summary)
   if (pendingReason) {
     return {
@@ -83,6 +88,7 @@ export function normalizeResult(
         candidateId,
         number,
         ballotName,
+        ...photoOf(candidateId),
       })),
     }
   }
@@ -94,6 +100,7 @@ export function normalizeResult(
       candidateId: candidate.candidateId,
       number: candidate.number,
       ballotName: candidate.ballotName,
+      ...photoOf(candidate.candidateId),
       votes: candidate.votes,
       contestantVotesPercentage: toPercentage(candidate.contestantVotesPercent),
       ...(candidate.voteDestination && {

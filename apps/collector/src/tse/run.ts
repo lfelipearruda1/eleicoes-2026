@@ -89,18 +89,32 @@ export async function openTseSession(options: SessionOptions) {
   const lastValid = await readLastValid(sourceDirectory)
   let lastRequestStart = 0
 
-  const fetchCopy = async (
-    url: URL,
-    runDirectory: string,
-    captureName: string,
-    request: Record<string, unknown>,
-  ) => {
+  const waitTurn = async () => {
     await sleep(
       Math.max(0, lastRequestStart + minIntervalMs - Date.now()),
       undefined,
       { signal: options.signal },
     )
     lastRequestStart = Date.now()
+  }
+
+  const fetchFile = async (url: URL, maxBytes: number) => {
+    await waitTurn()
+    const response = await httpGet(url, {
+      allowedHost: TSE_SOURCES[source].host,
+      maxBytes,
+      ...(options.transport && { transport: options.transport }),
+    })
+    return response.status === 200 ? response.body : undefined
+  }
+
+  const fetchCopy = async (
+    url: URL,
+    runDirectory: string,
+    captureName: string,
+    request: Record<string, unknown>,
+  ) => {
+    await waitTurn()
     const previous = lastValid[url.href]
     const previousBody =
       previous && (await readCapture(sourceDirectory, previous.capture))
@@ -149,7 +163,7 @@ export async function openTseSession(options: SessionOptions) {
 
   const newRunDirectory = () => createRunDirectory(sourceDirectory, now())
 
-  return { source, fetchCopy, accept, newRunDirectory }
+  return { source, now, fetchCopy, fetchFile, accept, newRunDirectory }
 }
 
 export type TseSession = Awaited<ReturnType<typeof openTseSession>>
@@ -250,6 +264,9 @@ export async function collectTarget(
       election: selection,
       requests: metadata.requests,
       result: describeResult(summary),
+      candidateIds: summary.candidates.map(
+        (candidate) => candidate.candidateId,
+      ),
     }
   } finally {
     await writeCaptureFile(

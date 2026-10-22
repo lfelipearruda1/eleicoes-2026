@@ -37,9 +37,6 @@ describe('summarizeCandidates', () => {
     const summary = summarizeCandidates(pendingSnapshot())
 
     expect(summary.segments.every((segment) => segment.dim)).toBe(true)
-    expect(summary.note).toBe(
-      'Os percentuais aparecem quando houver votos apurados.',
-    )
   })
 
   it('deve renderizar todas as candidaturas na ordem do contrato', () => {
@@ -88,24 +85,11 @@ describe('summarizeCandidates', () => {
     expect(summary.rows[0]?.votes).toBe('9.007.199.254.740.993 votos')
   })
 
-  it('deve indicar a diferença sobre a base de candidaturas concorrentes', () => {
-    const snapshot = twoCandidates(['4953', '49.53'], ['5047', '50.47'])
-
-    const summary = summarizeCandidates(snapshot)
-
-    expect(summary.note).toBe(
-      'Percentuais sobre os votos a candidaturas concorrentes. Diferença de 0,94 p.p.',
-    )
-  })
-
-  it('deve indicar empate quando os percentuais publicados são iguais', () => {
+  it('deve não marcar ninguém à frente quando os percentuais publicados são iguais', () => {
     const snapshot = twoCandidates(['5', '50.00'], ['5', '50.00'])
 
     const summary = summarizeCandidates(snapshot)
 
-    expect(summary.note).toBe(
-      'Percentuais sobre os votos a candidaturas concorrentes. Empate nos números apresentados.',
-    )
     expect(summary.rows.some((row) => row.isAhead)).toBe(false)
   })
 
@@ -115,14 +99,6 @@ describe('summarizeCandidates', () => {
     const summary = summarizeCandidates(snapshot)
 
     expect(summary.rows.map((row) => row.isAhead)).toEqual([false, true])
-  })
-
-  it('deve trocar a diferença pela base do percentual com mais de duas candidaturas', () => {
-    const summary = summarizeCandidates(availableSnapshot())
-
-    expect(summary.note).toBe(
-      'Percentuais sobre os votos a candidaturas concorrentes.',
-    )
   })
 })
 

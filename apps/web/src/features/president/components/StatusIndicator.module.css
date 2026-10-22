@@ -1,7 +1,7 @@
 @reference '../../../index.css';
 
 .status {
-  @apply flex items-center gap-2 text-[12px] leading-[1.33] text-muted;
+  @apply flex items-center gap-2 text-[14px] leading-[1.43] text-muted;
 }
 
 .icon {

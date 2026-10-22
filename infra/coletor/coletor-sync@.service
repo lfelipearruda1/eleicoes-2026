@@ -1,0 +1,22 @@
+[Unit]
+Description=Envio das publicações para o R2 (%i)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=coletor
+Group=coletor
+EnvironmentFile=/etc/coletor/r2-%i.env
+Environment=R2_BUCKET=eleicoes-2026-%i
+Environment=RCLONE_CONFIG_R2_NO_CHECK_BUCKET=true
+Environment=PUBLICATIONS_DIR=/var/lib/coletor/publications
+ExecStart=/opt/coletor/sync.sh
+Restart=always
+RestartSec=10
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

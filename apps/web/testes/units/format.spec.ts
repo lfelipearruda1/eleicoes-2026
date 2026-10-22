@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import {
   formatCount,
-  formatDuration,
   formatInstant,
   formatPercentage,
   formatSourceClock,
@@ -48,22 +47,5 @@ describe('formatSourceClock', () => {
     const result = formatSourceClock({ date: '15/10/2026', time: '09:38:12' })
 
     expect(result).toBe('15/10/2026 09:38:12')
-  })
-})
-
-describe('formatDuration', () => {
-  it.each([
-    [120_000, '2 minutos'],
-    [60_000, '1 minuto'],
-    [3_600_000, '1 hora'],
-    [7_200_000, '2 horas'],
-    [90_000, '90 segundos'],
-    [1_000, '1 segundo'],
-    [15_500, '15 segundos'],
-    [500, '500 milissegundos'],
-  ])('deve descrever %i ms como %s', (ms, expected) => {
-    const text = formatDuration(ms)
-
-    expect(text).toBe(expected)
   })
 })

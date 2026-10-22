@@ -1,7 +1,7 @@
 @reference '../../../index.css';
 
 .card {
-  @apply flex flex-col gap-5;
+  @apply flex flex-col gap-5 transition-opacity duration-300 ease-out motion-reduce:transition-none starting:opacity-0;
 }
 
 .separated {
@@ -34,8 +34,4 @@
 
 .percentage {
   @apply flex-none text-[32px] leading-none font-heading;
-}
-
-.note {
-  @apply m-0 text-[14px] leading-[1.43] text-muted;
 }

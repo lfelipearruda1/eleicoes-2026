@@ -43,6 +43,11 @@ export const TSE_CONFIG_PATH = '/{environment}/comum/config/ele-c.json'
 export const TSE_RESULT_DIRECTORY_TEMPLATE =
   '<base>/<ambiente>/<ciclo>/<cd_eleicao>/dados/<uf>'
 export const TSE_RESULT_FILE_TYPE = 'u'
+export const TSE_PHOTO_DIRECTORY_TEMPLATE =
+  '<base>/<ambiente>/<ciclo>/<cd_eleicao>/fotos/<uf>'
+export const TSE_PHOTO_FILE_TYPE = 'ft'
+export const TSE_MAX_PHOTO_BYTES = 512 * 1024
+export const TSE_PHOTO_RETRY_MS = 10 * 60_000
 export const TSE_OFFICE_CODES = { president: '1', governor: '3' } as const
 export const TSE_NATIONAL_SCOPE = 'br'
 

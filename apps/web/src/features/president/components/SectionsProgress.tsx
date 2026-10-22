@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
 import type { HeaderStatus } from '../status.ts'
+import { AnimatedNumber } from './AnimatedNumber.tsx'
 import styles from './SectionsProgress.module.css'
 
 interface SectionsProgressProps {
@@ -10,11 +11,17 @@ interface SectionsProgressProps {
 
 export function SectionsProgress({ progress, status }: SectionsProgressProps) {
   const { percentage, display, label } = progress
+  const [filledPercentage, setFilledPercentage] = useState(percentage ?? '0')
+  if (percentage !== undefined && percentage !== filledPercentage) {
+    setFilledPercentage(percentage)
+  }
   return (
     <div role="region" aria-label="Seções apuradas" className={styles.region}>
       <div className={styles.row}>
         <div className={styles.summary}>
-          <span className={styles.percentage}>{display}</span>
+          <span className={styles.percentage}>
+            <AnimatedNumber value={display} />
+          </span>
           <span className={styles.label}>{label}</span>
         </div>
         {status}
@@ -31,7 +38,7 @@ export function SectionsProgress({ progress, status }: SectionsProgressProps) {
         <rect
           className={styles.fill}
           height="100%"
-          width={`${percentage ?? 0}%`}
+          width={`${filledPercentage}%`}
         />
       </svg>
     </div>

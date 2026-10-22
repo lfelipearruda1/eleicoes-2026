@@ -2,7 +2,6 @@ import type { ResultSnapshot } from '@eleicoes/validation'
 
 import { summarizeCandidates, type CandidateSummary } from './candidates.ts'
 import { formatClockTime, formatInstant } from './format.ts'
-import type { Freshness } from './freshness.ts'
 import type { usePublication } from './hooks/usePublication.ts'
 import type { AcceptedPublication } from './publication.ts'
 import { PROVENANCE, SOURCE_LABEL } from './status.ts'
@@ -23,15 +22,15 @@ export type PublicationView =
       status: 'ready'
       summary: CandidateSummary
       governorSummary?: CandidateSummary
-      freshness: Freshness
-      hasFailure: boolean
       details: PublishedDetails
     }
 
+type PublicationRead = ReturnType<typeof usePublication<ResultSnapshot>>
+
 type PublicationViewInput = Pick<
-  ReturnType<typeof usePublication<ResultSnapshot>>,
-  'accepted' | 'freshness' | 'failure' | 'lastReadAt'
-> & { governor?: ResultSnapshot }
+  PublicationRead,
+  'accepted' | 'failure' | 'lastReadAt'
+> & { governor?: Pick<PublicationRead, 'accepted'>; photoRoot?: URL }
 
 function describeDetails(
   { manifest, snapshot }: AcceptedPublication,
@@ -50,19 +49,17 @@ function describeDetails(
 export function describePublication(
   input: PublicationViewInput,
 ): PublicationView {
-  const { accepted, freshness } = input
-  const hasFailure = input.failure !== undefined
-  if (!accepted || !freshness) {
-    return { status: hasFailure ? 'failed' : 'loading' }
+  const { accepted } = input
+  const governor = input.governor?.accepted?.snapshot
+  if (!accepted) {
+    return { status: input.failure === undefined ? 'loading' : 'failed' }
   }
   return {
     status: 'ready',
-    summary: summarizeCandidates(accepted.snapshot),
-    ...(input.governor && {
-      governorSummary: summarizeCandidates(input.governor),
+    summary: summarizeCandidates(accepted.snapshot, input.photoRoot),
+    ...(governor && {
+      governorSummary: summarizeCandidates(governor, input.photoRoot),
     }),
-    freshness,
-    hasFailure,
     details: describeDetails(accepted, input.lastReadAt),
   }
 }

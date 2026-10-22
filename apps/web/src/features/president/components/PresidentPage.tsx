@@ -1,12 +1,15 @@
 import { readUfSummarySchema } from '@eleicoes/validation'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 import { useUfRoute } from '../../map/hooks/useUfRoute.ts'
 import { MapSection } from '../../map/components/MapSection.tsx'
 import { describeUfResults } from '../../map/ufResults.ts'
 import { scopeName } from '../../map/ufs.ts'
 import { summarizeCandidates } from '../candidates.ts'
-import { usePublication } from '../hooks/usePublication.ts'
+import {
+  MISSING_CHANNEL_POLL_INTERVAL_MS,
+  usePublication,
+} from '../hooks/usePublication.ts'
 import {
   channelSource,
   summarySource,
@@ -66,17 +69,31 @@ export function PresidentPage({
   const ufGovernor = usePublication({
     source: sources.governor,
     ...polling,
-    stopWhenMissing: true,
+    missingIntervalMs: MISSING_CHANNEL_POLL_INTERVAL_MS,
   })
   const active = uf ? ufPresident : national
-  const snapshot = active.accepted?.snapshot
+  const [lastAccepted, setLastAccepted] = useState(active.accepted)
+  if (active.accepted && active.accepted !== lastAccepted) {
+    setLastAccepted(active.accepted)
+  }
+  const accepted =
+    active.accepted ?? (active.failure === undefined ? lastAccepted : undefined)
+  const snapshot = accepted?.snapshot
   const nationalSnapshot = national.accepted?.snapshot
   const nationalSummary =
     nationalSnapshot && summarizeCandidates(nationalSnapshot)
-  const governor = uf && ufGovernor.accepted?.snapshot
+  const isGovernorLoading =
+    uf !== undefined && !ufGovernor.accepted && ufGovernor.failure === undefined
+  const liveGovernor = uf && ufGovernor.accepted
+  const [shownGovernor, setShownGovernor] = useState(liveGovernor)
+  const governor =
+    liveGovernor || (isGovernorLoading ? shownGovernor : undefined)
+  if (governor !== shownGovernor) setShownGovernor(governor)
   const view = describePublication({
     ...active,
-    ...(governor && { governor }),
+    accepted,
+    photoRoot: endpoint.root,
+    ...(governor && { governor: { accepted: governor } }),
   })
   const status = describeHeaderStatus({
     snapshot,
@@ -109,12 +126,7 @@ export function PresidentPage({
           scope={scope}
           onSelectUf={showUf}
         />
-        <ResultsPanel
-          scope={scope}
-          view={view}
-          staleAfterMs={staleAfterMs}
-          onRetry={active.refresh}
-        />
+        <ResultsPanel scope={scope} view={view} onRetry={active.refresh} />
       </main>
       <SiteFooter view={view} />
     </div>

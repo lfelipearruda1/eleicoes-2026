@@ -16,6 +16,8 @@ export {
   type ManifestUpdateDecision,
 } from './contract/manifest.js'
 export {
+  CANDIDATE_PHOTOS_DIRECTORY,
+  candidatePhotoPath,
   PENDING_REASONS,
   publishResultSnapshotSchema,
   readResultSnapshotSchema,

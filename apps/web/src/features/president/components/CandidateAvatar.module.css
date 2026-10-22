@@ -12,6 +12,10 @@
   @apply absolute inset-0.5 rounded-full bg-surface;
 }
 
+.photo {
+  @apply absolute inset-0.5 size-[calc(100%-4px)] rounded-full object-cover object-top;
+}
+
 .candidate1 {
   @apply border-candidate-1;
 }

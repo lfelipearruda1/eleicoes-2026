@@ -27,29 +27,33 @@ afterEach(async () => {
 })
 
 function request(url: string, method = 'GET') {
-  return new Promise<{ status: number; body: string; next: boolean }>(
-    (resolve) => {
-      const response = {
-        statusCode: 0,
-        headers: {} as Record<string, string>,
-        setHeader(name: string, value: string) {
-          this.headers[name] = value
-        },
-        end(body?: Buffer) {
-          resolve({
-            status: this.statusCode,
-            body: body?.toString() ?? '',
-            next: false,
-          })
-        },
-      }
-      createPublicationsHandler(workDirectory)(
-        { url, method } as IncomingMessage,
-        response as unknown as ServerResponse,
-        () => resolve({ status: 0, body: '', next: true }),
-      )
-    },
-  )
+  return new Promise<{
+    status: number
+    body: string
+    next: boolean
+    headers?: Record<string, string>
+  }>((resolve) => {
+    const response = {
+      statusCode: 0,
+      headers: {} as Record<string, string>,
+      setHeader(name: string, value: string) {
+        this.headers[name] = value
+      },
+      end(body?: Buffer) {
+        resolve({
+          status: this.statusCode,
+          body: body?.toString() ?? '',
+          next: false,
+          headers: this.headers,
+        })
+      },
+    }
+    createPublicationsHandler(workDirectory)(
+      { url, method } as IncomingMessage,
+      response as unknown as ServerResponse,
+      () => resolve({ status: 0, body: '', next: true }),
+    )
+  })
 }
 
 describe('createPublicationsHandler', () => {
@@ -84,6 +88,31 @@ describe('createPublicationsHandler', () => {
 
     expect(result).toMatchObject({ status: 404, body: '' })
   })
+
+  it('deve servir a foto da candidatura como JPEG', async () => {
+    await mkdir(path.join(workDirectory, 'fotos'))
+    await writeFile(
+      path.join(workDirectory, 'fotos', '70002553055.jpeg'),
+      'jpeg',
+    )
+
+    const result = await request('/publications/fotos/70002553055.jpeg')
+
+    expect(result.status).toBe(200)
+    expect(result.headers?.['Content-Type']).toBe('image/jpeg')
+  })
+
+  it.each(['fotos/a.jpeg', 'fotos/1.png', 'fotos/../segredo.json'])(
+    'deve recusar caminho de foto fora do padrão: %s',
+    async (file) => {
+      await mkdir(path.join(workDirectory, 'fotos'))
+      await writeFile(path.join(workDirectory, 'fotos', 'a.jpeg'), 'jpeg')
+
+      const result = await request(`/publications/${file}`)
+
+      expect(result.status).toBe(404)
+    },
+  )
 
   it('deve recusar escrita', async () => {
     const result = await request('/publications/canal/manifest.json', 'POST')

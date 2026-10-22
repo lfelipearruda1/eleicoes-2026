@@ -1,4 +1,5 @@
 import type { CandidateSummary } from '../candidates.ts'
+import { AnimatedNumber } from './AnimatedNumber.tsx'
 import { CandidateAvatar } from './CandidateAvatar.tsx'
 import styles from './ResultCard.module.css'
 import { SegmentBar } from './SegmentBar.tsx'
@@ -20,12 +21,20 @@ export function PresidentCard({
       <ul className={styles.rows}>
         {summary.rows.map((row) => (
           <li key={row.candidateId} className={styles.row}>
-            <CandidateAvatar tone={row.tone} isAhead={row.isAhead} />
+            <CandidateAvatar
+              tone={row.tone}
+              isAhead={row.isAhead}
+              {...(row.photoUrl && { photoUrl: row.photoUrl })}
+            />
             <div className={styles.info}>
               <span className={styles.name}>{row.ballotName}</span>
-              <span className={styles.votes}>{row.votes}</span>
+              <span className={styles.votes}>
+                <AnimatedNumber value={row.votes} />
+              </span>
             </div>
-            <span className={styles.percentage}>{row.percentage}</span>
+            <span className={styles.percentage}>
+              <AnimatedNumber value={row.percentage} />
+            </span>
           </li>
         ))}
       </ul>
@@ -33,7 +42,6 @@ export function PresidentCard({
         segments={summary.segments}
         midline={summary.segments.length === 2}
       />
-      {summary.note && <p className={styles.note}>{summary.note}</p>}
     </div>
   )
 }

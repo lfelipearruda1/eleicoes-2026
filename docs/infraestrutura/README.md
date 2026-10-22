@@ -2,7 +2,29 @@
 
 [Voltar ao contexto](../contexto.md)
 
-Esta página diz qual serviço faz o quê e em que ordem ele entra. Nenhum recurso foi criado. Não há conta, bucket, zona, instância, Dockerfile nem arquivo de Wrangler no repositório. `infra/cloudflare` só contém `.gitkeep`.
+Esta página diz qual serviço faz o quê e em que ordem ele entra. O que já existe está em [Estado em 21/10/2026](#estado-em-21102026). As seções seguintes guardam o desenho original; onde ele mudou, o estado prevalece.
+
+## Estado em 21/10/2026
+
+A conta da AWS estava suspensa por fim do plano gratuito, e o prazo do 2º turno (25/10) não comportava esperar o suporte. **Decisão:** o coletor roda numa VPS da Hostinger em São Paulo, e não no EC2. Para o coletor, que é um processo único e pequeno, a troca é equivalente: o público nunca acessa essa máquina.
+
+| Recurso                         | Onde                                                                                           | Configuração no repositório                                    |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| VPS do coletor                  | Hostinger KVM 1, Ubuntu 24.04, `srv2083120`, contratada até 21/11/2026                         | `infra/coletor/`                                               |
+| Coleta                          | serviço `coletor-watch` (systemd), usuário `coletor`, reinício automático                      | `infra/coletor/coletor-watch.service`                          |
+| Envio para o R2                 | serviço `coletor-sync@<ambiente>` com rclone; snapshots antes do manifesto                     | `infra/coletor/coletor-sync@.service`, `infra/coletor/sync.sh` |
+| Deploy do coletor               | comando restrito `/opt/coletor/deploy.sh`; volta à versão anterior se falhar                   | `infra/coletor/deploy.sh`                                      |
+| Buckets R2                      | `eleicoes-2026-homologacao` e `eleicoes-2026-producao`, privados                               | CORS em `infra/coletor/cors-homologacao.json`                  |
+| Domínio dos dados (homologação) | `dados-homologacao.eleicaobrasil2026.com.br`                                                   | —                                                              |
+| Site (homologação)              | Worker só de assets `eleicoes-2026-web-homologacao`, em `homologacao.eleicaobrasil2026.com.br` | `infra/cloudflare/wrangler.jsonc`                              |
+| Site (produção)                 | Worker `eleicoes-2026-web`, em `eleicaobrasil2026.com.br` e `www`; ainda não publicado         | `infra/cloudflare/wrangler.jsonc`, ambiente `producao`         |
+| CI/CD                           | `Verificação` em todo push e PR; `Deploy` depois da verificação verde na `main`                | `.github/workflows/`                                           |
+
+Cache: manifesto com `Cache-Control: public, max-age=10`; snapshots com `max-age=31536000, immutable`. O domínio dos dados ainda responde `cf-cache-status: DYNAMIC`, porque falta a regra de cache para JSON.
+
+Credenciais: a chave R2 de cada ambiente fica em `/etc/coletor/r2-<ambiente>.env` na VPS, legível só por root e `coletor`. A de homologação não escreve em produção (verificado: 403). Acesso à VPS só por chave SSH; login por senha desligado.
+
+**Docker.** Não é usado nesta entrega. O coletor vai para a VPS como um arquivo único gerado por `pnpm --filter @eleicoes/collector run bundle`, e o systemd faz o papel de reinício que a política do container faria. Uma imagem acrescentaria registro, build de imagem e daemon sem resolver nenhum problema atual. ET-09 continua válida para depois da eleição, se a mesma imagem precisar rodar em outro lugar.
 
 Os rótulos de estado estão em [contexto.md](../contexto.md). As decisões que justificam esta topologia estão em [arquitetura/README.md](../arquitetura/README.md).
 

@@ -1,7 +1,5 @@
 import type { Manifest } from '@eleicoes/validation'
 
-import { formatDuration } from './format.ts'
-
 export type FreshnessReference = 'checkedAt' | 'collectedAt'
 
 interface FreshnessReferencePoint {
@@ -15,8 +13,6 @@ export type Freshness = FreshnessReferencePoint &
     | { state: 'stale'; ageMs: number }
     | { state: 'undetermined'; cause: 'reference-ahead' | 'invalid-clock' }
   )
-
-export type FreshnessWarning = Exclude<Freshness, { state: 'recent' }>
 
 export function assessFreshness(
   publication: { manifest: Manifest; snapshot: { collectedAt: string } },
@@ -61,18 +57,4 @@ export function nextFreshnessChangeAt(
     return undefined
   }
   return referenceMs
-}
-
-export function describeFreshness(
-  warning: FreshnessWarning,
-  staleAfterMs: number,
-): string {
-  if (warning.state === 'undetermined') {
-    return warning.cause === 'invalid-clock'
-      ? 'Não foi possível confirmar a atualidade dos dados.'
-      : 'Não foi possível confirmar a atualidade dos dados: o horário de referência está à frente do relógio deste dispositivo.'
-  }
-  return warning.reference === 'checkedAt'
-    ? 'Sem verificação recente da origem. Exibindo o último resultado disponível.'
-    : `A última coleta registrada ocorreu há mais de ${formatDuration(staleAfterMs)}. Não há confirmação de atualização posterior.`
 }

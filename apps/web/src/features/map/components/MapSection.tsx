@@ -23,16 +23,18 @@ export function MapSection({
   onSelectUf,
 }: MapSectionProps) {
   const [view, setView] = useState<MapView>('map')
+  const legend = (
+    <MapLegend
+      candidates={candidates}
+      showUndecided={Object.values(ufResults).some(
+        (result) => result.undecided,
+      )}
+    />
+  )
   return (
     <section aria-label="Mapa do Brasil" className={styles.section}>
       <div className={styles.toolbar}>
         <ViewToggle view={view} onChange={setView} />
-        <MapLegend
-          candidates={candidates}
-          showUndecided={Object.values(ufResults).some(
-            (result) => result.undecided,
-          )}
-        />
       </div>
       {view === 'map' ? (
         <>
@@ -42,6 +44,7 @@ export function MapSection({
               scope={scope}
               onSelectUf={onSelectUf}
             />
+            <div className={styles.legendSlot}>{legend}</div>
           </div>
           <p className={styles.hint}>
             Selecione uma UF para ver os resultados. O resultado nacional é a
@@ -49,12 +52,15 @@ export function MapSection({
           </p>
         </>
       ) : (
-        <UfList
-          candidateNames={candidates}
-          results={ufResults}
-          scope={scope}
-          onSelectUf={onSelectUf}
-        />
+        <>
+          {legend}
+          <UfList
+            candidateNames={candidates}
+            results={ufResults}
+            scope={scope}
+            onSelectUf={onSelectUf}
+          />
+        </>
       )}
     </section>
   )

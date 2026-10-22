@@ -21,7 +21,7 @@ export function SegmentBar({
       {segments.map((segment) => (
         <rect
           key={segment.key}
-          className={`${styles[segment.tone]} ${segment.dim ? styles.dim : ''}`}
+          className={`${styles.segment} ${styles[segment.tone]} ${segment.dim ? styles.dim : ''}`}
           x={`${segment.start}%`}
           width={`${segment.width}%`}
           height="100%"

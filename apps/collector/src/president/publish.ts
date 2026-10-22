@@ -177,12 +177,14 @@ export interface ResultPublishRequest {
   now?: () => Date
   beforeManifestSwap?: () => Promise<void>
   checkedAtMinIntervalMs?: number
+  photos?: ReadonlySet<string>
 }
 
 export async function publishResultCapture({
   capture,
   output,
   channel,
+  photos,
   ...forwardedOptions
 }: ResultPublishRequest) {
   const captureDirectory = path.resolve(capture)
@@ -197,6 +199,7 @@ export async function publishResultCapture({
   const snapshot = normalizeResult(summary, {
     ...context,
     dataVersion: randomUUID(),
+    ...(photos && { photos }),
   })
   const content = electoralContent(snapshot)
   const { status } = await publishDocument({

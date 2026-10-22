@@ -14,6 +14,8 @@ export function setupPresidentPage() {
   const page = { server: fakeServer() }
 
   beforeEach(() => {
+    window.matchMedia = (query: string) =>
+      ({ matches: query.includes('prefers-reduced-motion') }) as MediaQueryList
     window.location.hash = ''
     page.server = fakeServer()
     page.server.publish(manifestFor(availableSnapshot()), availableSnapshot())
