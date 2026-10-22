@@ -27,7 +27,7 @@ async function renderDistritoFederal() {
       fetcher={page.server.fetcher}
     />,
   )
-  await screen.findByRole('heading', { name: 'Governador em Distrito Federal' })
+  await screen.findByRole('heading', { name: 'Governador' })
 }
 
 const breakConnection = (manifestPath: string) => {

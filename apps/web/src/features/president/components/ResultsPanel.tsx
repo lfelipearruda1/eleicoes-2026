@@ -19,15 +19,12 @@ function ReadyResults({ scope, view }: { scope: Scope; view: ReadyView }) {
   }
   return (
     <>
-      <PresidentCard
-        summary={view.summary}
-        title={`Presidente em ${scope.uf.name}`}
-      />
+      <PresidentCard summary={view.summary} />
       {view.governorSummary && (
         <PresidentCard
           separated
           summary={view.governorSummary}
-          title={`Governador em ${scope.uf.name}`}
+          title="Governador"
         />
       )}
     </>

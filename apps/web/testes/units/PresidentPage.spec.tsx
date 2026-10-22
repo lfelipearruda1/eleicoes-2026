@@ -90,7 +90,7 @@ describe('PresidentPage', () => {
         name: 'São Paulo (SP): dados indisponíveis',
       }),
     )
-    await screen.findByRole('heading', { name: 'Presidente em São Paulo' })
+    await screen.findByRole('heading', { name: 'São Paulo' })
 
     expect(window.location.hash).toBe('#/uf/SP')
     expect(await results().findByText('7.000 votos')).toBeTruthy()
@@ -103,7 +103,7 @@ describe('PresidentPage', () => {
 
     window.location.hash = '#/uf/SP'
     window.dispatchEvent(new HashChangeEvent('hashchange'))
-    await screen.findByRole('heading', { name: 'Presidente em São Paulo' })
+    await screen.findByRole('heading', { name: 'São Paulo' })
 
     expect(screen.queryByText('Carregando resultados…')).toBeNull()
     expect(results().getAllByRole('listitem')[0]).toBe(nationalCandidates[0])
@@ -134,11 +134,11 @@ describe('PresidentPage', () => {
       />,
     )
     const governor = await screen.findByRole('heading', {
-      name: 'Governador em Distrito Federal',
+      name: 'Governador',
     })
 
     const president = screen.getByRole('heading', {
-      name: 'Presidente em Distrito Federal',
+      name: 'Presidente',
     })
     expect(
       president.compareDocumentPosition(governor) &
@@ -161,14 +161,13 @@ describe('PresidentPage', () => {
       />,
     )
     await screen.findByRole('heading', {
-      name: 'Governador em Distrito Federal',
+      name: 'Governador',
     })
 
     window.location.hash = '#/uf/AC'
     window.dispatchEvent(new HashChangeEvent('hashchange'))
-    expect(
-      await screen.findByRole('heading', { name: 'Governador em Acre' }),
-    ).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: 'Acre' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Governador' })).toBeTruthy()
     expect(await screen.findByText('4.444 votos')).toBeTruthy()
 
     window.location.hash = '#/uf/SP'
@@ -190,7 +189,7 @@ describe('PresidentPage', () => {
         fetcher={page.server.fetcher}
       />,
     )
-    await screen.findByRole('heading', { name: 'Presidente em São Paulo' })
+    await screen.findByRole('heading', { name: 'São Paulo' })
     await act(async () => {})
 
     expect(results().getAllByRole('heading', { level: 2 })).toHaveLength(1)
@@ -227,7 +226,7 @@ describe('PresidentPage', () => {
       />,
     )
     await screen.findByRole('heading', {
-      name: 'Presidente em Distrito Federal',
+      name: 'Presidente',
     })
 
     fireEvent.click(screen.getByRole('button', { name: 'Visão Brasil' }))
