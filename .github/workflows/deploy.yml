@@ -261,6 +261,11 @@ jobs:
           KNOWN_HOSTS: ${{ vars.COLETOR_KNOWN_HOSTS }}
           HOST: ${{ vars.COLETOR_HOST }}
         run: |
+          set -o pipefail
+          if [[ -z "$DEPLOY_KEY" ]]; then
+            echo "::error::Segredo COLETOR_DEPLOY_KEY ausente no ambiente coletor."
+            exit 1
+          fi
           install -m 700 -d ~/.ssh
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy
           chmod 600 ~/.ssh/deploy
