@@ -35,7 +35,7 @@ export function UfList({
           <span
             key={candidate.candidateId}
             role="columnheader"
-            className={styles.value}
+            className={styles.candidateName}
           >
             {nameWithParty(candidate)}
           </span>

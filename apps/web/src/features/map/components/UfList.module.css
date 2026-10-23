@@ -6,11 +6,11 @@
 
 .header,
 .row {
-  @apply grid grid-flow-col grid-cols-[32px_minmax(0,1fr)] auto-cols-[64px] items-center gap-3 md:grid-cols-[40px_minmax(0,1fr)_120px] md:auto-cols-[72px];
+  @apply grid grid-flow-col grid-cols-[32px_minmax(0,1fr)] auto-cols-[84px] items-center gap-3 md:grid-cols-[40px_minmax(0,1fr)_96px] md:auto-cols-[112px];
 }
 
 .header {
-  @apply px-3 pb-2.5 text-[12px] text-muted;
+  @apply items-end px-3 pb-2.5 text-[12px] text-muted;
 }
 
 .row {
@@ -32,6 +32,10 @@
 
 .barCell {
   @apply hidden md:block;
+}
+
+.candidateName {
+  @apply text-right leading-[1.25] font-semibold [overflow-wrap:anywhere];
 }
 
 .value {
