@@ -13,11 +13,11 @@
 }
 
 .uf {
-  @apply cursor-pointer stroke-page outline-none [stroke-linejoin:round] [stroke-width:1.6] transition-opacity duration-200;
+  @apply cursor-pointer stroke-map-border outline-none [stroke-linejoin:round] [stroke-width:1.2] [vector-effect:non-scaling-stroke] [transition-property:fill-opacity] duration-200;
 }
 
 .ufDimmed {
-  @apply opacity-45;
+  @apply [fill-opacity:0.4];
 }
 
 .outlineHover {
