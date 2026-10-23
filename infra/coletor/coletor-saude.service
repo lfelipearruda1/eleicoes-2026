@@ -1,0 +1,15 @@
+[Unit]
+Description=Sinal de vida dos dados de produção para o healthchecks.io
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=coletor
+Group=coletor
+EnvironmentFile=/etc/coletor/healthcheck.env
+ExecStart=/opt/coletor/saude.sh
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true

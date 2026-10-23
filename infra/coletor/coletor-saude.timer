@@ -1,0 +1,10 @@
+[Unit]
+Description=Verifica a cada minuto se os dados de produção estão atualizados
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1min
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target
