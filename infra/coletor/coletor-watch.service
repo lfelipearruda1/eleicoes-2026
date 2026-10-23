@@ -7,6 +7,7 @@ Wants=network-online.target
 User=coletor
 Group=coletor
 WorkingDirectory=/var/lib/coletor
+ExecStartPre=/usr/bin/find /var/lib/coletor/publications -maxdepth 3 ( -name .publish.lock -o -name .tmp-* ) -delete
 ExecStart=/usr/local/bin/node /opt/coletor/collector.mjs tse-watch --source official --round 2 --output /var/lib/coletor/tse --publications /var/lib/coletor/publications
 Restart=always
 RestartSec=10
