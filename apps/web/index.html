@@ -9,7 +9,7 @@
     <title>Eleições Brasil 2026</title>
     <script>
       try {
-        if (localStorage.getItem('eleicoes:tema') === 'dark') {
+        if (sessionStorage.getItem('eleicoes:tema') === 'dark') {
           document.documentElement.dataset.theme = 'dark'
         }
       } catch {}

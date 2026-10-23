@@ -6,7 +6,7 @@ import { ThemeToggle } from '../../src/features/theme/ThemeToggle.tsx'
 import { THEME_STORAGE_KEY } from '../../src/features/theme/theme.ts'
 
 beforeEach(() => {
-  localStorage.clear()
+  sessionStorage.clear()
   delete document.documentElement.dataset.theme
 })
 
@@ -22,20 +22,20 @@ describe('ThemeToggle', () => {
     ).toBeTruthy()
   })
 
-  it('deve alternar entre escuro e claro e lembrar a escolha', () => {
+  it('deve alternar entre escuro e claro e lembrar a escolha na aba', () => {
     render(<ThemeToggle />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Ativar modo escuro' }))
     expect(document.documentElement.dataset.theme).toBe('dark')
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('dark')
+    expect(sessionStorage.getItem(THEME_STORAGE_KEY)).toBe('dark')
 
     fireEvent.click(screen.getByRole('button', { name: 'Ativar modo claro' }))
     expect(document.documentElement.dataset.theme).toBe('light')
-    expect(localStorage.getItem(THEME_STORAGE_KEY)).toBe('light')
+    expect(sessionStorage.getItem(THEME_STORAGE_KEY)).toBe('light')
   })
 
-  it('deve abrir no modo escuro quando a pessoa já escolheu', () => {
-    localStorage.setItem(THEME_STORAGE_KEY, 'dark')
+  it('deve manter o modo escuro ao recarregar a mesma aba', () => {
+    sessionStorage.setItem(THEME_STORAGE_KEY, 'dark')
 
     render(<ThemeToggle />)
 
