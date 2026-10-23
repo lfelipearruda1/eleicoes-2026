@@ -14,7 +14,12 @@ import { publishResultCapture } from '../president/publish.js'
 import { storeCandidatePhotos } from './photos.js'
 import { channelFor } from './channels.js'
 import { publishUfSummary } from './summary.js'
-import type { parseElectionConfig, ResultTarget, SourceName } from './ea11.js'
+import {
+  generalElectionPleitos,
+  type parseElectionConfig,
+  type ResultTarget,
+  type SourceName,
+} from './ea11.js'
 import type { Transport } from './http.js'
 import {
   collectTarget,
@@ -55,7 +60,7 @@ export function listTargets(
   round: number,
 ): ResultTarget[] {
   const scopesWith = (officeCode: string) =>
-    config.pl.flatMap((pleito) =>
+    generalElectionPleitos(config, round).flatMap((pleito) =>
       pleito.e
         .filter((election) => election.t === String(round))
         .flatMap((election) =>

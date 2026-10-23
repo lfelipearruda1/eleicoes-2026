@@ -100,6 +100,24 @@ export function parseElectionConfig(document: unknown) {
   return parsed.data
 }
 
+export function generalElectionPleitos(
+  config: ReturnType<typeof parseElectionConfig>,
+  round: number,
+) {
+  const withPresident = config.pl.filter((pleito) =>
+    pleito.e.some(
+      (election) =>
+        election.t === String(round) &&
+        election.abr.some(
+          (scope) =>
+            scope.cd === TSE_NATIONAL_SCOPE &&
+            scope.cp.some((office) => office.cd === TSE_OFFICE_CODES.president),
+        ),
+    ),
+  )
+  return withPresident.length > 0 ? withPresident : config.pl
+}
+
 export function selectElection(
   config: ReturnType<typeof parseElectionConfig>,
   round: number,
@@ -108,7 +126,10 @@ export function selectElection(
 ): ElectionSelection {
   const configScope =
     target.office === 'president' ? TSE_NATIONAL_SCOPE : target.scope
-  const matches = config.pl.flatMap((pleito) =>
+  const pleitos = requestedElection
+    ? config.pl
+    : generalElectionPleitos(config, round)
+  const matches = pleitos.flatMap((pleito) =>
     pleito.e
       .filter(
         (election) =>

@@ -13,6 +13,7 @@ import {
   selectElection,
 } from '../../src/tse/ea11.js'
 import { runTseOnce } from '../../src/tse/run.js'
+import { listTargets } from '../../src/tse/watch.js'
 import { thrownBy } from './failures.js'
 import {
   PRESIDENT_BR,
@@ -248,5 +249,46 @@ describe('EA11: seleção da eleição', () => {
     expect(configUrl('official').href).toBe(
       `https://${HOST}/oficial/comum/config/ele-c.json`,
     )
+  })
+})
+
+describe('EA11: só o pleito da eleição geral', () => {
+  const withSupplementary = () => {
+    const config = syntheticConfig([syntheticElection('9001', '1')])
+    return parseElectionConfig({
+      ...config,
+      pl: [
+        ...config.pl,
+        {
+          cd: '3237',
+          c: 'ele2024',
+          e: [
+            {
+              cd: '6278',
+              nm: 'Eleição Suplementar - Roraima',
+              t: '1',
+              abr: [{ cd: 'rr', cp: [{ cd: '3' }] }],
+            },
+          ],
+        },
+      ],
+    })
+  }
+
+  it('deve ignorar governador de eleição suplementar de outro pleito', () => {
+    const targets = listTargets(withSupplementary(), 1)
+
+    expect(targets.filter((target) => target.office === 'governor')).toEqual([])
+  })
+
+  it('deve não escolher a eleição suplementar para governador', () => {
+    const error = thrownBy(() =>
+      selectElection(withSupplementary(), 1, {
+        office: 'governor',
+        scope: 'rr',
+      }),
+    )
+
+    expect(error.code).toBe('ELECTION_NOT_FOUND')
   })
 })
