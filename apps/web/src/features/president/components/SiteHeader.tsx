@@ -1,5 +1,6 @@
 import type { MouseEvent, ReactNode } from 'react'
 
+import { ThemeToggle } from '../../theme/ThemeToggle.tsx'
 import styles from './SiteHeader.module.css'
 
 interface SiteHeaderProps {
@@ -27,6 +28,7 @@ export function SiteHeader({
               <span className={styles.brandRound}>{roundLabel}</span>
             )}
           </a>
+          <ThemeToggle />
         </nav>
       </header>
       <div className={styles.scrolling}>{progress}</div>

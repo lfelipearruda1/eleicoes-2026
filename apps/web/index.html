@@ -7,6 +7,13 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icone-192.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Eleições Brasil 2026</title>
+    <script>
+      try {
+        if (localStorage.getItem('eleicoes:tema') === 'dark') {
+          document.documentElement.dataset.theme = 'dark'
+        }
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

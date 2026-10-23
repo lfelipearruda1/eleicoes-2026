@@ -1,0 +1,6 @@
+@reference '../../index.css';
+
+.toggle {
+  @apply inline-grid size-10 flex-none cursor-pointer place-items-center rounded-full border border-solid border-line bg-page text-text transition-colors hover:border-text md:size-9;
+  @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text;
+}

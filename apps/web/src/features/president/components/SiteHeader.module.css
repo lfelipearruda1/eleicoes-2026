@@ -9,7 +9,7 @@
 }
 
 .nav {
-  @apply flex min-h-15 w-full items-center bg-surface px-[clamp(16px,3vw,48px)] py-2.5;
+  @apply flex min-h-15 w-full items-center justify-between gap-4 bg-surface px-[clamp(16px,3vw,48px)] py-2.5;
 }
 
 .brand {

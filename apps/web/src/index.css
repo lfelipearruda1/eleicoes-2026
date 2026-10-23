@@ -2,18 +2,18 @@
 
 @theme {
   --color-*: initial;
-  --color-page: #0a0a0a;
-  --color-surface: #161616;
-  --color-track: #1c1c1c;
-  --color-line: #3a3a3a;
-  --color-dim: #5c5c5c;
-  --color-muted: #8f8f8f;
-  --color-text: #f5f5f5;
+  --color-page: #ffffff;
+  --color-surface: #f1f1f3;
+  --color-track: #e6e6e9;
+  --color-line: #cfcfd4;
+  --color-dim: #a1a1a9;
+  --color-muted: #62626b;
+  --color-text: #111113;
   --color-candidate-1: #e5484d;
-  --color-candidate-1-dim: #2a1415;
+  --color-candidate-1-dim: #fbe3e4;
   --color-candidate-2: #3e7bfa;
-  --color-candidate-2-dim: #141c2e;
-  --color-live: #2ea86b;
+  --color-candidate-2-dim: #e3ebfe;
+  --color-live: #1f8a55;
 
   --shadow-*: initial;
   --inset-shadow-*: initial;
@@ -31,6 +31,24 @@
   --breakpoint-*: initial;
   --breakpoint-md: 768px;
   --breakpoint-wide: 1000px;
+}
+
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-page: #0a0a0a;
+  --color-surface: #161616;
+  --color-track: #1c1c1c;
+  --color-line: #3a3a3a;
+  --color-dim: #5c5c5c;
+  --color-muted: #8f8f8f;
+  --color-text: #f5f5f5;
+  --color-candidate-1-dim: #2a1415;
+  --color-candidate-2-dim: #141c2e;
+  --color-live: #2ea86b;
 }
 
 @layer base {
